@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/features/auth/auth-provider';
 import { useProfile } from '@/features/auth/use-profile';
+import { usePushNotifications } from '@/features/notifications/use-push-notifications';
 import { queryClient } from '@/lib/query-client';
 
 SplashScreen.preventAutoHideAsync();
@@ -28,6 +29,7 @@ function RootNavigator() {
   const { session, isRestoring } = useAuth();
   const { data: profile } = useProfile();
   const role = session ? profile?.role : undefined;
+  usePushNotifications(role);
 
   useEffect(() => {
     if (!isRestoring) {

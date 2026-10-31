@@ -45,6 +45,12 @@
           "cameraPermission": "Pet Sitter uses the camera so you can send visit photos to pet owners.",
           "photosPermission": "Pet Sitter lets you choose photos to send to pet owners."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#208AEF"
+        }
       ]
     ],
     "experiments": {

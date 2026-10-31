@@ -182,3 +182,15 @@ insert into public.care_events (organization_id, visit_id, pet_id, type, value, 
 insert into public.messages (organization_id, household_id, sender_id, body, created_at) values
   ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000d1', 'a0000000-0000-4000-8000-0000000000b1',
    'All done! Biscuit had a great walk and Mochi came out to say hi.', date_trunc('hour', now()) - interval '1 day' + interval '33 minutes');
+
+-- ---------------------------------------------------------------------------
+-- Local push notification config (see migration 20261031000003).
+-- The service_role JWT below is the public demo key every local Supabase stack
+-- uses. Production sets its own values in Vault; never commit real keys.
+-- ---------------------------------------------------------------------------
+
+select vault.create_secret('http://kong:8000/functions/v1', 'edge_functions_url');
+select vault.create_secret(
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
+  'service_role_key'
+);

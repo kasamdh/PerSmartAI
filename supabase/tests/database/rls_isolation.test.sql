@@ -14,7 +14,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(25);
+select plan(26);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures (as postgres, RLS bypassed)
@@ -92,6 +92,9 @@ insert into public.visits (id, organization_id, booking_id, sitter_id, scheduled
 insert into storage.objects (bucket_id, name, owner_id) values
   ('pet-media', 'b0000000-0000-4000-8000-000000000001/b0000000-0000-4000-8000-000000000102/photo.jpg',
    'b0000000-0000-4000-8000-0000000000b2');
+
+insert into public.push_tokens (organization_id, profile_id, token, platform) values
+  ('b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-0000000000c2', 'ExponentPushToken[owner-b-device]', 'ios');
 
 -- Switch the session to a signed-in user (transaction-scoped).
 create function pg_temp.sign_in(p_user_id uuid) returns void
@@ -185,6 +188,11 @@ select is_empty(
   $$ select 1 from storage.objects
      where name = 'b0000000-0000-4000-8000-000000000001/b0000000-0000-4000-8000-000000000102/photo.jpg' $$,
   'owner A cannot see photos from owner B''s visit'
+);
+
+select is_empty(
+  $$ select 1 from public.push_tokens where token = 'ExponentPushToken[owner-b-device]' $$,
+  'owner A cannot read owner B''s push tokens'
 );
 
 reset role;

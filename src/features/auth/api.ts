@@ -1,3 +1,4 @@
+import { unregisterPushToken } from '@/features/notifications/push';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types/models';
 
@@ -12,6 +13,8 @@ export async function signIn({ email, password }: SignInValues): Promise<void> {
 }
 
 export async function signOut(): Promise<void> {
+  // Remove this device's push token while still signed in (RLS needs the session).
+  await unregisterPushToken().catch(() => {});
   const { error } = await supabase.auth.signOut();
   if (error) {
     throw error;

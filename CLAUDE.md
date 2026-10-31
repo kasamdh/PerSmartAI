@@ -72,7 +72,15 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - Sitters see `household_access` (entry codes, alarm, wifi) only from 24h before a visit starts until 24h after it ends.
 - Storage bucket `pet-media` (private) uses the paths `{org_id}/{visit_id}/{file}` and `{org_id}/pets/{pet_id}/{file}`.
 - Every new table needs RLS policies plus cases in `supabase/tests/database/` proving cross-owner, cross-sitter, and cross-org isolation.
-- After any schema change, regenerate types with `npm run db:types`.
+- After any schema change, regenerate types with `npm run db:types` (also copies them to `supabase/functions/_shared/` for Edge Functions).
+
+## Push notifications
+
+- DB triggers (visit status → on_the_way / in_progress / completed, photo insert, incident insert) call `private.send_push_event`, which POSTs via `pg_net` to the `notify-owner` Edge Function.
+- The function URL and service_role JWT come from Vault secrets `edge_functions_url` and `service_role_key`. Local values are in `seed.sql`; production sets its own. If they're missing, nothing is sent.
+- `notify-owner` only accepts service_role callers. Wording lives in `supabase/functions/_shared/push-messages.ts` (pure TS, tested by Jest).
+- The app registers its Expo push token into `push_tokens` after sign-in and deletes it on sign-out. Remote push needs a development or store build: Expo Go on Android can't receive it, and an EAS project id is required.
+- Run functions locally with `npx supabase functions serve`. Edge Function code is Deno and is excluded from `tsc` and ESLint.
 - Use `BigButton` (min 56pt height) or an equivalent for primary actions. Put primary actions in the lower half of the screen.
 - Expo changes between SDKs. Check the versioned docs (https://docs.expo.dev/versions/v58.0.0/) rather than memory.
 - Expo Go only bundles its built-in native modules. A library with custom native code needs a development build.
