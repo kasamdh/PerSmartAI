@@ -7,7 +7,7 @@ import { BigButton, MIN_TAP_TARGET } from '@/components/big-button';
 import { FormField } from '@/components/form-field';
 import { formatInviteCode } from '@/features/auth/invite-code';
 import { createInviteSchema, type CreateInviteValues } from '@/features/auth/schemas';
-import { formatCalendarDate } from '@/features/admin/booking-text';
+import { formatCalendarDate } from '@/features/bookings/booking-text';
 import { zodResolver } from '@/lib/zod-resolver';
 
 import {

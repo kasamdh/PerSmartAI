@@ -90,6 +90,18 @@ export function OwnerHomeScreen() {
           />
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            Bookings
+          </Text>
+          <BigButton label="Book a visit" onPress={() => router.push('/my-bookings/new')} />
+          <BigButton
+            label="My bookings"
+            variant="secondary"
+            onPress={() => router.push('/my-bookings')}
+          />
+        </View>
+
         {visits.isPending ? (
           <ActivityIndicator
             size="large"

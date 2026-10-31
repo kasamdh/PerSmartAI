@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton, MIN_TAP_TARGET } from '@/components/big-button';
 
-import { describeSchedule } from './booking-text';
+import { describeSchedule } from '@/features/bookings/booking-text';
 import { useBooking, useConfirmBooking, useDeclineBooking, useSitters } from './hooks';
 
 const SERVICE_LABELS = {

@@ -1181,6 +1181,20 @@ export type Database = {
         }[];
       };
       confirm_booking: { Args: { p_booking_id: string; p_sitter_id: string }; Returns: number };
+      request_booking: {
+        Args: {
+          p_duration_minutes?: number;
+          p_end_date?: string;
+          p_notes?: string;
+          p_pet_ids: string[];
+          p_recurrence_rule?: string;
+          p_service_type: Database['public']['Enums']['service_type'];
+          p_start_date: string;
+          p_window_end?: string;
+          p_window_start?: string;
+        };
+        Returns: string;
+      };
       set_primary_emergency_contact: { Args: { p_contact_id: string }; Returns: undefined };
     };
     Enums: {

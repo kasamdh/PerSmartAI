@@ -16,7 +16,7 @@ import { useProfile } from '@/features/auth/use-profile';
 import { formatTimeRange } from '@/features/visits/time';
 import { statusLabel } from '@/features/visits/visit-actions';
 
-import { describeSchedule } from './booking-text';
+import { describeSchedule } from '@/features/bookings/booking-text';
 import { useBookingRequests, useTodaysVisits } from './hooks';
 
 const SERVICE_LABELS = {

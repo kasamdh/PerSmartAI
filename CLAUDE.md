@@ -75,6 +75,8 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - After any schema change, regenerate types with `npm run db:types` (also copies them to `supabase/functions/_shared/` for Edge Functions).
 
 - Visits are generated from bookings only by `public.confirm_booking(booking_id, sitter_id)` (admin-only RPC). It converts wall-clock booking times in the org timezone to UTC in Postgres (DST-safe), supports no rule / FREQ=DAILY / FREQ=WEEKLY;BYDAY=..., generates 90 days ahead, and is idempotent (unique `(booking_id, scheduled_start)`). Re-confirming reassigns upcoming visits.
+- Owners create bookings only through `public.request_booking(...)` (security invoker, so RLS applies), which inserts the booking and its `booking_pets` atomically and rejects past dates and recurrence rules `confirm_booking` can't expand. Overnight windows are arrival on the start date and departure on the end date, so `window_end < window_start` is allowed for them.
+- Setting a booking to `cancelled` cancels its `scheduled` visits that haven't ended (trigger `cancel_visits_on_booking_cancel`); visits already under way are left for the sitter. The trigger sets the transaction-local flag `app.booking_cancel_cascade`, which `guard_visit_update` honors.
 
 ## Auth and routing
 
