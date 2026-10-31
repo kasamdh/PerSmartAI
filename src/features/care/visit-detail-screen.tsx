@@ -18,6 +18,7 @@ import { formatTime, formatTimeRange } from '@/features/visits/time';
 import { useVisitActionRunner } from '@/features/visits/use-sitter-visits';
 import { primaryActionFor, statusLabel } from '@/features/visits/visit-actions';
 
+import { CheckOutSheet } from '@/features/visits/check-out-sheet';
 import type { VisitPet } from './api';
 import { canLogCare, FED_AMOUNTS, type CareEventType } from './care-events';
 import { CareTimeline } from './care-timeline';
@@ -44,7 +45,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
   const logEvent = useLogCareEvent(visitId);
   const removeEvent = useDeleteCareEvent(visitId);
   const uploadPhoto = useUploadVisitPhoto(visitId);
-  const { run, pendingFor } = useVisitActionRunner();
+  const { run, pendingFor, checkOutSheet } = useVisitActionRunner();
   const [note, setNote] = useState('');
 
   if (detail.isPending) {
@@ -131,6 +132,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
+      <CheckOutSheet {...checkOutSheet} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
           <Text style={styles.time}>

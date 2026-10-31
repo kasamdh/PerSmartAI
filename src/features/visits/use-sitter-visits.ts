@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { useAuth } from '@/features/auth/auth-provider';
@@ -29,9 +29,17 @@ export function useVisitAction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ visitId, action }: { visitId: string; action: VisitActionKind }) => {
+    mutationFn: async ({
+      visitId,
+      action,
+      summary,
+    }: {
+      visitId: string;
+      action: VisitActionKind;
+      summary?: string;
+    }) => {
       const coords = action === 'on_the_way' ? null : await getCurrentCoords();
-      await updateVisit(visitId, buildVisitUpdate(action, new Date(), coords));
+      await updateVisit(visitId, buildVisitUpdate(action, new Date(), coords, summary));
     },
     onSettled: (_data, _error, { visitId }) =>
       Promise.all([
@@ -42,20 +50,22 @@ export function useVisitAction() {
 }
 
 /**
- * Runs visit actions with the shared UX: check-out asks for confirmation (it ends
- * the visit for the owner), failures show an alert. `pendingFor` drives spinners.
+ * Runs visit actions with the shared UX: check-out opens a sheet that confirms
+ * and collects a summary for the owner; failures show an alert. Render
+ * `<CheckOutSheet {...checkOutSheet} />` on the screen. `pendingFor` drives spinners.
  */
 export function useVisitActionRunner() {
   const visitAction = useVisitAction();
+  const [checkingOut, setCheckingOut] = useState<{ id: string; placeName: string } | null>(null);
 
   const pendingFor = (visitId: string): VisitActionKind | null =>
     visitAction.isPending && visitAction.variables?.visitId === visitId
       ? visitAction.variables.action
       : null;
 
-  const execute = (visitId: string, action: VisitActionKind) =>
+  const execute = (visitId: string, action: VisitActionKind, summary?: string) =>
     visitAction.mutate(
-      { visitId, action },
+      { visitId, action, summary },
       {
         onError: (error) =>
           Alert.alert("Couldn't update the visit", error.message || 'Please try again.'),
@@ -63,15 +73,23 @@ export function useVisitActionRunner() {
     );
 
   const run = (visit: { id: string; placeName: string }, action: VisitActionKind) => {
-    if (action !== 'check_out') {
+    if (action === 'check_out') {
+      setCheckingOut(visit);
+    } else {
       execute(visit.id, action);
-      return;
     }
-    Alert.alert('Check out?', `Finish the visit at ${visit.placeName}?`, [
-      { text: 'Not yet', style: 'cancel' },
-      { text: 'Check out', onPress: () => execute(visit.id, action) },
-    ]);
   };
 
-  return { run, pendingFor };
+  const checkOutSheet = {
+    placeName: checkingOut?.placeName ?? null,
+    onCancel: () => setCheckingOut(null),
+    onConfirm: (summary: string) => {
+      if (checkingOut) {
+        execute(checkingOut.id, 'check_out', summary);
+      }
+      setCheckingOut(null);
+    },
+  };
+
+  return { run, pendingFor, checkOutSheet };
 }

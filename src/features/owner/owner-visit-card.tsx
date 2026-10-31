@@ -35,6 +35,11 @@ export function OwnerVisitCard({ visit, onOpen }: { visit: OwnerVisit; onOpen: (
         </Text>
       </View>
       <Text style={[styles.status, active && styles.statusActive]}>{status}</Text>
+      {visit.summary_note ? (
+        <Text style={styles.summary} numberOfLines={2}>
+          “{visit.summary_note}”
+        </Text>
+      ) : null}
       <Text style={styles.open}>See care log and photos ›</Text>
     </Pressable>
   );
@@ -92,6 +97,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#1B5E20',
+  },
+  summary: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    color: '#444444',
   },
   open: {
     fontSize: 15,

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BigButton } from '@/components/big-button';
 import { SignOutButton } from '@/features/auth/sign-out-button';
 
+import { CheckOutSheet } from './check-out-sheet';
 import type { SitterVisit } from './api';
 import { groupByDay } from './time';
 import { useSitterVisits, useVisitActionRunner } from './use-sitter-visits';
@@ -23,7 +24,7 @@ const placeName = (visit: SitterVisit) =>
 
 export function SitterTodayScreen() {
   const visits = useSitterVisits();
-  const { run, pendingFor } = useVisitActionRunner();
+  const { run, pendingFor, checkOutSheet } = useVisitActionRunner();
   const router = useRouter();
   const sections = useMemo(() => groupByDay(visits.data ?? [], new Date()), [visits.data]);
 
@@ -49,6 +50,7 @@ export function SitterTodayScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
+      <CheckOutSheet {...checkOutSheet} />
       <SectionList
         sections={sections}
         keyExtractor={(visit) => visit.id}

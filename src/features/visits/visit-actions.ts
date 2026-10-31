@@ -34,12 +34,14 @@ export function secondaryActionFor(status: VisitStatus): VisitAction | null {
 
 /**
  * The visits row update for an action. Only touches columns sitters are allowed
- * to change (see guard_visit_update). Times are UTC ISO strings.
+ * to change (see guard_visit_update). Times are UTC ISO strings. A check-out
+ * summary is saved only when it has text.
  */
 export function buildVisitUpdate(
   action: VisitActionKind,
   now: Date,
   coords: Coords | null,
+  summary?: string,
 ): TablesUpdate<'visits'> {
   const at = now.toISOString();
   switch (action) {
@@ -52,14 +54,38 @@ export function buildVisitUpdate(
         check_in_lat: coords?.lat ?? null,
         check_in_lng: coords?.lng ?? null,
       };
-    case 'check_out':
+    case 'check_out': {
+      const note = summary?.trim();
       return {
         status: 'completed',
         check_out_at: at,
         check_out_lat: coords?.lat ?? null,
         check_out_lng: coords?.lng ?? null,
+        ...(note ? { summary_note: note.slice(0, SUMMARY_MAX_LENGTH) } : {}),
       };
+    }
   }
+}
+
+export const SUMMARY_MAX_LENGTH = 500;
+
+/** Quick phrases a sitter can tap instead of typing (one hand on the leash). */
+export const SUMMARY_PHRASES = [
+  'All good!',
+  'Ate everything.',
+  'Ate a little.',
+  'Good walk.',
+  'Lots of cuddles.',
+  'A bit anxious at first.',
+  'Litter box cleaned.',
+  'Water refilled.',
+];
+
+/** Adds a phrase to the summary as its own sentence, without duplicating it. */
+export function appendPhrase(text: string, phrase: string): string {
+  const current = text.trim();
+  if (current.includes(phrase)) return current;
+  return current ? `${current} ${phrase}` : phrase;
 }
 
 const STATUS_LABELS: Record<VisitStatus, string> = {

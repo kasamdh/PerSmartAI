@@ -38,4 +38,14 @@ describe('OwnerVisitCard', () => {
     await fireEvent.press(screen.getByRole('button', { name: /Drop-in for Biscuit and Mochi/ }));
     expect(onOpen).toHaveBeenCalledTimes(1);
   });
+
+  it('previews the sitter summary on finished visits', async () => {
+    await render(
+      <OwnerVisitCard
+        visit={{ ...visit, status: 'completed', summary_note: 'All good! Good walk.' }}
+        onOpen={jest.fn()}
+      />,
+    );
+    expect(screen.getByText('“All good! Good walk.”')).toBeTruthy();
+  });
 });

@@ -1,5 +1,7 @@
 import {
+  appendPhrase,
   buildVisitUpdate,
+  SUMMARY_MAX_LENGTH,
   primaryActionFor,
   secondaryActionFor,
   statusLabel,
@@ -75,5 +77,39 @@ describe('buildVisitUpdate', () => {
         expect(allowed).toContain(key);
       }
     }
+  });
+});
+
+describe('check-out summary', () => {
+  const now = new Date('2026-10-31T14:05:00.000Z');
+
+  it('saves a trimmed summary with the check-out', () => {
+    expect(buildVisitUpdate('check_out', now, null, '  All good! ')).toMatchObject({
+      status: 'completed',
+      summary_note: 'All good!',
+    });
+  });
+
+  it('leaves any existing summary alone when none is given', () => {
+    expect(buildVisitUpdate('check_out', now, null, '   ')).not.toHaveProperty('summary_note');
+    expect(buildVisitUpdate('check_out', now, null)).not.toHaveProperty('summary_note');
+  });
+
+  it('caps the summary length', () => {
+    const update = buildVisitUpdate('check_out', now, null, 'x'.repeat(SUMMARY_MAX_LENGTH + 50));
+    expect(update.summary_note).toHaveLength(SUMMARY_MAX_LENGTH);
+  });
+
+  it('never adds a summary to other actions', () => {
+    expect(buildVisitUpdate('check_in', now, null, 'hi')).not.toHaveProperty('summary_note');
+  });
+});
+
+describe('appendPhrase', () => {
+  it('adds quick phrases as sentences without repeating them', () => {
+    expect(appendPhrase('', 'All good!')).toBe('All good!');
+    expect(appendPhrase('All good!', 'Good walk.')).toBe('All good! Good walk.');
+    expect(appendPhrase('All good! Good walk.', 'Good walk.')).toBe('All good! Good walk.');
+    expect(appendPhrase('  Ate well ', 'Good walk.')).toBe('Ate well Good walk.');
   });
 });
