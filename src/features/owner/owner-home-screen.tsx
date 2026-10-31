@@ -13,9 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BigButton } from '@/components/big-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
 import { useProfile } from '@/features/auth/use-profile';
+import { usePets } from '@/features/pets/hooks';
+import { PetCard } from '@/features/pets/pet-card';
+import { petRouteFor } from '@/features/pets/routes';
 
 import type { OwnerVisit } from './api';
-import { useOwnerPets, useOwnerVisits, useOwnerVisitsLiveUpdates } from './hooks';
+import { useOwnerVisits, useOwnerVisitsLiveUpdates } from './hooks';
 import { OwnerVisitCard } from './owner-visit-card';
 import { partitionOwnerVisits } from './owner-visits';
 
@@ -23,7 +26,7 @@ export function OwnerHomeScreen() {
   const router = useRouter();
   const { data: profile } = useProfile();
   const visits = useOwnerVisits();
-  const pets = useOwnerPets();
+  const pets = usePets();
   useOwnerVisitsLiveUpdates();
 
   const groups = useMemo(() => partitionOwnerVisits(visits.data ?? [], new Date()), [visits.data]);
@@ -62,11 +65,30 @@ export function OwnerHomeScreen() {
           {firstName ? `Hi, ${firstName}` : 'Welcome'}
         </Text>
 
-        {pets.data && pets.data.length > 0 ? (
-          <Text style={styles.pets}>
-            {pets.data.map((p) => `${p.name} (${p.species})`).join(' · ')}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            My pets
           </Text>
-        ) : null}
+          {pets.isPending ? (
+            <ActivityIndicator accessibilityLabel="Loading pets" />
+          ) : pets.isError ? (
+            <BigButton label="Couldn't load pets. Try again" onPress={() => pets.refetch()} />
+          ) : pets.data.length === 0 ? (
+            <Text style={styles.muted}>
+              Add your pets so your sitter knows how to care for them.
+            </Text>
+          ) : (
+            pets.data.map((p) => (
+              <PetCard key={p.id} pet={p} onPress={() => router.push(petRouteFor('owner', p.id))} />
+            ))
+          )}
+          <BigButton label="Add a pet" onPress={() => router.push('/pets/new')} />
+          <BigButton
+            label="Home & emergency contacts"
+            variant="secondary"
+            onPress={() => router.push('/household')}
+          />
+        </View>
 
         {visits.isPending ? (
           <ActivityIndicator

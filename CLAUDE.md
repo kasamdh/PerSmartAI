@@ -85,6 +85,15 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - All routing rules live in `src/features/auth/routing.ts` (`resolveDestination` + `routeGuards`, tested). Route groups: `(auth)`, `reset-password`, `(onboarding)` (owners without a household), `(owner)`, `(sitter)`, `(admin)`, `(account)` (profile, delete account). Only the current user's group exists.
 - Account deletion goes through the `delete-account` Edge Function. Deleting an owner removes their household data. Deleting a sitter keeps visit history, detached from them. The last admin of a business with members is refused.
 
+## Pets
+
+- `src/features/pets`: TanStack Query hooks (`hooks.ts`), Supabase calls (`api.ts`), Zod schemas with row mappers (`schemas.ts`), and pure helpers (`logic.ts`: allergy banner, age, lb/kg, times, tel links).
+- The shared `PetDetailScreen` is mounted per role at `/pets/[id]` (owner, editable), `/sitter-pet/[id]` and `/admin-pet/[id]` (read-only). Use `petRouteFor(role, id)`.
+- `AllergyBanner` must stay the first element of every pet view. It has no dismiss or collapse, and severe allergies are bold.
+- Weight is entered in lb and stored as `weight_kg`. Medication and feeding times are `HH:MM` wall-clock values.
+- Pet photos are compressed on-device to 1080px by `PhotoPicker` and stored at `{org}/pets/{pet_id}/{file}`. Replacing a photo deletes the old file.
+- `set_primary_emergency_contact(id)` (security invoker) switches the one primary contact atomically.
+
 ## Push notifications
 
 - DB triggers (visit status → on_the_way / in_progress / completed, photo insert, incident insert) call `private.send_push_event`, which POSTs via `pg_net` to the `notify-owner` Edge Function.

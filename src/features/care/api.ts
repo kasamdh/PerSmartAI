@@ -1,17 +1,9 @@
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-
+import { compressImage } from '@/lib/images';
 import { supabase } from '@/lib/supabase';
 import type { Json } from '@/types/database';
 
 import type { CareEventType } from './care-events';
-import {
-  base64ToArrayBuffer,
-  buildPhotoPaths,
-  PET_MEDIA_BUCKET,
-  PHOTO_MAX_WIDTH,
-  targetWidth,
-  THUMB_WIDTH,
-} from './photo-paths';
+import { buildPhotoPaths, PET_MEDIA_BUCKET, PHOTO_MAX_WIDTH, THUMB_WIDTH } from './photo-paths';
 
 const VISIT_DETAIL_SELECT = `
   id, status, scheduled_start, scheduled_end, check_in_at, check_out_at, summary_note, organization_id,
@@ -120,13 +112,8 @@ export async function fetchVisitPhotos(visitId: string) {
 
 export type VisitPhoto = Awaited<ReturnType<typeof fetchVisitPhotos>>[number];
 
-async function renderJpeg(uri: string, width: number, compress: number): Promise<ArrayBuffer> {
-  const image = await ImageManipulator.manipulate(uri).resize({ width }).renderAsync();
-  const result = await image.saveAsync({ format: SaveFormat.JPEG, compress, base64: true });
-  if (!result.base64) {
-    throw new Error('Could not process the photo.');
-  }
-  return base64ToArrayBuffer(result.base64);
+async function renderJpeg(uri: string, width: number, maxWidth: number, quality: number) {
+  return (await compressImage(uri, width, { maxWidth, quality })).data;
 }
 
 /** Resizes, uploads (full + thumbnail), and records a visit photo. Cleans up on failure. */
@@ -138,8 +125,8 @@ export async function uploadVisitPhoto(input: {
   width: number;
 }): Promise<void> {
   const [full, thumb] = await Promise.all([
-    renderJpeg(input.uri, targetWidth(input.width, PHOTO_MAX_WIDTH), 0.7),
-    renderJpeg(input.uri, targetWidth(input.width, THUMB_WIDTH), 0.6),
+    renderJpeg(input.uri, input.width, PHOTO_MAX_WIDTH, 0.7),
+    renderJpeg(input.uri, input.width, THUMB_WIDTH, 0.6),
   ]);
   const { storagePath, thumbPath } = buildPhotoPaths(input.organizationId, input.visitId);
   const bucket = supabase.storage.from(PET_MEDIA_BUCKET);

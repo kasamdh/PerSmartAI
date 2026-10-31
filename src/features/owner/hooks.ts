@@ -4,12 +4,11 @@ import { useEffect } from 'react';
 import { visitKeys } from '@/features/care/hooks';
 import { supabase } from '@/lib/supabase';
 
-import { fetchOwnerPets, fetchOwnerVisit, fetchOwnerVisits } from './api';
+import { fetchOwnerVisit, fetchOwnerVisits } from './api';
 
 export const ownerKeys = {
   visits: ['owner-visits'] as const,
   visit: (visitId: string) => ['owner-visit', visitId] as const,
-  pets: ['owner-pets'] as const,
 };
 
 export function useOwnerVisits() {
@@ -18,10 +17,6 @@ export function useOwnerVisits() {
 
 export function useOwnerVisit(visitId: string) {
   return useQuery({ queryKey: ownerKeys.visit(visitId), queryFn: () => fetchOwnerVisit(visitId) });
-}
-
-export function useOwnerPets() {
-  return useQuery({ queryKey: ownerKeys.pets, queryFn: fetchOwnerPets });
 }
 
 /**

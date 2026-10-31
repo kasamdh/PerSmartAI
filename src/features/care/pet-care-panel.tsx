@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MIN_TAP_TARGET } from '@/components/big-button';
 
 import type { VisitPet } from './api';
+import { AllergyBanner } from '@/features/pets/allergy-banner';
+
 import { careButtonsFor, type CareEventType } from './care-events';
 
 type PetCarePanelProps = {
@@ -10,13 +12,15 @@ type PetCarePanelProps = {
   /** Null hides the care buttons (not checked in, or already checked out). */
   onLog: ((type: Exclude<CareEventType, 'note'>) => void) | null;
   busy?: boolean;
+  /** Opens the full pet profile. */
+  onOpenProfile?: () => void;
 };
 
 function formatTimes(times: string[]): string {
   return times.map((t) => t.slice(0, 5)).join(', ');
 }
 
-export function PetCarePanel({ pet, onLog, busy = false }: PetCarePanelProps) {
+export function PetCarePanel({ pet, onLog, busy = false, onOpenProfile }: PetCarePanelProps) {
   const buttons = careButtonsFor(pet.species, pet.pet_medications.length > 0);
 
   return (
@@ -29,11 +33,7 @@ export function PetCarePanel({ pet, onLog, busy = false }: PetCarePanelProps) {
         </Text>
       </Text>
 
-      {pet.pet_allergies.map((a) => (
-        <Text key={a.id} style={[styles.allergy, a.severity === 'severe' && styles.allergySevere]}>
-          ⚠ Allergy: {a.allergen} ({a.severity}){a.reaction_notes ? ` · ${a.reaction_notes}` : ''}
-        </Text>
-      ))}
+      <AllergyBanner allergies={pet.pet_allergies} />
 
       {pet.feeding_plans.map((f) => (
         <Text key={f.id} style={styles.detail}>
@@ -54,6 +54,17 @@ export function PetCarePanel({ pet, onLog, busy = false }: PetCarePanelProps) {
       ))}
 
       {pet.temperament_notes ? <Text style={styles.detail}>{pet.temperament_notes}</Text> : null}
+
+      {onOpenProfile ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Full profile for ${pet.name}: vet, emergency contacts`}
+          onPress={onOpenProfile}
+          style={styles.profileLink}
+        >
+          <Text style={styles.profileLabel}>Full profile, vet & emergency contacts ›</Text>
+        </Pressable>
+      ) : null}
 
       {onLog ? (
         <View style={styles.grid}>
@@ -99,21 +110,18 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#555555',
   },
-  allergy: {
-    fontSize: 16,
-    color: '#8A4B00',
-    backgroundColor: '#FFF4E5',
-    borderRadius: 10,
-    padding: 8,
-  },
-  allergySevere: {
-    color: '#B71C1C',
-    backgroundColor: '#FDECEA',
-    fontWeight: '600',
-  },
   detail: {
     fontSize: 16,
     color: '#333333',
+  },
+  profileLink: {
+    minHeight: 48,
+    justifyContent: 'center',
+  },
+  profileLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0B5CAD',
   },
   grid: {
     flexDirection: 'row',

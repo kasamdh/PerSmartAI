@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import {
@@ -14,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BigButton } from '@/components/big-button';
 import { TextField } from '@/components/text-field';
 import { useAuth } from '@/features/auth/auth-provider';
+import { petRouteFor } from '@/features/pets/routes';
 import { formatTime, formatTimeRange } from '@/features/visits/time';
 import { useVisitActionRunner } from '@/features/visits/use-sitter-visits';
 import { primaryActionFor, statusLabel } from '@/features/visits/visit-actions';
@@ -38,6 +40,7 @@ function showError(title: string) {
 }
 
 export function VisitDetailScreen({ visitId }: { visitId: string }) {
+  const router = useRouter();
   const { session } = useAuth();
   const detail = useVisitDetail(visitId);
   const events = useCareEvents(visitId);
@@ -182,6 +185,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
             pet={pet}
             onLog={loggable ? (type) => log(pet, type) : null}
             busy={logEvent.isPending}
+            onOpenProfile={() => router.push(petRouteFor('sitter', pet.id))}
           />
         ))}
 

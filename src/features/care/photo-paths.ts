@@ -1,3 +1,5 @@
+export { base64ToArrayBuffer, targetWidth } from '@/lib/image-utils';
+
 export const PET_MEDIA_BUCKET = 'pet-media';
 export const PHOTO_MAX_WIDTH = 1600;
 export const THUMB_WIDTH = 400;
@@ -17,18 +19,4 @@ export function buildPhotoPaths(
     storagePath: `${organizationId}/${visitId}/${name}.jpg`,
     thumbPath: `${organizationId}/${visitId}/${name}-thumb.jpg`,
   };
-}
-
-/** Width to resize to: never upscale, never exceed `max`. */
-export function targetWidth(originalWidth: number, max: number): number {
-  return Math.max(1, Math.min(Math.round(originalWidth), max));
-}
-
-export function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
 }

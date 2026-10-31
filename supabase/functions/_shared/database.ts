@@ -1181,6 +1181,7 @@ export type Database = {
         }[];
       };
       confirm_booking: { Args: { p_booking_id: string; p_sitter_id: string }; Returns: number };
+      set_primary_emergency_contact: { Args: { p_contact_id: string }; Returns: undefined };
     };
     Enums: {
       allergy_severity: 'mild' | 'moderate' | 'severe';

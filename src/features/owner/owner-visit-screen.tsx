@@ -1,5 +1,7 @@
+import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -12,6 +14,8 @@ import { BigButton } from '@/components/big-button';
 import { CareTimeline } from '@/features/care/care-timeline';
 import { useCareEvents, useVisitPhotos } from '@/features/care/hooks';
 import { PhotoGrid } from '@/features/care/photo-grid';
+import { useProfile } from '@/features/auth/use-profile';
+import { petRouteFor } from '@/features/pets/routes';
 import { formatDayAndTime, formatTime } from '@/features/visits/time';
 
 import { useOwnerVisit, useVisitLiveUpdates } from './hooks';
@@ -19,6 +23,8 @@ import { isActiveVisit, ownerStatusText } from './owner-visits';
 
 /** Read-only, live view of one visit for the pet owner. */
 export function OwnerVisitScreen({ visitId }: { visitId: string }) {
+  const router = useRouter();
+  const role = useProfile().data?.role;
   const visit = useOwnerVisit(visitId);
   const events = useCareEvents(visitId);
   const photos = useVisitPhotos(visitId);
@@ -43,7 +49,8 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
   const v = visit.data;
   const now = new Date();
   const sitterName = v.sitter?.full_name.split(' ')[0] ?? null;
-  const pets = v.booking.booking_pets.map((bp) => bp.pet?.name).filter(Boolean);
+  const petList = v.booking.booking_pets.flatMap((bp) => (bp.pet ? [bp.pet] : []));
+  const pets = petList.map((p) => p.name);
   const active = isActiveVisit(v.status);
 
   return (
@@ -80,6 +87,22 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
           ) : null}
           {active ? <Text style={styles.live}>● Live: updates appear automatically</Text> : null}
         </View>
+
+        {role ? (
+          <View style={styles.petLinks}>
+            {petList.map((p) => (
+              <Pressable
+                key={p.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${p.name}'s profile`}
+                onPress={() => router.push(petRouteFor(role, p.id))}
+                style={styles.petLink}
+              >
+                <Text style={styles.petLinkLabel}>{p.name}’s profile ›</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         {v.summary_note ? (
           <View style={styles.card}>
@@ -149,6 +172,15 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: '#333333',
   },
+  petLinks: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  petLink: {
+    minHeight: 48,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#E3F0FD',
+    justifyContent: 'center',
+  },
+  petLinkLabel: { fontSize: 16, fontWeight: '600', color: '#0B5CAD' },
   live: {
     fontSize: 15,
     fontWeight: '600',

@@ -41,14 +41,3 @@ export async function fetchOwnerVisit(visitId: string) {
   }
   return data;
 }
-
-export async function fetchOwnerPets() {
-  const { data, error } = await supabase
-    .from('pets')
-    .select('id, name, species, breed')
-    .order('name');
-  if (error) {
-    throw error;
-  }
-  return data;
-}

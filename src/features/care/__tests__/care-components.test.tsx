@@ -31,7 +31,8 @@ describe('PetCarePanel', () => {
   it('shows allergies and the feeding plan up front', async () => {
     await render(<PetCarePanel pet={cat} onLog={null} />);
 
-    expect(screen.getByText(/Allergy: Fish \(severe\)/)).toBeTruthy();
+    expect(screen.getByTestId('allergy-banner')).toBeTruthy();
+    expect(screen.getByText(/Fish · SEVERE/)).toBeTruthy();
     expect(screen.getByText(/0.5 can Turkey pate at 08:00, 18:00 · no treats/)).toBeTruthy();
   });
 
