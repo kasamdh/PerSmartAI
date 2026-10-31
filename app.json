@@ -25,7 +25,8 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.kasamdh.petsitter"
+      "package": "com.kasamdh.petsitter",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "server",

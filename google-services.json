@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "697697761426",
+    "project_id": "petsitter-kasamdh",
+    "storage_bucket": "petsitter-kasamdh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:697697761426:android:3026efd52a2d21f5fece4b",
+        "android_client_info": {
+          "package_name": "com.kasamdh.petsitter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDH-aDbhb20_6y9R1_r4uaShWjOnvyEhp8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
