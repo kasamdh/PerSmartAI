@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
-import { SignOutButton } from '@/features/auth/sign-out-button';
+import { AccountButtons } from '@/features/auth/account-buttons';
 import { useProfile } from '@/features/auth/use-profile';
 
 import type { OwnerVisit } from './api';
@@ -88,7 +88,7 @@ export function OwnerHomeScreen() {
         )}
 
         <View style={styles.footer}>
-          <SignOutButton />
+          <AccountButtons />
         </View>
       </ScrollView>
     </SafeAreaView>

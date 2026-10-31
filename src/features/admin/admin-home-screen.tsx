@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
-import { SignOutButton } from '@/features/auth/sign-out-button';
+import { AccountButtons } from '@/features/auth/account-buttons';
 import { useProfile } from '@/features/auth/use-profile';
 import { formatTimeRange } from '@/features/visits/time';
 import { statusLabel } from '@/features/visits/visit-actions';
@@ -48,6 +48,7 @@ export function AdminHomeScreen() {
         <Text style={styles.greeting} accessibilityRole="header">
           {firstName ? `Hi, ${firstName}` : 'Dashboard'}
         </Text>
+        <BigButton label="Invite sitters and owners" onPress={() => router.push('/invites')} />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle} accessibilityRole="header">
@@ -134,7 +135,7 @@ export function AdminHomeScreen() {
         </View>
 
         <View style={styles.footer}>
-          <SignOutButton />
+          <AccountButtons />
         </View>
       </ScrollView>
     </SafeAreaView>

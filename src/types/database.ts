@@ -133,7 +133,7 @@ export type Database = {
       care_events: {
         Row: {
           created_at: string;
-          created_by: string;
+          created_by: string | null;
           id: string;
           occurred_at: string;
           organization_id: string;
@@ -146,7 +146,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           id?: string;
           occurred_at?: string;
           organization_id?: string;
@@ -158,7 +158,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           id?: string;
           occurred_at?: string;
           organization_id?: string;
@@ -432,7 +432,7 @@ export type Database = {
         Row: {
           action_taken: string | null;
           created_at: string;
-          created_by: string;
+          created_by: string | null;
           description: string;
           id: string;
           organization_id: string;
@@ -445,7 +445,7 @@ export type Database = {
         Insert: {
           action_taken?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           description: string;
           id?: string;
           organization_id?: string;
@@ -457,7 +457,7 @@ export type Database = {
         Update: {
           action_taken?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           description?: string;
           id?: string;
           organization_id?: string;
@@ -497,11 +497,69 @@ export type Database = {
           },
         ];
       };
+      invites: {
+        Row: {
+          accepted_at: string | null;
+          accepted_by: string | null;
+          code: string;
+          created_at: string;
+          created_by: string | null;
+          email: string | null;
+          expires_at: string;
+          id: string;
+          organization_id: string;
+          role: Database['public']['Enums']['app_role'];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          expires_at?: string;
+          id?: string;
+          organization_id?: string;
+          role: Database['public']['Enums']['app_role'];
+          updated_at?: string;
+        };
+        Update: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
+          code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          email?: string | null;
+          expires_at?: string;
+          id?: string;
+          organization_id?: string;
+          role?: Database['public']['Enums']['app_role'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'invites_created_by_organization_id_fkey';
+            columns: ['created_by', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'invites_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       media: {
         Row: {
           caption: string | null;
           created_at: string;
-          created_by: string;
+          created_by: string | null;
           id: string;
           organization_id: string;
           pet_id: string | null;
@@ -515,7 +573,7 @@ export type Database = {
         Insert: {
           caption?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           id?: string;
           organization_id?: string;
           pet_id?: string | null;
@@ -528,7 +586,7 @@ export type Database = {
         Update: {
           caption?: string | null;
           created_at?: string;
-          created_by?: string;
+          created_by?: string | null;
           id?: string;
           organization_id?: string;
           pet_id?: string | null;
@@ -578,7 +636,7 @@ export type Database = {
           media_id: string | null;
           organization_id: string;
           read_at: string | null;
-          sender_id: string;
+          sender_id: string | null;
           updated_at: string;
         };
         ComputedFields: never;
@@ -590,7 +648,7 @@ export type Database = {
           media_id?: string | null;
           organization_id?: string;
           read_at?: string | null;
-          sender_id?: string;
+          sender_id?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -601,7 +659,7 @@ export type Database = {
           media_id?: string | null;
           organization_id?: string;
           read_at?: string | null;
-          sender_id?: string;
+          sender_id?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -1114,6 +1172,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      check_invite: {
+        Args: { p_code: string };
+        Returns: {
+          email_locked: boolean;
+          organization_name: string;
+          role: Database['public']['Enums']['app_role'];
+        }[];
+      };
       confirm_booking: { Args: { p_booking_id: string; p_sitter_id: string }; Returns: number };
     };
     Enums: {

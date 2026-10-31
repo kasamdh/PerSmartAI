@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SignOutButton } from './sign-out-button';
+import { AccountButtons } from './account-buttons';
 import { useProfile } from './use-profile';
 
 /** Temporary home for each role until the real role screens are built. */
@@ -17,7 +17,7 @@ export function RoleHome({ heading }: { heading: string }) {
         </Text>
         <Text style={styles.heading}>{heading}: coming soon</Text>
       </View>
-      <SignOutButton />
+      <AccountButtons />
     </SafeAreaView>
   );
 }

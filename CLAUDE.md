@@ -76,6 +76,15 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 
 - Visits are generated from bookings only by `public.confirm_booking(booking_id, sitter_id)` (admin-only RPC). It converts wall-clock booking times in the org timezone to UTC in Postgres (DST-safe), supports no rule / FREQ=DAILY / FREQ=WEEKLY;BYDAY=..., generates 90 days ahead, and is idempotent (unique `(booking_id, scheduled_start)`). Re-confirming reassigns upcoming visits.
 
+## Auth and routing
+
+- Sessions are stored in expo-secure-store, chunked to stay under its value size limit (`src/lib/secure-storage.ts`), with a fixed `storageKey`. The client uses the PKCE flow.
+- Sign-in: password, or an email with a magic link plus a 6-digit code (the code works even when the link can't reach the device). Password reset works the same way. Email templates are in `supabase/templates/`.
+- Sign-up creates profiles in the `private.handle_new_user` trigger, based on signUp metadata: `{signup_type:'business', business_name, timezone}` creates an org and admin, `{invite_code}` joins that invite's org and role. Without either, no profile is created.
+- `invites` (admin-only RLS); `public.check_invite(code)` is the only public lookup. Codes are 8 characters with no look-alikes.
+- All routing rules live in `src/features/auth/routing.ts` (`resolveDestination` + `routeGuards`, tested). Route groups: `(auth)`, `reset-password`, `(onboarding)` (owners without a household), `(owner)`, `(sitter)`, `(admin)`, `(account)` (profile, delete account). Only the current user's group exists.
+- Account deletion goes through the `delete-account` Edge Function. Deleting an owner removes their household data. Deleting a sitter keeps visit history, detached from them. The last admin of a business with members is refused.
+
 ## Push notifications
 
 - DB triggers (visit status → on_the_way / in_progress / completed, photo insert, incident insert) call `private.send_push_event`, which POSTs via `pg_net` to the `notify-owner` Edge Function.

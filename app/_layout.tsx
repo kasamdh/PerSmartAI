@@ -5,9 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/features/auth/auth-provider';
-import { useProfile } from '@/features/auth/use-profile';
+import { routeGuards } from '@/features/auth/routing';
+import { useRoutingState } from '@/features/auth/use-routing-state';
 import { usePushNotifications } from '@/features/notifications/use-push-notifications';
 import { queryClient } from '@/lib/query-client';
+import type { AppRole } from '@/types/models';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,14 +24,14 @@ export default function RootLayout() {
   );
 }
 
-// Each role's route group is only mounted for that role. When a guard flips
-// (sign in, sign out, role change) Expo Router redirects to `index`, which
-// routes to the right place.
+// Route groups only exist while their guard is true (see routeGuards). When one
+// flips (sign in/out, onboarding done, password reset) Expo Router falls back to
+// `index`, which redirects via resolveDestination.
 function RootNavigator() {
-  const { session, isRestoring } = useAuth();
-  const { data: profile } = useProfile();
-  const role = session ? profile?.role : undefined;
-  usePushNotifications(role);
+  const { isRestoring } = useAuth();
+  const routing = useRoutingState();
+  const guards = routeGuards(routing);
+  usePushNotifications(guards.account ? (routing.role as AppRole) : undefined);
 
   useEffect(() => {
     if (!isRestoring) {
@@ -44,17 +46,28 @@ function RootNavigator() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Protected guard={!session}>
+      {/* Email links land here from any state. */}
+      <Stack.Screen name="auth/callback" />
+      <Stack.Protected guard={guards.auth}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'owner'}>
+      <Stack.Protected guard={guards.resetPassword}>
+        <Stack.Screen name="reset-password" />
+      </Stack.Protected>
+      <Stack.Protected guard={guards.ownerOnboarding}>
+        <Stack.Screen name="(onboarding)" />
+      </Stack.Protected>
+      <Stack.Protected guard={guards.owner}>
         <Stack.Screen name="(owner)" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'sitter'}>
+      <Stack.Protected guard={guards.sitter}>
         <Stack.Screen name="(sitter)" />
       </Stack.Protected>
-      <Stack.Protected guard={role === 'admin'}>
+      <Stack.Protected guard={guards.admin}>
         <Stack.Screen name="(admin)" />
+      </Stack.Protected>
+      <Stack.Protected guard={guards.account}>
+        <Stack.Screen name="(account)" />
       </Stack.Protected>
     </Stack>
   );

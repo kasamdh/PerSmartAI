@@ -1,23 +1,23 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
 import { signOut } from '@/features/auth/api';
-import { useAuth } from '@/features/auth/auth-provider';
-import { homeRouteForRole } from '@/features/auth/routes';
-import { useProfile } from '@/features/auth/use-profile';
+import { resolveDestination } from '@/features/auth/routing';
+import { useRoutingState } from '@/features/auth/use-routing-state';
 
-/** Entry point: sends each user to sign-in or their role's home. */
+/** Entry point: sends each user to welcome, onboarding, or their role's home. */
 export default function Index() {
-  const { session } = useAuth();
-  const profile = useProfile();
+  const queryClient = useQueryClient();
+  const destination = resolveDestination(useRoutingState());
 
-  if (!session) {
-    return <Redirect href="/sign-in" />;
+  if (destination.kind === 'redirect') {
+    return <Redirect href={destination.href} />;
   }
 
-  if (profile.isPending) {
+  if (destination.kind === 'loading') {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" accessibilityLabel="Loading your account" />
@@ -25,25 +25,23 @@ export default function Index() {
     );
   }
 
-  if (profile.data) {
-    return <Redirect href={homeRouteForRole(profile.data.role)} />;
-  }
-
-  // Signed in, but no profile (not yet added to a business) or it failed to load.
+  const failed = destination.kind === 'error';
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.center}>
         <Text style={styles.title} accessibilityRole="header">
-          {profile.isError ? "Couldn't load your account" : 'Account not set up yet'}
+          {failed ? "Couldn't load your account" : 'Account not set up yet'}
         </Text>
         <Text style={styles.body}>
-          {profile.isError
+          {failed
             ? 'Check your connection and try again.'
-            : 'Ask your pet-sitting business to add you, then sign in again.'}
+            : 'Ask your pet-sitting business for an invite code, then sign up with it.'}
         </Text>
       </View>
       <View style={styles.actions}>
-        {profile.isError ? <BigButton label="Try again" onPress={() => profile.refetch()} /> : null}
+        {failed ? (
+          <BigButton label="Try again" onPress={() => queryClient.invalidateQueries()} />
+        ) : null}
         <BigButton label="Sign out" variant="secondary" onPress={() => signOut()} />
       </View>
     </SafeAreaView>

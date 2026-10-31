@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
-import { SignOutButton } from '@/features/auth/sign-out-button';
+import { AccountButtons } from '@/features/auth/account-buttons';
 
 import { CheckOutSheet } from './check-out-sheet';
 import type { SitterVisit } from './api';
@@ -84,7 +84,7 @@ export function SitterTodayScreen() {
         }
         ListFooterComponent={
           <View style={styles.footer}>
-            <SignOutButton />
+            <AccountButtons />
           </View>
         }
       />
