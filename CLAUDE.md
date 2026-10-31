@@ -60,6 +60,19 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - The `service_role` key only ever lives in Edge Function secrets, never in `.env` or app code.
 - Read env vars as literal `process.env.EXPO_PUBLIC_*` accesses (Expo inlines them at build time). Pass them through `requireEnv` in `src/lib/env.ts`.
 - RLS is the security boundary. Client-side role checks are UX only.
+- Times: instants (visits, check-ins, care events, time off, created_at) are `timestamptz`. Recurring wall-clock times (sitter availability, feeding/medication times, booking windows) are `time` and are interpreted in `organizations.timezone`. Storing those as instants would shift by an hour across DST changes.
+
+## Database conventions
+
+- Migrations live in `supabase/migrations/`, one concern per file. Never edit an applied migration; add a new one.
+- Tenant integrity uses composite FKs: child `(parent_id, organization_id)` references parent `(id, organization_id)`. New tables follow the same pattern, plus `unique (id, organization_id)` on any table that others reference.
+- `organization_id` defaults to `private.current_org_id()`, so clients never send it.
+- RLS helpers (`current_org_id`, `current_app_role`, `is_admin`, `owns_*`, `sitter_can_access_*`) live in the `private` schema, which is not exposed via the API. They are `security definer` with `search_path = ''`. Call them as `(select private.fn())` when they don't depend on the row.
+- Column-level rules RLS can't express (sitters only changing visit status and check-in, owners only cancelling bookings, no self-promotion) are enforced by `guard_*` triggers.
+- Sitters see `household_access` (entry codes, alarm, wifi) only from 24h before a visit starts until 24h after it ends.
+- Storage bucket `pet-media` (private) uses the paths `{org_id}/{visit_id}/{file}` and `{org_id}/pets/{pet_id}/{file}`.
+- Every new table needs RLS policies plus cases in `supabase/tests/database/` proving cross-owner, cross-sitter, and cross-org isolation.
+- After any schema change, regenerate types with `npm run db:types`.
 - Use `BigButton` (min 56pt height) or an equivalent for primary actions. Put primary actions in the lower half of the screen.
 - Expo changes between SDKs. Check the versioned docs (https://docs.expo.dev/versions/v58.0.0/) rather than memory.
 - Expo Go only bundles its built-in native modules. A library with custom native code needs a development build.
@@ -74,5 +87,8 @@ npm run typecheck       # tsc --noEmit
 npm test                # Jest
 npm run check           # lint + format:check + typecheck + test (run before "done")
 npx expo install <pkg>  # always use this to add packages (SDK-compatible versions)
+npm run db:reset        # re-apply migrations + seed (needs Docker running)
+npm run db:test         # pgTAP RLS tests
+npm run db:types        # regenerate src/types/database.ts
 npx supabase <cmd>      # Supabase CLI (pinned dev dependency); `start` needs Docker
 ```
