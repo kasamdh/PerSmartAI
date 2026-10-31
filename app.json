@@ -38,6 +38,13 @@
         {
           "locationWhenInUsePermission": "Pet Sitter records your location when you check in and out of a visit, so owners know you arrived."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Pet Sitter uses the camera so you can send visit photos to pet owners.",
+          "photosPermission": "Pet Sitter lets you choose photos to send to pet owners."
+        }
       ]
     ],
     "experiments": {

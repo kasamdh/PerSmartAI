@@ -75,4 +75,12 @@ describe('VisitCard', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'On my way' }));
     expect(onAction).not.toHaveBeenCalled();
   });
+
+  it('opens the visit when the card info is tapped', async () => {
+    const onOpen = jest.fn();
+    await render(<VisitCard visit={baseVisit} onAction={jest.fn()} onOpen={onOpen} />);
+
+    await fireEvent.press(screen.getByRole('button', { name: "Open visit at Olivia's home" }));
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
 });

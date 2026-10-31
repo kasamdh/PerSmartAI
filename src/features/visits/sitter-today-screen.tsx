@@ -1,7 +1,7 @@
+import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   RefreshControl,
   SectionList,
   StyleSheet,
@@ -15,41 +15,17 @@ import { SignOutButton } from '@/features/auth/sign-out-button';
 
 import type { SitterVisit } from './api';
 import { groupByDay } from './time';
-import { useSitterVisits, useVisitAction } from './use-sitter-visits';
-import type { VisitActionKind } from './visit-actions';
+import { useSitterVisits, useVisitActionRunner } from './use-sitter-visits';
 import { VisitCard } from './visit-card';
+
+const placeName = (visit: SitterVisit) =>
+  visit.booking.household.name ?? visit.booking.household.address_line1;
 
 export function SitterTodayScreen() {
   const visits = useSitterVisits();
-  const visitAction = useVisitAction();
+  const { run, pendingFor } = useVisitActionRunner();
+  const router = useRouter();
   const sections = useMemo(() => groupByDay(visits.data ?? [], new Date()), [visits.data]);
-
-  const pendingFor = (visitId: string): VisitActionKind | null =>
-    visitAction.isPending && visitAction.variables?.visitId === visitId
-      ? visitAction.variables.action
-      : null;
-
-  const run = (visitId: string, action: VisitActionKind) =>
-    visitAction.mutate(
-      { visitId, action },
-      {
-        onError: (error) =>
-          Alert.alert("Couldn't update the visit", error.message || 'Please try again.'),
-      },
-    );
-
-  const onAction = (visit: SitterVisit, action: VisitActionKind) => {
-    if (action !== 'check_out') {
-      run(visit.id, action);
-      return;
-    }
-    // Checking out ends the visit for the owner, so guard against a stray tap.
-    const place = visit.booking.household.name ?? visit.booking.household.address_line1;
-    Alert.alert('Check out?', `Finish the visit at ${place}?`, [
-      { text: 'Not yet', style: 'cancel' },
-      { text: 'Check out', onPress: () => run(visit.id, action) },
-    ]);
-  };
 
   if (visits.isPending) {
     return (
@@ -93,7 +69,8 @@ export function SitterTodayScreen() {
           <VisitCard
             visit={item}
             pendingAction={pendingFor(item.id)}
-            onAction={(action) => onAction(item, action)}
+            onAction={(action) => run({ id: item.id, placeName: placeName(item) }, action)}
+            onOpen={() => router.push({ pathname: '/visit/[id]', params: { id: item.id } })}
           />
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}

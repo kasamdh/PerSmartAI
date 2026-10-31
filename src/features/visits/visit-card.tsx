@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BigButton } from '@/components/big-button';
 
@@ -16,6 +16,8 @@ type VisitCardProps = {
   onAction: (action: VisitActionKind) => void;
   /** The action currently being saved for this visit, if any. */
   pendingAction?: VisitActionKind | null;
+  /** Opens the visit; makes the card's info area one large tap target. */
+  onOpen?: () => void;
 };
 
 const SERVICE_LABELS = {
@@ -25,7 +27,7 @@ const SERVICE_LABELS = {
   multi_day: 'Multi-day',
 } as const;
 
-export function VisitCard({ visit, onAction, pendingAction = null }: VisitCardProps) {
+export function VisitCard({ visit, onAction, pendingAction = null, onOpen }: VisitCardProps) {
   const household = visit.booking.household;
   const pets = visit.booking.booking_pets.map((bp) => bp.pet).filter((pet) => pet !== null);
   const primary = primaryActionFor(visit.status);
@@ -35,30 +37,43 @@ export function VisitCard({ visit, onAction, pendingAction = null }: VisitCardPr
 
   return (
     <View style={[styles.card, done && styles.cardDone]}>
-      <View style={styles.headerRow}>
-        <Text style={styles.time}>
-          {formatTimeRange(visit.scheduled_start, visit.scheduled_end)}
-        </Text>
-        <Text style={[styles.badge, done && styles.badgeDone]}>{statusLabel(visit.status)}</Text>
-      </View>
+      <Pressable
+        disabled={!onOpen}
+        onPress={onOpen}
+        accessibilityRole={onOpen ? 'button' : undefined}
+        accessibilityLabel={
+          onOpen ? `Open visit at ${household.name ?? household.address_line1}` : undefined
+        }
+        accessibilityHint={onOpen ? 'Shows pet care details and the care log' : undefined}
+        style={({ pressed }) => [styles.info, pressed && styles.infoPressed]}
+      >
+        <View style={styles.headerRow}>
+          <Text style={styles.time}>
+            {formatTimeRange(visit.scheduled_start, visit.scheduled_end)}
+          </Text>
+          <Text style={[styles.badge, done && styles.badgeDone]}>{statusLabel(visit.status)}</Text>
+        </View>
 
-      <Text style={styles.service}>{SERVICE_LABELS[visit.booking.service_type]}</Text>
-      <Text style={styles.household}>{household.name ?? household.address_line1}</Text>
-      <Text style={styles.address}>
-        {[household.address_line1, household.address_line2, household.city]
-          .filter(Boolean)
-          .join(', ')}
-      </Text>
-      {pets.length > 0 ? (
-        <Text style={styles.pets}>{pets.map((p) => `${p.name} (${p.species})`).join(' · ')}</Text>
-      ) : null}
-
-      {visit.check_in_at ? (
-        <Text style={styles.meta}>
-          Checked in {formatTime(visit.check_in_at)}
-          {visit.check_out_at ? ` · out ${formatTime(visit.check_out_at)}` : ''}
+        <Text style={styles.service}>{SERVICE_LABELS[visit.booking.service_type]}</Text>
+        <Text style={styles.household}>{household.name ?? household.address_line1}</Text>
+        <Text style={styles.address}>
+          {[household.address_line1, household.address_line2, household.city]
+            .filter(Boolean)
+            .join(', ')}
         </Text>
-      ) : null}
+        {pets.length > 0 ? (
+          <Text style={styles.pets}>{pets.map((p) => `${p.name} (${p.species})`).join(' · ')}</Text>
+        ) : null}
+
+        {visit.check_in_at ? (
+          <Text style={styles.meta}>
+            Checked in {formatTime(visit.check_in_at)}
+            {visit.check_out_at ? ` · out ${formatTime(visit.check_out_at)}` : ''}
+          </Text>
+        ) : null}
+
+        {onOpen ? <Text style={styles.openHint}>Tap for care details ›</Text> : null}
+      </Pressable>
 
       {primary || secondary ? (
         <View style={styles.actions}>
@@ -96,6 +111,18 @@ const styles = StyleSheet.create({
   },
   cardDone: {
     backgroundColor: '#F6F6F6',
+  },
+  info: {
+    gap: 4,
+  },
+  infoPressed: {
+    opacity: 0.7,
+  },
+  openHint: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#0B5CAD',
+    marginTop: 6,
   },
   headerRow: {
     flexDirection: 'row',

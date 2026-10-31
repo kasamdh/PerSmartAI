@@ -3,9 +3,9 @@
 --
 --   admin@happypaws.test   Alex Admin     admin
 --   kasamdhakal55@gmail.com Kasam Dhakal  admin   (developer test login)
---   sam@happypaws.test     Sam Sitter     sitter  (assigned to Olivia's drop-ins)
+--   monikapokhrel55@gmail.com Monika    sitter  (assigned to Rudra's drop-ins)
 --   sky@happypaws.test     Sky Sitter     sitter  (assigned to Oscar's walks)
---   olivia@example.test    Olivia Owner   owner   (Biscuit the dog, Mochi the cat)
+--   rudradh@gmail.com      Rudra          owner   (Biscuit the dog, Mochi the cat)
 --   oscar@example.test     Oscar Owner    owner   (Rex the dog)
 --
 -- Visit times are relative to now() so "today" always has something on the schedule.
@@ -27,9 +27,9 @@ select
 from (values
   ('a0000000-0000-4000-8000-0000000000a1'::uuid, 'admin@happypaws.test', 'Alex Admin'),
   ('a0000000-0000-4000-8000-0000000000a2'::uuid, 'kasamdhakal55@gmail.com', 'Kasam Dhakal'),
-  ('a0000000-0000-4000-8000-0000000000b1'::uuid, 'sam@happypaws.test', 'Sam Sitter'),
+  ('a0000000-0000-4000-8000-0000000000b1'::uuid, 'monikapokhrel55@gmail.com', 'Monika'),
   ('a0000000-0000-4000-8000-0000000000b2'::uuid, 'sky@happypaws.test', 'Sky Sitter'),
-  ('a0000000-0000-4000-8000-0000000000c1'::uuid, 'olivia@example.test', 'Olivia Owner'),
+  ('a0000000-0000-4000-8000-0000000000c1'::uuid, 'rudradh@gmail.com', 'Rudra'),
   ('a0000000-0000-4000-8000-0000000000c2'::uuid, 'oscar@example.test', 'Oscar Owner')
 ) as u (id, email, full_name);
 
@@ -51,9 +51,9 @@ insert into public.organizations (id, name, timezone) values
 insert into public.profiles (id, organization_id, role, full_name, phone) values
   ('a0000000-0000-4000-8000-0000000000a1', 'a0000000-0000-4000-8000-000000000001', 'admin',  'Alex Admin',   '+15555550100'),
   ('a0000000-0000-4000-8000-0000000000a2', 'a0000000-0000-4000-8000-000000000001', 'admin',  'Kasam Dhakal', null),
-  ('a0000000-0000-4000-8000-0000000000b1', 'a0000000-0000-4000-8000-000000000001', 'sitter', 'Sam Sitter',   '+15555550101'),
+  ('a0000000-0000-4000-8000-0000000000b1', 'a0000000-0000-4000-8000-000000000001', 'sitter', 'Monika',       '+15555550101'),
   ('a0000000-0000-4000-8000-0000000000b2', 'a0000000-0000-4000-8000-000000000001', 'sitter', 'Sky Sitter',   '+15555550102'),
-  ('a0000000-0000-4000-8000-0000000000c1', 'a0000000-0000-4000-8000-000000000001', 'owner',  'Olivia Owner', '+15555550201'),
+  ('a0000000-0000-4000-8000-0000000000c1', 'a0000000-0000-4000-8000-000000000001', 'owner',  'Rudra',        '+15555550201'),
   ('a0000000-0000-4000-8000-0000000000c2', 'a0000000-0000-4000-8000-000000000001', 'owner',  'Oscar Owner',  '+15555550202');
 
 insert into public.sitter_availability (organization_id, sitter_id, weekday, start_time, end_time)
@@ -74,7 +74,7 @@ insert into public.sitter_time_off (organization_id, sitter_id, start_at, end_at
 
 insert into public.households (id, organization_id, owner_id, name, address_line1, city, region, postal_code, lat, lng) values
   ('a0000000-0000-4000-8000-0000000000d1', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000c1',
-   'Olivia''s home', '12 Maple St', 'Brooklyn', 'NY', '11201', 40.6943, -73.9903),
+   'Rudra''s home', '12 Maple St', 'Brooklyn', 'NY', '11201', 40.6943, -73.9903),
   ('a0000000-0000-4000-8000-0000000000d2', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000c2',
    'Oscar''s apartment', '450 Pine Ave, Apt 3B', 'Brooklyn', 'NY', '11215', 40.6681, -73.9806);
 
@@ -86,7 +86,7 @@ insert into public.household_access (organization_id, household_id, entry_instru
    'Doorman has a key. Show ID and say you are with Happy Paws.', null, 'PineAve3B', 'rexrules');
 
 insert into public.emergency_contacts (organization_id, household_id, name, relationship, phone, is_primary) values
-  ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000d1', 'Olivia Owner', 'Owner', '+15555550201', true),
+  ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000d1', 'Rudra', 'Owner', '+15555550201', true),
   ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000d1', 'Nora Neighbor', 'Neighbor', '+15555550301', false),
   ('a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000d2', 'Oscar Owner', 'Owner', '+15555550202', true);
 
@@ -129,7 +129,7 @@ insert into public.bookings (
   id, organization_id, household_id, sitter_id, service_type, recurrence_rule,
   start_date, end_date, window_start, window_end, duration_minutes, status, notes
 ) values
-  -- Olivia: recurring weekday drop-ins with Sam
+  -- Rudra: recurring weekday drop-ins with Monika
   ('a0000000-0000-4000-8000-0000000000f1', 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-0000000000d1',
    'a0000000-0000-4000-8000-0000000000b1', 'drop_in', 'FREQ=WEEKLY;BYDAY=MO,WE,FR',
    current_date - 7, current_date + 60, '11:00', '13:00', 30, 'confirmed', 'Midday potty break and feeding.'),
