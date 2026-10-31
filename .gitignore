@@ -44,3 +44,8 @@ example
 
 # local env (never commit secrets)
 .env
+
+# Firebase / Apple credentials (upload with `eas credentials`; never commit)
+*firebase-adminsdk*.json
+fcm-service-account*.json
+*.p8
