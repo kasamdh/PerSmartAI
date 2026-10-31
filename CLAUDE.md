@@ -98,9 +98,9 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 
 ## Push notifications
 
-- DB triggers (visit status → on_the_way / in_progress / completed, photo insert, incident insert) call `private.send_push_event`, which POSTs via `pg_net` to the `notify-owner` Edge Function.
+- DB triggers (visit status → on_the_way / in_progress / completed, photo insert, incident insert; booking requested → admins, confirmed/declined → owner, cancelled → sitters, admins, and owner except whoever cancelled) call `private.send_push_event`, which POSTs via `pg_net` to the `notify-owner` Edge Function.
 - The function URL and service_role JWT come from Vault secrets `edge_functions_url` and `service_role_key`. Local values are in `seed.sql`; production sets its own. If they're missing, nothing is sent.
-- `notify-owner` only accepts service_role callers. Wording lives in `supabase/functions/_shared/push-messages.ts` (pure TS, tested by Jest).
+- `notify-owner` only accepts service_role callers. Wording and booking recipients live in `supabase/functions/_shared/push-messages.ts` (pure TS, tested by Jest). The payload's `data` carries `visitId` or `bookingId`; the app maps it to a screen per role in `src/features/notifications/push-routes.ts`.
 - The app registers its Expo push token into `push_tokens` after sign-in and deletes it on sign-out. Remote push needs a development or store build: Expo Go on Android can't receive it, and an EAS project id is required.
 - Run functions locally with `npx supabase functions serve`. Edge Function code is Deno and is excluded from `tsc` and ESLint.
 - Use `BigButton` (min 56pt height) or an equivalent for primary actions. Put primary actions in the lower half of the screen.

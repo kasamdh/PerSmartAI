@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import type { AppRole } from '@/types/models';
 
 import { registerForPushNotifications } from './push';
-import { visitRouteFor } from './push-routes';
+import { pushRouteFor } from './push-routes';
 
 // Show notifications as banners even while the app is open.
 Notifications.setNotificationHandler({
@@ -17,14 +17,9 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function visitIdFrom(response: Notifications.NotificationResponse | null): string | null {
-  const visitId = response?.notification.request.content.data?.visitId;
-  return typeof visitId === 'string' ? visitId : null;
-}
-
 /**
  * Registers this device for pushes once the user's role is known, and opens the
- * visit when a notification is tapped (including the one that launched the app).
+ * visit or booking when a notification is tapped (including the one that launched the app).
  */
 export function usePushNotifications(role: AppRole | undefined) {
   const router = useRouter();
@@ -38,8 +33,8 @@ export function usePushNotifications(role: AppRole | undefined) {
   }, [role]);
 
   useEffect(() => {
-    const visitId = visitIdFrom(lastResponse ?? null);
-    const route = visitId && role ? visitRouteFor(role, visitId) : null;
+    const data = lastResponse?.notification.request.content.data;
+    const route = role ? pushRouteFor(role, data) : null;
     if (route) {
       router.push(route);
     }

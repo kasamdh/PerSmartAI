@@ -1,5 +1,5 @@
 import { pushSupport } from '../push';
-import { visitRouteFor } from '../push-routes';
+import { pushRouteFor, visitRouteFor } from '../push-routes';
 
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
 
@@ -40,5 +40,31 @@ describe('visitRouteFor', () => {
       pathname: '/visit-overview/[id]',
       params: { id: 'v1' },
     });
+  });
+});
+
+describe('pushRouteFor', () => {
+  it('opens visits from visit notifications', () => {
+    expect(pushRouteFor('owner', { visitId: 'v1', type: 'visit_photo' })).toEqual({
+      pathname: '/visits/[id]',
+      params: { id: 'v1' },
+    });
+  });
+
+  it('opens the request for admins, and bookings or schedule for others', () => {
+    const requested = { bookingId: 'b1', type: 'booking_requested' };
+    expect(pushRouteFor('admin', requested)).toEqual({
+      pathname: '/bookings/[id]',
+      params: { id: 'b1' },
+    });
+    expect(pushRouteFor('admin', { bookingId: 'b1', type: 'booking_cancelled' })).toBe('/admin');
+    expect(pushRouteFor('owner', { bookingId: 'b1', type: 'booking_status' })).toBe('/my-bookings');
+    expect(pushRouteFor('sitter', { bookingId: 'b1', type: 'booking_cancelled' })).toBe('/sitter');
+  });
+
+  it('ignores payloads it does not understand', () => {
+    expect(pushRouteFor('owner', undefined)).toBeNull();
+    expect(pushRouteFor('owner', { bookingId: 'b1' })).toBeNull();
+    expect(pushRouteFor('owner', { visitId: 42 })).toBeNull();
   });
 });
