@@ -32,6 +32,12 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Pet Sitter records your location when you check in and out of a visit, so owners know you arrived."
+        }
       ]
     ],
     "experiments": {
