@@ -1,12 +1,12 @@
 import { Stack } from 'expo-router';
 
-import { RoleHome } from '@/features/auth/role-home';
+import { OwnerHomeScreen } from '@/features/owner/owner-home-screen';
 
-export default function OwnerHomeScreen() {
+export default function OwnerHome() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Owner home' }} />
-      <RoleHome heading="Your pets and visits" />
+      <Stack.Screen options={{ title: 'My pets' }} />
+      <OwnerHomeScreen />
     </>
   );
 }

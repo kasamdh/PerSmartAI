@@ -1,4 +1,10 @@
-import { formatTimeRange, groupByDay, sitterScheduleRange, startOfLocalDay } from '../time';
+import {
+  formatDayAndTime,
+  formatTimeRange,
+  groupByDay,
+  sitterScheduleRange,
+  startOfLocalDay,
+} from '../time';
 
 describe('sitterScheduleRange', () => {
   it('covers local today and tomorrow, starting at local midnight', () => {
@@ -52,5 +58,23 @@ describe('groupByDay', () => {
       now,
     );
     expect(sections.map((s) => s.title)).toEqual(['Tomorrow']);
+  });
+});
+
+describe('formatDayAndTime', () => {
+  const now = new Date(2026, 9, 31, 12, 0); // Oct 31 local noon
+  const at = (month: number, day: number, hour: number) =>
+    new Date(2026, month, day, hour).toISOString();
+  const opts = { locale: 'en-US' };
+  const clean = (s: string) => s.replace(/ /g, ' ');
+
+  it('uses Today / Tomorrow / Yesterday for nearby days', () => {
+    expect(clean(formatDayAndTime(at(9, 31, 14), now, opts))).toBe('Today 2:00 PM');
+    expect(clean(formatDayAndTime(at(10, 1, 9), now, opts))).toBe('Tomorrow 9:00 AM');
+    expect(clean(formatDayAndTime(at(9, 30, 18), now, opts))).toBe('Yesterday 6:00 PM');
+  });
+
+  it('uses a short date further out', () => {
+    expect(clean(formatDayAndTime(at(10, 5, 14), now, opts))).toBe('Thu, Nov 5 · 2:00 PM');
   });
 });

@@ -14,7 +14,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(24);
+select plan(25);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures (as postgres, RLS bypassed)
@@ -82,6 +82,11 @@ insert into public.visits (id, organization_id, booking_id, sitter_id, scheduled
    'b0000000-0000-4000-8000-0000000000b2', now() + interval '1 hour', now() + interval '90 minutes'),
   ('b0000000-0000-4000-8000-000000000103', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-0000000000f3',
    'b0000000-0000-4000-8000-0000000000b3', now() + interval '10 days', now() + interval '10 days 30 minutes');
+
+insert into public.visits (id, organization_id, booking_id, sitter_id, scheduled_start, scheduled_end, status, check_in_at, check_out_at) values
+  ('b0000000-0000-4000-8000-000000000104', 'b0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-0000000000f1',
+   'b0000000-0000-4000-8000-0000000000b1', now() - interval '1 day', now() - interval '23 hours', 'completed',
+   now() - interval '1 day', now() - interval '23 hours');
 
 -- A photo from sitter 2's visit at owner B's home.
 insert into storage.objects (bucket_id, name, owner_id) values
@@ -247,6 +252,13 @@ select throws_ok(
      where id = 'b0000000-0000-4000-8000-000000000101' $$,
   '42501', null,
   'sitter 1 cannot reschedule their visit'
+);
+
+select throws_ok(
+  $$ update public.visits set status = 'in_progress', check_out_at = null
+     where id = 'b0000000-0000-4000-8000-000000000104' $$,
+  '42501', null,
+  'sitter 1 cannot reopen a completed visit'
 );
 
 select throws_ok(

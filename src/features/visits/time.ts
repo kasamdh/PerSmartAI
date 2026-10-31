@@ -28,6 +28,24 @@ export function formatTimeRange(startIso: string, endIso: string, options?: Form
   return `${formatTime(startIso, options)} – ${formatTime(endIso, options)}`;
 }
 
+/** "Today 2:00 PM", "Tomorrow 9:30 AM", "Yesterday 6:00 PM", or "Mon, Nov 2 · 2:00 PM" (device local). */
+export function formatDayAndTime(iso: string, now: Date, options: FormatOptions = {}): string {
+  const date = new Date(iso);
+  const today = startOfLocalDay(now).getTime();
+  const day = startOfLocalDay(date).getTime();
+  const time = formatTime(iso, options);
+  if (day === today) return `Today ${time}`;
+  if (day === addLocalDays(new Date(today), 1).getTime()) return `Tomorrow ${time}`;
+  if (day === addLocalDays(new Date(today), -1).getTime()) return `Yesterday ${time}`;
+  const dayText = date.toLocaleDateString(options.locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: options.timeZone,
+  });
+  return `${dayText} · ${time}`;
+}
+
 export type DaySection<T> = { title: 'Today' | 'Tomorrow'; data: T[] };
 
 /** Splits visits (already sorted by start) into Today / Tomorrow sections, dropping empty ones. */

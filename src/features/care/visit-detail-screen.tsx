@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import {
@@ -31,6 +30,7 @@ import {
   useVisitPhotos,
 } from './hooks';
 import { PetCarePanel } from './pet-care-panel';
+import { PhotoGrid } from './photo-grid';
 
 function showError(title: string) {
   return (error: Error) => Alert.alert(title, error.message || 'Please try again.');
@@ -185,23 +185,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Photos</Text>
-          {photos.data && photos.data.length > 0 ? (
-            <View style={styles.photoGrid}>
-              {photos.data.map((p) =>
-                p.thumbUrl ? (
-                  <Image
-                    key={p.id}
-                    source={{ uri: p.thumbUrl }}
-                    style={styles.photo}
-                    contentFit="cover"
-                    accessibilityLabel="Visit photo"
-                  />
-                ) : null,
-              )}
-            </View>
-          ) : (
-            <Text style={styles.body}>{photos.isPending ? 'Loading…' : 'No photos yet.'}</Text>
-          )}
+          <PhotoGrid photos={photos.data} isLoading={photos.isPending} />
           {loggable ? (
             <View style={styles.actions}>
               <BigButton
@@ -312,17 +296,6 @@ const styles = StyleSheet.create({
     color: '#555555',
     textAlign: 'center',
     paddingVertical: 4,
-  },
-  photoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  photo: {
-    width: 96,
-    height: 96,
-    borderRadius: 10,
-    backgroundColor: '#EEEEEE',
   },
   actions: {
     gap: 10,
