@@ -74,6 +74,8 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - Every new table needs RLS policies plus cases in `supabase/tests/database/` proving cross-owner, cross-sitter, and cross-org isolation.
 - After any schema change, regenerate types with `npm run db:types` (also copies them to `supabase/functions/_shared/` for Edge Functions).
 
+- Visits are generated from bookings only by `public.confirm_booking(booking_id, sitter_id)` (admin-only RPC). It converts wall-clock booking times in the org timezone to UTC in Postgres (DST-safe), supports no rule / FREQ=DAILY / FREQ=WEEKLY;BYDAY=..., generates 90 days ahead, and is idempotent (unique `(booking_id, scheduled_start)`). Re-confirming reassigns upcoming visits.
+
 ## Push notifications
 
 - DB triggers (visit status → on_the_way / in_progress / completed, photo insert, incident insert) call `private.send_push_event`, which POSTs via `pg_net` to the `notify-owner` Edge Function.

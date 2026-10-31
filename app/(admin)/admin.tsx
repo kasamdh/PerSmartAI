@@ -1,12 +1,12 @@
 import { Stack } from 'expo-router';
 
-import { RoleHome } from '@/features/auth/role-home';
+import { AdminHomeScreen } from '@/features/admin/admin-home-screen';
 
-export default function AdminHomeScreen() {
+export default function AdminHome() {
   return (
     <>
       <Stack.Screen options={{ title: 'Dashboard' }} />
-      <RoleHome heading="Business dashboard" />
+      <AdminHomeScreen />
     </>
   );
 }

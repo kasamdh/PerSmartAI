@@ -36,6 +36,9 @@ describe('visitRouteFor', () => {
       pathname: '/visits/[id]',
       params: { id: 'v1' },
     });
-    expect(visitRouteFor('admin', 'v1')).toBeNull();
+    expect(visitRouteFor('admin', 'v1')).toEqual({
+      pathname: '/visit-overview/[id]',
+      params: { id: 'v1' },
+    });
   });
 });

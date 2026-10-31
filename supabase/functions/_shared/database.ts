@@ -1114,7 +1114,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      confirm_booking: { Args: { p_booking_id: string; p_sitter_id: string }; Returns: number };
     };
     Enums: {
       allergy_severity: 'mild' | 'moderate' | 'severe';
