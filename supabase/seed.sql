@@ -2,6 +2,7 @@
 -- Every seeded user's password is: password123
 --
 --   admin@happypaws.test   Alex Admin     admin
+--   kasamdhakal55@gmail.com Kasam Dhakal  admin   (developer test login)
 --   sam@happypaws.test     Sam Sitter     sitter  (assigned to Olivia's drop-ins)
 --   sky@happypaws.test     Sky Sitter     sitter  (assigned to Oscar's walks)
 --   olivia@example.test    Olivia Owner   owner   (Biscuit the dog, Mochi the cat)
@@ -25,6 +26,7 @@ select
   now(), now(), '', '', '', ''
 from (values
   ('a0000000-0000-4000-8000-0000000000a1'::uuid, 'admin@happypaws.test', 'Alex Admin'),
+  ('a0000000-0000-4000-8000-0000000000a2'::uuid, 'kasamdhakal55@gmail.com', 'Kasam Dhakal'),
   ('a0000000-0000-4000-8000-0000000000b1'::uuid, 'sam@happypaws.test', 'Sam Sitter'),
   ('a0000000-0000-4000-8000-0000000000b2'::uuid, 'sky@happypaws.test', 'Sky Sitter'),
   ('a0000000-0000-4000-8000-0000000000c1'::uuid, 'olivia@example.test', 'Olivia Owner'),
@@ -48,6 +50,7 @@ insert into public.organizations (id, name, timezone) values
 
 insert into public.profiles (id, organization_id, role, full_name, phone) values
   ('a0000000-0000-4000-8000-0000000000a1', 'a0000000-0000-4000-8000-000000000001', 'admin',  'Alex Admin',   '+15555550100'),
+  ('a0000000-0000-4000-8000-0000000000a2', 'a0000000-0000-4000-8000-000000000001', 'admin',  'Kasam Dhakal', null),
   ('a0000000-0000-4000-8000-0000000000b1', 'a0000000-0000-4000-8000-000000000001', 'sitter', 'Sam Sitter',   '+15555550101'),
   ('a0000000-0000-4000-8000-0000000000b2', 'a0000000-0000-4000-8000-000000000001', 'sitter', 'Sky Sitter',   '+15555550102'),
   ('a0000000-0000-4000-8000-0000000000c1', 'a0000000-0000-4000-8000-000000000001', 'owner',  'Olivia Owner', '+15555550201'),
