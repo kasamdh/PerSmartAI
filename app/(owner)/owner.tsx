@@ -1,16 +1,12 @@
 import { Stack } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
 
-export default function Screen() {
+import { RoleHome } from '@/features/auth/role-home';
+
+export default function OwnerHomeScreen() {
   return (
-    <View style={styles.container}>
+    <>
       <Stack.Screen options={{ title: 'Owner home' }} />
-      <Text style={styles.text}>Owner home: coming soon</Text>
-    </View>
+      <RoleHome heading="Your pets and visits" />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  text: { fontSize: 22, textAlign: 'center' },
-});

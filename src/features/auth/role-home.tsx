@@ -1,0 +1,61 @@
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { BigButton } from '@/components/big-button';
+
+import { signOut } from './api';
+import { useProfile } from './use-profile';
+
+/** Temporary home for each role until the real role screens are built. */
+export function RoleHome({ heading }: { heading: string }) {
+  const { data: profile } = useProfile();
+  const [signingOut, setSigningOut] = useState(false);
+  const firstName = profile?.full_name.split(' ')[0];
+
+  const onSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
+      <View style={styles.hero}>
+        <Text style={styles.greeting} accessibilityRole="header">
+          {firstName ? `Hi, ${firstName}` : 'Welcome'}
+        </Text>
+        <Text style={styles.heading}>{heading}: coming soon</Text>
+      </View>
+      <BigButton label="Sign out" variant="secondary" onPress={onSignOut} loading={signingOut} />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  hero: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  greeting: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#1A1A1A',
+  },
+  heading: {
+    fontSize: 20,
+    color: '#555555',
+    textAlign: 'center',
+  },
+});
