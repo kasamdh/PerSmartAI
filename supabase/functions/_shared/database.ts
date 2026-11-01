@@ -628,6 +628,8 @@ export type Database = {
           caption: string | null;
           created_at: string;
           created_by: string | null;
+          duration_seconds: number | null;
+          height: number | null;
           id: string;
           organization_id: string;
           pet_id: string | null;
@@ -636,12 +638,15 @@ export type Database = {
           type: Database['public']['Enums']['media_type'];
           updated_at: string;
           visit_id: string;
+          width: number | null;
         };
         ComputedFields: never;
         Insert: {
           caption?: string | null;
           created_at?: string;
           created_by?: string | null;
+          duration_seconds?: number | null;
+          height?: number | null;
           id?: string;
           organization_id?: string;
           pet_id?: string | null;
@@ -650,11 +655,14 @@ export type Database = {
           type: Database['public']['Enums']['media_type'];
           updated_at?: string;
           visit_id: string;
+          width?: number | null;
         };
         Update: {
           caption?: string | null;
           created_at?: string;
           created_by?: string | null;
+          duration_seconds?: number | null;
+          height?: number | null;
           id?: string;
           organization_id?: string;
           pet_id?: string | null;
@@ -663,6 +671,7 @@ export type Database = {
           type?: Database['public']['Enums']['media_type'];
           updated_at?: string;
           visit_id?: string;
+          width?: number | null;
         };
         Relationships: [
           {
@@ -691,6 +700,94 @@ export type Database = {
             columns: ['visit_id', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'visits';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
+      media_pets: {
+        Row: {
+          created_at: string;
+          media_id: string;
+          organization_id: string;
+          pet_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          media_id: string;
+          organization_id?: string;
+          pet_id: string;
+        };
+        Update: {
+          created_at?: string;
+          media_id?: string;
+          organization_id?: string;
+          pet_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'media_pets_media_id_organization_id_fkey';
+            columns: ['media_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'media_pets_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'media_pets_pet_id_organization_id_fkey';
+            columns: ['pet_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'pets';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
+      media_reactions: {
+        Row: {
+          created_at: string;
+          media_id: string;
+          organization_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          media_id: string;
+          organization_id?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          media_id?: string;
+          organization_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'media_reactions_media_id_organization_id_fkey';
+            columns: ['media_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'media_reactions_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'media_reactions_user_id_organization_id_fkey';
+            columns: ['user_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id', 'organization_id'];
           },
         ];
@@ -767,6 +864,7 @@ export type Database = {
           created_at: string;
           id: string;
           logo_url: string | null;
+          media_retention_months: number | null;
           name: string;
           timezone: string;
           travel_buffer_minutes: number;
@@ -778,6 +876,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           logo_url?: string | null;
+          media_retention_months?: number | null;
           name: string;
           timezone?: string;
           travel_buffer_minutes?: number;
@@ -788,6 +887,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           logo_url?: string | null;
+          media_retention_months?: number | null;
           name?: string;
           timezone?: string;
           travel_buffer_minutes?: number;
@@ -1404,6 +1504,14 @@ export type Database = {
           email_locked: boolean;
           organization_name: string;
           role: Database['public']['Enums']['app_role'];
+        }[];
+      };
+      list_expired_media: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          storage_path: string;
+          thumb_path: string;
         }[];
       };
       request_booking: {

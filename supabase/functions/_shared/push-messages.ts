@@ -3,7 +3,7 @@
 
 export type PushEvent =
   | { type: 'visit_status'; visit_id: string; status: string }
-  | { type: 'visit_photo'; visit_id: string; media_id: string }
+  | { type: 'visit_photo'; visit_id: string; media_id: string; media_type?: 'photo' | 'video' }
   | { type: 'incident'; visit_id: string; incident_id: string };
 
 export type BookingPushEvent =
@@ -60,7 +60,11 @@ export function buildPushMessage(event: PushEvent, context: PushContext): PushMe
           return null;
       }
     case 'visit_photo':
-      return { title: `New photo of ${pets}`, body: `From ${sitter}. Tap to see it.`, data };
+      return {
+        title: `New ${event.media_type === 'video' ? 'video' : 'photo'} of ${pets}`,
+        body: `From ${sitter}. Tap to see it.`,
+        data,
+      };
     case 'incident':
       return {
         title: 'Incident during a visit',

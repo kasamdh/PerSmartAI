@@ -18,6 +18,17 @@ describe('joinNames', () => {
   });
 });
 
+describe('buildPushMessage: videos', () => {
+  it('says video for videos', () => {
+    expect(
+      buildPushMessage(
+        { type: 'visit_photo', visit_id: 'v2', media_id: 'm1', media_type: 'video' },
+        ctx,
+      )?.title,
+    ).toBe('New video of Biscuit & Mochi');
+  });
+});
+
 describe('buildPushMessage', () => {
   const status = (s: string) =>
     buildPushMessage({ type: 'visit_status', visit_id: 'v1', status: s }, ctx);
