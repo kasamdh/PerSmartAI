@@ -92,14 +92,27 @@ describe('VisitCard', () => {
     expect(open).toHaveBeenCalledWith(expect.stringContaining('12%20Maple%20St'));
   });
 
-  it('offers a big Start trip, and check in for when already there', async () => {
+  it('offers one big Start trip button for a scheduled visit', async () => {
     const onAction = jest.fn();
     await render(<VisitCard visit={baseVisit} onAction={onAction} timeZone={NY} />);
 
     await fireEvent.press(screen.getByRole('button', { name: 'Start trip' }));
-    await fireEvent.press(screen.getByRole('button', { name: 'Check in' }));
+    expect(onAction.mock.calls).toEqual([['on_the_way']]);
+    // Checking in without starting the trip would skip a step.
+    expect(screen.queryByRole('button', { name: 'Check in' })).toBeNull();
+  });
 
-    expect(onAction.mock.calls).toEqual([['on_the_way'], ['check_in']]);
+  it('offers check in once on the way', async () => {
+    const onAction = jest.fn();
+    await render(
+      <VisitCard
+        visit={{ ...baseVisit, status: 'on_the_way' }}
+        onAction={onAction}
+        timeZone={NY}
+      />,
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Check in' }));
+    expect(onAction).toHaveBeenCalledWith('check_in');
   });
 
   it('offers only check out once in progress', async () => {
@@ -127,13 +140,13 @@ describe('VisitCard', () => {
     expect(screen.queryByRole('button')).toBeNull();
   });
 
-  it('disables actions while one is saving', async () => {
+  it('disables the action while it is saving', async () => {
     const onAction = jest.fn();
     await render(
       <VisitCard visit={baseVisit} onAction={onAction} pendingAction="on_the_way" timeZone={NY} />,
     );
 
-    await fireEvent.press(screen.getByRole('button', { name: 'Check in' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Start trip' }));
     expect(onAction).not.toHaveBeenCalled();
   });
 

@@ -7,6 +7,7 @@ import { buildPhotoPaths, PET_MEDIA_BUCKET, PHOTO_MAX_WIDTH, THUMB_WIDTH } from 
 
 const VISIT_DETAIL_SELECT = `
   id, status, scheduled_start, scheduled_end, check_in_at, check_out_at, summary_note, organization_id,
+  on_the_way_at, started_at, status_line,
   booking:bookings (
     id, service_type, notes,
     household:households (
@@ -43,7 +44,7 @@ export type VisitPet = NonNullable<VisitDetail['booking']['booking_pets'][number
 export async function fetchCareEvents(visitId: string) {
   const { data, error } = await supabase
     .from('care_events')
-    .select('id, type, value, occurred_at, created_by, pet:pets ( id, name )')
+    .select('id, type, value, occurred_at, created_by, pet_id, pet:pets ( id, name )')
     .eq('visit_id', visitId)
     .order('occurred_at', { ascending: false });
   if (error) {
@@ -59,14 +60,30 @@ export async function logCareEvent(input: {
   petId: string | null;
   type: CareEventType;
   value?: Json;
-}): Promise<void> {
+}): Promise<string> {
   // organization_id and created_by default server-side from the signed-in user.
-  const { error } = await supabase.from('care_events').insert({
-    visit_id: input.visitId,
-    pet_id: input.petId,
-    type: input.type,
-    value: input.value ?? {},
-  });
+  const { data, error } = await supabase
+    .from('care_events')
+    .insert({
+      visit_id: input.visitId,
+      pet_id: input.petId,
+      type: input.type,
+      value: input.value ?? {},
+    })
+    .select('id')
+    .single();
+  if (error) {
+    throw error;
+  }
+  return data.id;
+}
+
+/** Replaces an event's value, e.g. to finish a walk with its length. */
+export async function updateCareEvent(
+  eventId: string,
+  value: { [key: string]: Json | undefined },
+): Promise<void> {
+  const { error } = await supabase.from('care_events').update({ value }).eq('id', eventId);
   if (error) {
     throw error;
   }
@@ -123,7 +140,8 @@ export async function uploadVisitPhoto(input: {
   petId: string | null;
   uri: string;
   width: number;
-}): Promise<void> {
+  caption?: string;
+}): Promise<string> {
   const [full, thumb] = await Promise.all([
     renderJpeg(input.uri, input.width, PHOTO_MAX_WIDTH, 0.7),
     renderJpeg(input.uri, input.width, THUMB_WIDTH, 0.6),
@@ -141,15 +159,68 @@ export async function uploadVisitPhoto(input: {
     throw uploadError;
   }
 
-  const { error } = await supabase.from('media').insert({
-    visit_id: input.visitId,
-    pet_id: input.petId,
-    storage_path: storagePath,
-    thumb_path: thumbPath,
-    type: 'photo',
-  });
+  const { data, error } = await supabase
+    .from('media')
+    .insert({
+      visit_id: input.visitId,
+      pet_id: input.petId,
+      storage_path: storagePath,
+      thumb_path: thumbPath,
+      type: 'photo',
+      caption: input.caption ?? null,
+    })
+    .select('id')
+    .single();
   if (error) {
     await bucket.remove([storagePath, thumbPath]);
     throw error;
   }
+  return data.id;
 }
+
+export type IncidentSeverity = 'minor' | 'moderate' | 'severe' | 'emergency';
+
+/** Reports an incident (admins and the owner get a push), with an optional photo. */
+export async function reportIncident(input: {
+  organizationId: string;
+  visitId: string;
+  petId: string | null;
+  severity: IncidentSeverity;
+  description: string;
+  photo: { uri: string; width: number } | null;
+}): Promise<void> {
+  const mediaId = input.photo
+    ? await uploadVisitPhoto({
+        organizationId: input.organizationId,
+        visitId: input.visitId,
+        petId: input.petId,
+        uri: input.photo.uri,
+        width: input.photo.width,
+        caption: 'Incident',
+      })
+    : null;
+  const { error } = await supabase.from('incidents').insert({
+    visit_id: input.visitId,
+    pet_id: input.petId,
+    severity: input.severity,
+    description: input.description.trim(),
+    media_id: mediaId,
+  });
+  if (error) {
+    throw error;
+  }
+}
+
+export async function fetchIncidents(visitId: string) {
+  const { data, error } = await supabase
+    .from('incidents')
+    .select('id, severity, description, created_at, pet:pets ( name )')
+    .eq('visit_id', visitId)
+    .order('created_at', { ascending: false });
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+export type IncidentRow = Awaited<ReturnType<typeof fetchIncidents>>[number];

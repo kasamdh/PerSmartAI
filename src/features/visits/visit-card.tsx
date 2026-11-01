@@ -8,12 +8,7 @@ import { deviceTimeZone } from '@/lib/time-zone';
 
 import type { SitterVisit } from './api';
 import { formatTime, formatTimeRange } from './time';
-import {
-  primaryActionFor,
-  secondaryActionFor,
-  statusLabel,
-  type VisitActionKind,
-} from './visit-actions';
+import { primaryActionFor, statusLabel, type VisitActionKind } from './visit-actions';
 
 type VisitCardProps = {
   visit: SitterVisit;
@@ -56,7 +51,6 @@ export function VisitCard({
   const household = visit.booking.household;
   const pets = visit.booking.booking_pets.map((bp) => bp.pet).filter((pet) => pet !== null);
   const primary = primaryActionFor(visit.status);
-  const secondary = secondaryActionFor(visit.status);
   const busy = pendingAction !== null;
   const done = visit.status === 'completed';
 
@@ -152,25 +146,14 @@ export function VisitCard({
         <Text style={styles.addressHint}>Directions ›</Text>
       </Pressable>
 
-      {primary || secondary ? (
+      {primary ? (
         <View style={styles.actions}>
-          {secondary ? (
-            <BigButton
-              label={secondary.label}
-              variant="secondary"
-              onPress={() => onAction(secondary.kind)}
-              loading={pendingAction === secondary.kind}
-              disabled={busy}
-            />
-          ) : null}
-          {primary ? (
-            <BigButton
-              label={primary.label}
-              onPress={() => onAction(primary.kind)}
-              loading={pendingAction === primary.kind}
-              disabled={busy}
-            />
-          ) : null}
+          <BigButton
+            label={primary.label}
+            onPress={() => onAction(primary.kind)}
+            loading={pendingAction === primary.kind}
+            disabled={busy}
+          />
         </View>
       ) : null}
     </View>

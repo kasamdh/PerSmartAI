@@ -14,19 +14,26 @@ import { BigButton } from '@/components/big-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
 import { useOrgTimeZone } from '@/features/scheduling/hooks';
 
-import { CheckOutSheet } from './check-out-sheet';
 import type { SitterVisit } from './api';
 import { groupByDay } from './time';
-import { useSitterVisits, useVisitActionRunner } from './use-sitter-visits';
+import { useSitterVisits, useVisitActionRunner, type RunnableVisit } from './use-sitter-visits';
 import { VisitCard } from './visit-card';
 
-const placeName = (visit: SitterVisit) =>
-  visit.booking.household.name ?? visit.booking.household.address_line1;
+const runnable = (visit: SitterVisit): RunnableVisit => {
+  const h = visit.booking.household;
+  return {
+    id: visit.id,
+    placeName: h.name ?? h.address_line1,
+    home: { lat: h.lat, lng: h.lng, address: h.address_line1 },
+  };
+};
 
 export function SitterTodayScreen() {
   const visits = useSitterVisits();
-  const { run, pendingFor, checkOutSheet } = useVisitActionRunner();
   const router = useRouter();
+  const openVisit = (id: string) => router.push({ pathname: '/visit/[id]', params: { id } });
+  // Check-out happens on the visit screen, after medication tasks are done.
+  const { run, pendingFor } = useVisitActionRunner({ onCheckOut: (v) => openVisit(v.id) });
   const timeZone = useOrgTimeZone();
   const sections = useMemo(() => groupByDay(visits.data ?? [], new Date()), [visits.data]);
 
@@ -52,7 +59,6 @@ export function SitterTodayScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
-      <CheckOutSheet {...checkOutSheet} />
       <SectionList
         sections={sections}
         keyExtractor={(visit) => visit.id}
@@ -74,8 +80,8 @@ export function SitterTodayScreen() {
             visit={item}
             pendingAction={pendingFor(item.id)}
             timeZone={timeZone}
-            onAction={(action) => run({ id: item.id, placeName: placeName(item) }, action)}
-            onOpen={() => router.push({ pathname: '/visit/[id]', params: { id: item.id } })}
+            onAction={(action) => void run(runnable(item), action)}
+            onOpen={() => openVisit(item.id)}
           />
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}

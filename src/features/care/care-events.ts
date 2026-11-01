@@ -47,6 +47,41 @@ function field(value: Json, key: string): string | number | undefined {
   return undefined;
 }
 
+function isSkipped(value: Json): boolean {
+  return !!value && typeof value === 'object' && !Array.isArray(value) && value.skipped === true;
+}
+
+type WalkEvent = { id: string; type: string; pet_id: string | null; value: Json };
+
+/** The pet's walk that has started but not finished (no minutes yet), if any. */
+export function ongoingWalk<T extends WalkEvent>(events: readonly T[], petId: string): T | null {
+  return (
+    events.find(
+      (e) =>
+        e.type === 'walk' &&
+        e.pet_id === petId &&
+        field(e.value, 'started_at') !== undefined &&
+        field(e.value, 'minutes') === undefined,
+    ) ?? null
+  );
+}
+
+/** The value that finishes a walk: when it ended and how long it took. */
+export function finishWalkValue(
+  value: Json,
+  now: Date,
+): { started_at: string; ended_at: string; minutes: number } {
+  const started = String(field(value, 'started_at') ?? now.toISOString());
+  const minutes = Math.max(1, Math.round((now.getTime() - Date.parse(started)) / 60_000));
+  return { started_at: started, ended_at: now.toISOString(), minutes };
+}
+
+/** "7:05" for a walk timer. */
+export function walkElapsed(startedAt: string, now: Date): string {
+  const seconds = Math.max(0, Math.floor((now.getTime() - Date.parse(startedAt)) / 1000));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
 /** One-line, owner-friendly description of a care event, e.g. "Biscuit ate half". */
 export function careEventSummary(
   type: CareEventType,
@@ -68,10 +103,16 @@ export function careEventSummary(
       return `${pet} pooped`;
     case 'walk': {
       const minutes = field(value, 'minutes');
-      return minutes ? `Walked ${pet} · ${minutes} min` : `Walked ${pet}`;
+      if (minutes) return `Walked ${pet} · ${minutes} min`;
+      return field(value, 'started_at') ? `Started a walk with ${pet}` : `Walked ${pet}`;
     }
-    case 'meds_given':
-      return `${pet} got their meds`;
+    case 'meds_given': {
+      const name = field(value, 'medication_name');
+      if (isSkipped(value)) {
+        return `${pet}’s ${name ?? 'medication'} skipped: ${field(value, 'reason') ?? 'no reason'}`;
+      }
+      return name ? `${pet} got ${name}` : `${pet} got their meds`;
+    }
     case 'play':
       return `Played with ${pet}`;
     case 'vomit':

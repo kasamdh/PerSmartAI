@@ -1,4 +1,11 @@
-import { canLogCare, careButtonsFor, careEventSummary } from '../care-events';
+import {
+  careButtonsFor,
+  careEventSummary,
+  canLogCare,
+  finishWalkValue,
+  ongoingWalk,
+  walkElapsed,
+} from '../care-events';
 
 describe('careButtonsFor', () => {
   const types = (species: 'dog' | 'cat', meds: boolean) =>
@@ -59,5 +66,73 @@ describe('careEventSummary', () => {
 
   it('falls back to "Pet" when the pet is unknown', () => {
     expect(careEventSummary('pee', {}, null)).toBe('Pet peed');
+  });
+});
+
+describe('walks and medications', () => {
+  it('describes a walk in progress and a finished one', () => {
+    expect(careEventSummary('walk', { started_at: '2026-11-10T16:00:00Z' }, 'Rex')).toBe(
+      'Started a walk with Rex',
+    );
+    expect(
+      careEventSummary('walk', { started_at: '2026-11-10T16:00:00Z', minutes: 25 }, 'Rex'),
+    ).toBe('Walked Rex · 25 min');
+  });
+
+  it('names the medication, and says when it was skipped and why', () => {
+    expect(careEventSummary('meds_given', { medication_name: 'Apoquel' }, 'Rex')).toBe(
+      'Rex got Apoquel',
+    );
+    expect(
+      careEventSummary(
+        'meds_given',
+        { medication_name: 'Apoquel', skipped: true, reason: 'Vomited' },
+        'Rex',
+      ),
+    ).toBe('Rex’s Apoquel skipped: Vomited');
+  });
+
+  it('finds the walk still going for a pet', () => {
+    const events = [
+      {
+        id: 'a',
+        type: 'walk' as const,
+        pet_id: 'rex',
+        value: { started_at: '2026-11-10T16:00:00Z', minutes: 20 },
+      },
+      {
+        id: 'b',
+        type: 'walk' as const,
+        pet_id: 'rex',
+        value: { started_at: '2026-11-10T17:00:00Z' },
+      },
+      {
+        id: 'c',
+        type: 'walk' as const,
+        pet_id: 'mochi',
+        value: { started_at: '2026-11-10T17:05:00Z' },
+      },
+    ];
+    expect(ongoingWalk(events, 'rex')?.id).toBe('b');
+    expect(ongoingWalk(events.slice(0, 1), 'rex')).toBeNull();
+  });
+
+  it('finishes a walk with its length in whole minutes (at least 1)', () => {
+    expect(
+      finishWalkValue({ started_at: '2026-11-10T17:00:00.000Z' }, new Date('2026-11-10T17:25:40Z')),
+    ).toEqual({
+      started_at: '2026-11-10T17:00:00.000Z',
+      ended_at: '2026-11-10T17:25:40.000Z',
+      minutes: 26,
+    });
+    expect(
+      finishWalkValue({ started_at: '2026-11-10T17:00:00.000Z' }, new Date('2026-11-10T17:00:10Z'))
+        .minutes,
+    ).toBe(1);
+  });
+
+  it('shows a running timer', () => {
+    expect(walkElapsed('2026-11-10T17:00:00Z', new Date('2026-11-10T17:07:05Z'))).toBe('7:05');
+    expect(walkElapsed('2026-11-10T17:00:00Z', new Date('2026-11-10T18:02:09Z'))).toBe('62:09');
   });
 });

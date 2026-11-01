@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabase';
-import type { TablesUpdate } from '@/types/database';
+
+import type { AdvanceVisitArgs } from './visit-status';
+
+export const STATUS_LINE_MAX_LENGTH = 120;
 
 const SITTER_VISIT_SELECT = `
   id, status, scheduled_start, scheduled_end, check_in_at, check_out_at,
@@ -39,16 +42,25 @@ export async function fetchSitterVisits(sitterId: string, range: { from: Date; t
 
 export type SitterVisit = Awaited<ReturnType<typeof fetchSitterVisits>>[number];
 
-export async function updateVisit(visitId: string, patch: TablesUpdate<'visits'>): Promise<void> {
+/** Moves a visit to its next status (advance_visit enforces the flow and records times). */
+export async function advanceVisit(args: AdvanceVisitArgs): Promise<void> {
+  const { error } = await supabase.rpc('advance_visit', args);
+  if (error) {
+    throw error;
+  }
+}
+
+/** The one line the owner sees live, e.g. "Out on a walk". Empty clears it. */
+export async function setStatusLine(visitId: string, text: string): Promise<void> {
+  const line = text.trim().slice(0, STATUS_LINE_MAX_LENGTH) || null;
   const { data, error } = await supabase
     .from('visits')
-    .update(patch)
+    .update({ status_line: line })
     .eq('id', visitId)
     .select('id');
   if (error) {
     throw error;
   }
-  // RLS hides rows rather than erroring, so zero rows means "not yours / not found".
   if (data.length !== 1) {
     throw new Error("This visit couldn't be updated. It may have been reassigned.");
   }

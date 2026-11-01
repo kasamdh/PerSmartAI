@@ -24,17 +24,20 @@ describe('buildPushMessage', () => {
 
   it('announces the sitter heading over, checking in, and finishing', () => {
     expect(status('on_the_way')?.title).toBe('Monika is on the way');
-    expect(status('in_progress')).toEqual({
+    expect(status('arrived')).toEqual({
       title: 'Monika checked in',
       body: 'Biscuit & Mochi are in good hands.',
       data: { visitId: 'v1', type: 'visit_status' },
     });
-    expect(status('completed')?.body).toBe('Monika checked out. See how Biscuit & Mochi did.');
+    expect(status('completed')).toMatchObject({
+      title: 'Report card ready',
+      body: 'Monika checked out. See how Biscuit & Mochi did.',
+    });
   });
 
   it('uses singular grammar for one pet', () => {
     const msg = buildPushMessage(
-      { type: 'visit_status', visit_id: 'v1', status: 'in_progress' },
+      { type: 'visit_status', visit_id: 'v1', status: 'arrived' },
       { sitterName: 'Sky', petNames: ['Rex'] },
     );
     expect(msg?.body).toBe('Rex is in good hands.');
@@ -42,7 +45,7 @@ describe('buildPushMessage', () => {
 
   it('stays quiet for statuses owners do not need pinged about', () => {
     expect(status('scheduled')).toBeNull();
-    expect(status('arrived')).toBeNull();
+    expect(status('in_progress')).toBeNull();
     expect(status('missed')).toBeNull();
   });
 

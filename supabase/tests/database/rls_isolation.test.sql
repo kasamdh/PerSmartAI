@@ -88,6 +88,10 @@ insert into public.visits (id, organization_id, booking_id, sitter_id, scheduled
    'b0000000-0000-4000-8000-0000000000b1', now() - interval '1 day', now() - interval '23 hours', 'completed',
    now() - interval '1 day', now() - interval '23 hours');
 
+-- Sitter 1 has checked in to visit 101 (care is only logged between check-in and check-out).
+update public.visits set status = 'arrived', check_in_at = now()
+ where id = 'b0000000-0000-4000-8000-000000000101';
+
 -- A photo from sitter 2's visit at owner B's home.
 insert into storage.objects (bucket_id, name, owner_id) values
   ('pet-media', 'b0000000-0000-4000-8000-000000000001/b0000000-0000-4000-8000-000000000102/photo.jpg',

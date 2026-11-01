@@ -98,9 +98,30 @@ type PetCare = {
 };
 
 /**
+ * Each time a wall-clock `time` (business zone) is due during the visit or within
+ * TASK_SLACK_MINUTES of it, oldest first. An overnight stay can include several days.
+ */
+export function dueInstants(
+  visit: { scheduled_start: string; scheduled_end: string },
+  time: string,
+  timeZone: string,
+): { date: LocalDate; at: Date }[] {
+  const slack = TASK_SLACK_MINUTES * 60_000;
+  const start = Date.parse(visit.scheduled_start) - slack;
+  const end = Date.parse(visit.scheduled_end) + slack;
+  const lastDate = utcToLocal(end, timeZone).date;
+  const due: { date: LocalDate; at: Date }[] = [];
+  for (let date = utcToLocal(start, timeZone).date; date <= lastDate; date = addDays(date, 1)) {
+    const at = localToUtc(date, time, timeZone);
+    if (at.getTime() >= start && at.getTime() <= end) due.push({ date, at });
+  }
+  return due;
+}
+
+/**
  * How many care tasks fall on this visit: each pet's feeding and medication times
- * (wall-clock in the organization's zone) due during the visit or within an hour of
- * it, plus the multi-day care time the visit was created for.
+ * due during it (see dueInstants), plus the multi-day care time it was created for.
+ * Matches the sitter's checklist.
  */
 export function visitTaskCount(
   visit: { scheduled_start: string; scheduled_end: string },
@@ -108,29 +129,14 @@ export function visitTaskCount(
   timeZone: string,
   { hasCareTime = false }: { hasCareTime?: boolean } = {},
 ): number {
-  const slack = TASK_SLACK_MINUTES * 60_000;
-  const start = Date.parse(visit.scheduled_start) - slack;
-  const end = Date.parse(visit.scheduled_end) + slack;
-
-  // Each local date the padded visit touches.
-  const firstDate = utcToLocal(start, timeZone).date;
-  const lastDate = utcToLocal(end, timeZone).date;
   const dueTimes = pets.flatMap((pet) => [
     ...pet.feeding_plans.flatMap((f) => f.times),
     ...pet.pet_medications.flatMap((m) => m.schedule_times),
   ]);
-
-  let count = hasCareTime ? 1 : 0;
-  for (const time of dueTimes) {
-    for (let date = firstDate; date <= lastDate; date = addDays(date, 1)) {
-      const due = localToUtc(date, time, timeZone).getTime();
-      if (due >= start && due <= end) {
-        count++;
-        break;
-      }
-    }
-  }
-  return count;
+  return (
+    (hasCareTime ? 1 : 0) +
+    dueTimes.reduce((sum, time) => sum + dueInstants(visit, time, timeZone).length, 0)
+  );
 }
 
 /**

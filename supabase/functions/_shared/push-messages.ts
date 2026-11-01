@@ -44,7 +44,7 @@ export function buildPushMessage(event: PushEvent, context: PushContext): PushMe
       switch (event.status) {
         case 'on_the_way':
           return { title: `${sitter} is on the way`, body: `Heading over to see ${pets}.`, data };
-        case 'in_progress':
+        case 'arrived':
           return {
             title: `${sitter} checked in`,
             body: `${pets} ${context.petNames.length === 1 ? 'is' : 'are'} in good hands.`,
@@ -52,7 +52,7 @@ export function buildPushMessage(event: PushEvent, context: PushContext): PushMe
           };
         case 'completed':
           return {
-            title: 'Visit finished',
+            title: 'Report card ready',
             body: `${sitter} checked out. See how ${pets} did.`,
             data,
           };

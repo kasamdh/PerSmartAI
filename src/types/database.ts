@@ -135,7 +135,7 @@ export type Database = {
           notes?: string | null;
           organization_id?: string;
           recurrence_rule?: string | null;
-          series_id?: string;
+          series_id: string;
           service_type: Database['public']['Enums']['service_type'];
           sitter_id?: string | null;
           start_date: string;
@@ -493,6 +493,7 @@ export type Database = {
           created_by: string | null;
           description: string;
           id: string;
+          media_id: string | null;
           organization_id: string;
           pet_id: string | null;
           severity: Database['public']['Enums']['incident_severity'];
@@ -506,6 +507,7 @@ export type Database = {
           created_by?: string | null;
           description: string;
           id?: string;
+          media_id?: string | null;
           organization_id?: string;
           pet_id?: string | null;
           severity: Database['public']['Enums']['incident_severity'];
@@ -518,6 +520,7 @@ export type Database = {
           created_by?: string | null;
           description?: string;
           id?: string;
+          media_id?: string | null;
           organization_id?: string;
           pet_id?: string | null;
           severity?: Database['public']['Enums']['incident_severity'];
@@ -530,6 +533,13 @@ export type Database = {
             columns: ['created_by', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'incidents_media_fkey';
+            columns: ['media_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
             referencedColumns: ['id', 'organization_id'];
           },
           {
@@ -1245,12 +1255,15 @@ export type Database = {
           created_at: string;
           id: string;
           late_cancellation: boolean;
+          on_the_way_at: string | null;
           organization_id: string;
           scheduled_end: string;
           scheduled_start: string;
           sitter_id: string | null;
           slot_start: string;
+          started_at: string | null;
           status: Database['public']['Enums']['visit_status'];
+          status_line: string | null;
           summary_note: string | null;
           updated_at: string;
         };
@@ -1268,12 +1281,15 @@ export type Database = {
           created_at?: string;
           id?: string;
           late_cancellation?: boolean;
+          on_the_way_at?: string | null;
           organization_id?: string;
           scheduled_end: string;
           scheduled_start: string;
           sitter_id?: string | null;
           slot_start: string;
+          started_at?: string | null;
           status?: Database['public']['Enums']['visit_status'];
+          status_line?: string | null;
           summary_note?: string | null;
           updated_at?: string;
         };
@@ -1290,12 +1306,15 @@ export type Database = {
           created_at?: string;
           id?: string;
           late_cancellation?: boolean;
+          on_the_way_at?: string | null;
           organization_id?: string;
           scheduled_end?: string;
           scheduled_start?: string;
           sitter_id?: string | null;
           slot_start?: string;
+          started_at?: string | null;
           status?: Database['public']['Enums']['visit_status'];
+          status_line?: string | null;
           summary_note?: string | null;
           updated_at?: string;
         };
@@ -1335,6 +1354,46 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      advance_visit: {
+        Args: {
+          p_lat?: number;
+          p_lng?: number;
+          p_status: Database['public']['Enums']['visit_status'];
+          p_summary?: string;
+          p_visit_id: string;
+        };
+        Returns: {
+          booking_id: string;
+          cancelled_at: string | null;
+          care_time_id: string | null;
+          check_in_at: string | null;
+          check_in_lat: number | null;
+          check_in_lng: number | null;
+          check_out_at: string | null;
+          check_out_lat: number | null;
+          check_out_lng: number | null;
+          created_at: string;
+          id: string;
+          late_cancellation: boolean;
+          on_the_way_at: string | null;
+          organization_id: string;
+          scheduled_end: string;
+          scheduled_start: string;
+          sitter_id: string | null;
+          slot_start: string;
+          started_at: string | null;
+          status: Database['public']['Enums']['visit_status'];
+          status_line: string | null;
+          summary_note: string | null;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'visits';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       apply_booking_plan: {
         Args: { p_booking_id: string; p_end_date?: string; p_sitter_id: string; p_visits: Json };
         Returns: number;

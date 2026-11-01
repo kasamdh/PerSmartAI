@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import type { CareEventRow, VisitPet } from '../api';
 import { CareTimeline } from '../care-timeline';
+import type { ChecklistTask } from '../checklist';
 import { PetCarePanel } from '../pet-care-panel';
 
 const cat: VisitPet = {
@@ -27,27 +28,108 @@ const cat: VisitPet = {
   ],
 };
 
+const dog: VisitPet = {
+  ...cat,
+  id: 'p1',
+  name: 'Rex',
+  species: 'dog',
+  pet_allergies: [],
+  pet_medications: [
+    { id: 'm1', name: 'Apoquel', dose: '16 mg', instructions: null, schedule_times: ['11:00:00'] },
+  ],
+};
+
+const medTask: ChecklistTask = {
+  key: 'medication:m1:2026-11-10T16:00:00.000Z',
+  petId: 'p1',
+  kind: 'medication',
+  title: 'Apoquel 16 mg',
+  medicationName: 'Apoquel',
+  dueAt: '2026-11-10T16:00:00.000Z',
+  dueDate: '2026-11-10',
+  dueTime: '11:00',
+  status: 'open',
+  detail: null,
+  eventId: null,
+};
+
+const handlers = () => ({
+  onFed: jest.fn(),
+  onMeds: jest.fn(),
+  onLog: jest.fn(),
+  onWalk: jest.fn(),
+  onNote: jest.fn(),
+});
+
+const panel = (
+  pet: VisitPet,
+  overrides: Partial<React.ComponentProps<typeof PetCarePanel>> = {},
+) => (
+  <PetCarePanel
+    pet={pet}
+    tasks={[]}
+    walk={null}
+    now={new Date('2026-11-10T16:10:00Z')}
+    enabled
+    {...handlers()}
+    {...overrides}
+  />
+);
+
 describe('PetCarePanel', () => {
-  it('shows allergies and the feeding plan up front', async () => {
-    await render(<PetCarePanel pet={cat} onLog={null} />);
+  it('shows allergies first, then the feeding plan', async () => {
+    await render(panel(cat, { enabled: false }));
 
     expect(screen.getByTestId('allergy-banner')).toBeTruthy();
     expect(screen.getByText(/Fish · SEVERE/)).toBeTruthy();
     expect(screen.getByText(/0.5 can Turkey pate at 08:00, 18:00 · no treats/)).toBeTruthy();
   });
 
-  it('hides care buttons until the sitter can log', async () => {
-    await render(<PetCarePanel pet={cat} onLog={null} />);
+  it('hides care buttons until the sitter has checked in', async () => {
+    await render(panel(cat, { enabled: false }));
     expect(screen.queryByRole('button')).toBeNull();
   });
 
-  it('logs the tapped care type, with no walk button for a cat', async () => {
+  it('logs one-tap care, with no walk button for a cat', async () => {
     const onLog = jest.fn();
-    await render(<PetCarePanel pet={cat} onLog={onLog} />);
+    const onFed = jest.fn();
+    await render(panel(cat, { onLog, onFed }));
 
-    expect(screen.queryByRole('button', { name: 'Walk, Mochi' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Start walk with Mochi' })).toBeNull();
     await fireEvent.press(screen.getByRole('button', { name: 'Poop, Mochi' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Fed Mochi, ate half' }));
     expect(onLog).toHaveBeenCalledWith('poop');
+    expect(onFed).toHaveBeenCalledWith('half', null);
+  });
+
+  it('starts and stops a walk with a running timer', async () => {
+    const onWalk = jest.fn();
+    await render(panel(dog, { onWalk, walk: { startedAt: '2026-11-10T16:03:00Z' } }));
+    expect(screen.getByText('Stop walk 7:00')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Stop walk with Rex' }));
+    expect(onWalk).toHaveBeenCalled();
+  });
+
+  it('checks off medication tasks, or skips them with a reason', async () => {
+    const onMeds = jest.fn();
+    await render(panel(dog, { onMeds, tasks: [medTask] }));
+
+    expect(screen.getByText(/11:00 AM · Apoquel 16 mg/)).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Apoquel 16 mg given' }));
+    expect(onMeds).toHaveBeenLastCalledWith(medTask, undefined);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Skip Apoquel 16 mg' }));
+    expect(screen.getByRole('button', { name: 'Save skip' })).toBeDisabled();
+    await fireEvent.changeText(screen.getByLabelText('Why was it skipped?'), 'Refused it');
+    await fireEvent.press(screen.getByRole('button', { name: 'Save skip' }));
+    expect(onMeds).toHaveBeenLastCalledWith(medTask, 'Refused it');
+  });
+
+  it('gives the generic Meds given button the next open task', async () => {
+    const onMeds = jest.fn();
+    await render(panel(dog, { onMeds, tasks: [medTask] }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Meds given to Rex: Apoquel 16 mg' }));
+    expect(onMeds).toHaveBeenCalledWith(medTask);
   });
 });
 
@@ -59,6 +141,7 @@ describe('CareTimeline', () => {
       value: { amount_eaten: 'half' },
       occurred_at: '2026-10-31T14:05:00Z',
       created_by: 'me',
+      pet_id: 'p2',
       pet: { id: 'p2', name: 'Mochi' },
     },
     {
@@ -67,6 +150,7 @@ describe('CareTimeline', () => {
       value: {},
       occurred_at: '2026-10-31T14:00:00Z',
       created_by: 'someone-else',
+      pet_id: 'p1',
       pet: { id: 'p1', name: 'Biscuit' },
     },
   ];
