@@ -25,7 +25,7 @@ Roles:
 - Admin web: Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind CSS 4 + `@supabase/ssr`, TanStack Query
 - Sentry (`@sentry/react-native`, `@sentry/nextjs`) for errors; PostHog (`posthog-react-native`) for key events; `@shopify/flash-list` v2 for long lists; `expo-updates` (EAS Update); Maestro for end-to-end flows
 
-Installed so far: Expo/Router, `@supabase/supabase-js` (+ `@react-native-async-storage/async-storage`, `react-native-url-polyfill`), `rrule` (date expansion only, see Scheduling), and the lint/test tooling. The remaining stack libraries are approved but not yet installed. Add them with `npx expo install <pkg>` (run in `apps/mobile`) when a feature needs them.
+Everything above is installed. `rrule` is used for date expansion only (see Scheduling). Add mobile packages with `npx expo install <pkg>` (run in `apps/mobile`), and ask first.
 
 ## Folder structure
 
@@ -46,7 +46,10 @@ apps/
     src/proxy.ts          Session refresh + redirect to /sign-in (Next 16's name for middleware)
 packages/
   shared/                 @petsitter/shared: DB types, Zod schemas, scheduling and other pure logic (Jest)
-scripts/                  sync-shared.mjs, gen-types.mjs
+scripts/                  sync-shared, gen-types, check-a11y, check-bundle-secrets, check-functions
+docs/                     environments.md (setup runbook), launch-risks.md
+.github/workflows/        ci, deploy-supabase, eas-update
+apps/mobile/.maestro/     end-to-end flows
 supabase/
   config.toml             Local Supabase config
   migrations/             SQL migrations (schema + RLS policies)
@@ -183,7 +186,7 @@ In `apps/mobile`, keep non-route code out of `app/`. Route groups don't add a UR
 - System-only Edge Functions (cron, triggers) check the caller with `_shared/service-auth.ts` (exact service key, constant time). Functions the web calls answer CORS with `_shared/cors.ts`.
 - Error reports: everything goes through `packages/shared/src/telemetry-scrub.ts` (`beforeSend` / `beforeBreadcrumb`). No default PII, screenshots, view hierarchy, session replay or console breadcrumbs. Never pass addresses, messages, notes or contact details to `reportError` / `captureException` context.
 - Analytics: only the events in `packages/shared/src/analytics-events.ts`, through `track()` (`apps/mobile/src/lib/analytics.ts`). Properties are allowlisted enums, booleans and rounded counts; nobody is identified. Add an event there (with a test) before tracking it.
-- Both are off unless their keys are set (`EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_SENTRY_DSN`) and in `__DEV__`.
+- Both are off unless their keys are set (`EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_SENTRY_DSN`), and the mobile app never sends either in development (`__DEV__`).
 - Variants: `APP_VARIANT` = development / preview / production picks the app id, name and deep-link scheme (`app.config.ts`); `EXPO_PUBLIC_APP_ENV` tags reports. EAS profiles and channels: `eas.json`. Setup runbook: `docs/environments.md`. Open launch risks: `docs/launch-risks.md`.
 - CI (`.github/workflows/ci.yml`) on every PR: `npm run check`, web build, mobile JS export plus the bundle secret scan, Supabase from scratch with db lint, pgTAP and a generated-types diff, a guard against editing applied migrations, Deno type check of the functions, gitleaks.
 - Accessibility: `npm run a11y:check` (in `npm run check`) requires a role on every touchable, a label on every input and switch, and a label or `accessible={false}` on every image. Text colors must reach 4.5:1 on their background (the default brand blue is `#1565C0`; muted text `#666666`).
