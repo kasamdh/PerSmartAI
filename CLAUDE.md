@@ -91,6 +91,14 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - Owners reschedule through `schedule_change_requests` (one visit, or this and future); admins approve (applied with conflict checks) or decline. Sitters request time off (`sitter_time_off.status`), admins approve.
 - Lists use `useLiveQueries` (`src/lib/realtime.ts`) to refetch on Realtime changes; bookings, visits, care times, availability, time off and change requests are in the publication.
 
+## Visit flow
+
+- Status flow `scheduled -> on_the_way -> arrived -> in_progress -> completed`, enforced by `private.visit_transition_allowed` in the `track_visit_status` trigger for every signed-in user (admins may also mark `missed` before check-in or `cancelled` before completion; system jobs and the booking-cancel cascade are exempt). `src/features/visits/visit-status.ts` mirrors it for the buttons; keep both in sync.
+- The app moves visits only through `public.advance_visit(visit_id, status, lat, lng, summary)` (security invoker). The server records `on_the_way_at`, `check_in_at` (arrived), `started_at` (in_progress) and `check_out_at`. Check-in is `arrived`; the first care event starts care (`start_care_on_first_event`), and checking out from `arrived` steps through `in_progress`. Check-in warns, never blocks, beyond 200 m (`src/lib/geo.ts`).
+- Care events can only be logged while a visit is `arrived` or `in_progress`. Checklist tasks (`src/features/care/checklist.ts`) come from feeding plans and medications due during the visit or within an hour of it, in the org timezone; events complete a task through `value.task_key`. Skipped meds are `meds_given` with `skipped: true` and a `reason`. Check-out requires every medication task done or skipped (app rule). Walks: a `walk` event with `started_at`, updated with `ended_at` and `minutes` when stopped.
+- `visits.status_line` is the sitter's live one-liner for the owner (cleared when the visit ends). Incidents can link a photo (`incidents.media_id`).
+- Owner report card: `src/features/care/report-card.ts`. Admin live board: `src/features/admin/live-board.ts` (late = not checked in 10 minutes after the start).
+
 ## Auth and routing
 
 - Sessions are stored in expo-secure-store, chunked to stay under its value size limit (`src/lib/secure-storage.ts`), with a fixed `storageKey`. The client uses the PKCE flow.

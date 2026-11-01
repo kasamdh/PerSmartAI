@@ -19,6 +19,7 @@ import { statusLabel } from '@/features/visits/visit-actions';
 import { describeSchedule } from '@/features/bookings/booking-text';
 import { useBookingRequests, useTodaysVisits } from './hooks';
 import { ChangeRequestsSection, TimeOffRequestsSection } from './inbox-sections';
+import { checkInTiming } from './live-board';
 
 const SERVICE_LABELS = {
   drop_in: 'Drop-in',
@@ -49,7 +50,8 @@ export function AdminHomeScreen() {
         <Text style={styles.greeting} accessibilityRole="header">
           {firstName ? `Hi, ${firstName}` : 'Dashboard'}
         </Text>
-        <BigButton label="Calendar" onPress={() => router.push('/schedule')} />
+        <BigButton label="Live board" onPress={() => router.push('/live-board')} />
+        <BigButton label="Calendar" variant="secondary" onPress={() => router.push('/schedule')} />
         <View style={styles.navRow}>
           <BigButton
             label="Workload"
@@ -162,6 +164,9 @@ export function AdminHomeScreen() {
                   <Text style={[styles.body, !v.sitter && styles.warning]}>
                     {v.sitter ? `Sitter: ${v.sitter.full_name}` : 'No sitter assigned'}
                   </Text>
+                  {checkInTiming(v, new Date()).label ? (
+                    <Text style={styles.warning}>{checkInTiming(v, new Date()).label}</Text>
+                  ) : null}
                 </Pressable>
               );
             })

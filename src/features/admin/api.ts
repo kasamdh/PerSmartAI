@@ -41,7 +41,7 @@ export async function fetchTodaysVisits(now: Date) {
   const { data, error } = await supabase
     .from('visits')
     .select(
-      `id, status, scheduled_start, scheduled_end, check_in_at,
+      `id, status, scheduled_start, scheduled_end, check_in_at, check_out_at, status_line,
        sitter:profiles ( full_name ),
        booking:bookings ( service_type, household:households ( name, address_line1 ), booking_pets ( pet:pets ( name ) ) )`,
     )
