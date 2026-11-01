@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/alerts.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Which alerts to send, and when. Pure TypeScript shared by the alert-checks and
 // notify-owner Edge Functions (Deno) and the app (settings screen, Jest tests).
 

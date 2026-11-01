@@ -1,0 +1,24 @@
+{
+  "name": "@petsitter/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Types, Zod schemas and pure logic shared by the mobile app, the admin web app and the Edge Functions.",
+  "exports": {
+    "./scheduling": "./src/scheduling/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "rrule": "^2.8.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "babel-preset-expo": "~58.0.23",
+    "jest": "^30.5.2",
+    "typescript": "~6.0.3"
+  }
+}

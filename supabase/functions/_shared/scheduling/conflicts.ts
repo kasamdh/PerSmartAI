@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/conflicts.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Can this sitter take this visit? Checked before saving any assignment.
 //
 // Blocking:  overlapping another visit; less than the organization's travel buffer

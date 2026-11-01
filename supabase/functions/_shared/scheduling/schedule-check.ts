@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/schedule-check.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Checking a whole booking against a sitter's schedule, as the schedule-booking
 // Edge Function and the admin screens do before saving.
 //

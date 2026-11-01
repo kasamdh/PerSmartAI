@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/time-zone.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Converting wall-clock times in an IANA time zone to UTC instants and back.
 //
 // Visits are generated from wall-clock times in the organization's time zone, so a

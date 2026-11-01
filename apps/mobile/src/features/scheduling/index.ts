@@ -1,2 +1,2 @@
-// The scheduling logic lives with the Edge Functions so both run the same code.
-export * from '../../../../../supabase/functions/_shared/scheduling/index.ts';
+// The scheduling logic lives in packages/shared (synced to the Edge Functions).
+export * from '@petsitter/shared/scheduling';

@@ -1,9 +1,10 @@
-// Regenerates Supabase types into apps/mobile/src/types/database.ts (and the Edge Functions copy).
+// Regenerates Supabase types into packages/shared/src/database.ts, then syncs the
+// Edge Functions copy (scripts/sync-shared.mjs).
 // Writes nothing if generation fails, so a DB hiccup can't clobber good types.
 import { execSync } from 'node:child_process';
-import { copyFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 
-const target = 'apps/mobile/src/types/database.ts';
+const target = 'packages/shared/src/database.ts';
 let output;
 try {
   output = execSync('npx supabase gen types typescript --local --schema public', {
@@ -11,14 +12,14 @@ try {
     stdio: ['ignore', 'pipe', 'inherit'],
   });
 } catch {
-  console.error('Type generation failed; src/types/database.ts was left unchanged.');
+  console.error('Type generation failed; packages/shared/src/database.ts was left unchanged.');
   process.exit(1);
 }
 if (!output.includes('export type Database')) {
-  console.error('Unexpected generator output; src/types/database.ts was left unchanged.');
+  console.error('Unexpected generator output; packages/shared/src/database.ts was left unchanged.');
   process.exit(1);
 }
 writeFileSync(target, output);
 execSync(`npx prettier --write ${target}`, { stdio: 'ignore' });
-copyFileSync(target, 'supabase/functions/_shared/database.ts');
-console.log(`Wrote ${target} and supabase/functions/_shared/database.ts`);
+execSync('node scripts/sync-shared.mjs', { stdio: 'inherit' });
+console.log(`Wrote ${target}`);

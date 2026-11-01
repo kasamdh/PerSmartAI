@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/recurrence.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Recurring bookings are stored as an RFC 5545 RRULE string. We support the subset a
 // pet-sitting schedule needs: FREQ=DAILY or WEEKLY, INTERVAL, BYDAY (plain weekdays),
 // and UNTIL or COUNT. Anything else is rejected rather than half-understood.

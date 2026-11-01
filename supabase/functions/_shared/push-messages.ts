@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/push-messages.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Notification wording and recipients for push messages. Pure TypeScript shared by
 // the notify-owner and alert-checks Edge Functions (Deno) and the app's Jest tests.
 

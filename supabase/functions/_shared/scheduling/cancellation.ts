@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/cancellation.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Late cancellations. Mirrors private.stamp_booking_cancellation and
 // private.cancel_visits_on_booking_cancel: cancelling a booking cancels its visits
 // that are still scheduled and haven't ended; each is late if it starts within the

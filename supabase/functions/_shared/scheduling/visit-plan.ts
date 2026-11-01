@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/visit-plan.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Turning a booking into the visits it should have.
 //
 //   drop_in, walk  one visit per occurrence date, at window_start, lasting

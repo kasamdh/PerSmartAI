@@ -1,6 +1,7 @@
 {
   "name": "petsitter",
   "private": true,
+  "packageManager": "npm@11.16.0",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -11,12 +12,14 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm test",
+    "check": "npm run shared:check && npm run lint && npm run format:check && npm run typecheck && npm test",
     "mobile": "npm run start -w @petsitter/mobile",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
-    "db:types": "node scripts/gen-types.mjs"
+    "db:types": "node scripts/gen-types.mjs",
+    "shared:sync": "node scripts/sync-shared.mjs",
+    "shared:check": "node scripts/sync-shared.mjs --check"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/chat-alerts.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Push alerts for household chat messages. Pure TypeScript shared by notify-owner
 // and alert-checks (Deno) and Jest.
 //

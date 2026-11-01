@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/dates.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Wall-clock calendar values used by scheduling. Dates are "YYYY-MM-DD" and times
 // "HH:MM" (Postgres `time` values like "09:15:00" are accepted too). They carry no
 // time zone; time-zone.ts turns them into instants in a given zone.

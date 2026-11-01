@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/series.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Editing recurring bookings.
 //
 //   one visit         moveVisit: only that visit changes; its slot stays the same,

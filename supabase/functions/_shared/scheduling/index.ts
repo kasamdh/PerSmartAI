@@ -1,3 +1,6 @@
+// GENERATED from packages/shared/src/scheduling/index.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 // Scheduling logic shared by the app (Jest, Metro) and Edge Functions (Deno).
 // Pure functions only: no Supabase calls, no clock reads (callers pass `now`).
 
