@@ -60,8 +60,8 @@ select results_eq(
 
 select pg_temp.sign_in('f1000000-0000-4000-8000-0000000000a1');
 set local role authenticated;
-select public.confirm_booking((select id from req), 'f1000000-0000-4000-8000-0000000000b1');
-select public.confirm_booking((select id from req), 'f1000000-0000-4000-8000-0000000000b1');
+select public.apply_booking_plan((select id from req), 'f1000000-0000-4000-8000-0000000000b1', '[]'::jsonb);
+select public.apply_booking_plan((select id from req), 'f1000000-0000-4000-8000-0000000000b1', '[]'::jsonb);
 update public.bookings set status = 'declined' where id = (select declined from req);
 reset role;
 

@@ -118,7 +118,7 @@ select throws_ok(
   $$ select public.request_booking('walk', array['f0000000-0000-4000-8000-0000000000e1']::uuid[], current_date + 2,
        null, null, null, null, 'FREQ=MONTHLY') $$,
   '22023', null,
-  'rules confirm_booking can''t expand are rejected'
+  'unsupported repeat rules are rejected'
 );
 
 select throws_ok(
@@ -130,7 +130,7 @@ select throws_ok(
 
 select throws_ok(
   $$ select public.request_booking('overnight', array['f0000000-0000-4000-8000-0000000000e1']::uuid[], current_date + 2) $$,
-  '22023', 'Overnight stays need an end date',
+  '22023', 'Stays need an end date',
   'overnight stays need an end date'
 );
 
@@ -186,8 +186,15 @@ reset role;
 
 select pg_temp.sign_in('f0000000-0000-4000-8000-0000000000a1');
 set local role authenticated;
+-- What the scheduler plans for this daily 11:00 drop-in (see visit-plan.ts).
 select is(
-  (select public.confirm_booking(id, 'f0000000-0000-4000-8000-0000000000b1') from req),
+  (select public.apply_booking_plan(b.id, 'f0000000-0000-4000-8000-0000000000b1', (
+     select jsonb_agg(jsonb_build_object(
+       'slot_start', (d::date + b.window_start) at time zone 'America/New_York',
+       'scheduled_start', (d::date + b.window_start) at time zone 'America/New_York',
+       'scheduled_end', (d::date + b.window_start) at time zone 'America/New_York' + interval '30 minutes'))
+     from generate_series(b.start_date, b.end_date, interval '1 day') d))
+   from public.bookings b join req on req.id = b.id),
   3,
   'admin confirms the daily request into 3 visits'
 );
