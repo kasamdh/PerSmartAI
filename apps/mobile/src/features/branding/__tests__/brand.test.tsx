@@ -1,32 +1,47 @@
-import { brandPalette } from '@petsitter/shared/branding';
+import { brandPalette, contrastRatio } from '@petsitter/shared/branding';
 import { render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import { BigButton } from '@/components/big-button';
+import { lightColors, ThemeProvider } from '@/theme';
 
 import { BrandContext } from '../brand-context';
 
 const style = (label: string) =>
   StyleSheet.flatten(screen.getByRole('button', { name: label }).props.style);
 
-describe('white-label BigButton', () => {
-  it('uses the default color before a business is known', async () => {
-    await render(<BigButton label="Sign in" />);
-    expect(style('Sign in').backgroundColor).toBe(brandPalette({}).primary);
+describe('white-label buttons', () => {
+  it('use the design system teal before a business is known', async () => {
+    await render(
+      <ThemeProvider>
+        <BigButton label="Sign in" />
+      </ThemeProvider>,
+    );
+    expect(style('Sign in').backgroundColor).toBe(lightColors.primary);
   });
 
-  it("uses the business's color with readable text", async () => {
-    const colors = brandPalette({ primaryColor: '#FFD84D', accentColor: '#0E7C66' });
+  it("use the business's color with readable text", async () => {
     await render(
       <BrandContext.Provider
-        value={{ colors, name: 'Happy Paws', logoUrl: null, customPrimary: '#FFD84D' }}
+        value={{
+          colors: brandPalette({ primaryColor: '#FFD84D' }),
+          name: 'Happy Paws',
+          logoUrl: null,
+          customPrimary: '#FFD84D',
+        }}
       >
-        <BigButton label="Check in" />
-        <BigButton label="Details" variant="secondary" />
+        <ThemeProvider>
+          <BigButton label="Check in" />
+          <BigButton label="Details" variant="secondary" />
+        </ThemeProvider>
       </BrandContext.Provider>,
     );
     expect(style('Check in').backgroundColor).toBe('#FFD84D');
-    expect(StyleSheet.flatten(screen.getByText('Check in').props.style).color).toBe('#111111');
-    expect(style('Details').borderColor).toBe(colors.primaryOnWhite);
+    const label = StyleSheet.flatten(screen.getByText('Check in').props.style);
+    expect(contrastRatio(label.color, '#FFD84D')).toBeGreaterThanOrEqual(4.5);
+    // The outline uses the brand darkened enough to read on white.
+    expect(contrastRatio(style('Details').borderColor as string, '#FFFFFF')).toBeGreaterThanOrEqual(
+      4.5,
+    );
   });
 });

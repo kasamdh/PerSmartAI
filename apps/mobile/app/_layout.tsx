@@ -3,7 +3,9 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { ToastProvider } from '@/components/ui';
 import { AuthProvider, useAuth } from '@/features/auth/auth-provider';
 import { BrandProvider } from '@/features/branding/brand';
 import { routeGuards } from '@/features/auth/routing';
@@ -12,6 +14,7 @@ import { usePushNotifications } from '@/features/notifications/use-push-notifica
 import { setAnalyticsRole } from '@/lib/analytics';
 import { initMonitoring, setMonitoringUser, wrapRoot } from '@/lib/monitoring';
 import { queryClient } from '@/lib/query-client';
+import { ThemeProvider, useTheme } from '@/theme';
 import type { AppRole } from '@/types/models';
 
 initMonitoring();
@@ -19,18 +22,29 @@ SplashScreen.preventAutoHideAsync();
 
 function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrandProvider>
-          <StatusBar style="auto" />
-          <RootNavigator />
-        </BrandProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrandProvider>
+            {/* Design system: tokens (light/dark + the business's brand) and toasts. */}
+            <ThemeProvider>
+              <ToastProvider>
+                <ThemedStatusBar />
+                <RootNavigator />
+              </ToastProvider>
+            </ThemeProvider>
+          </BrandProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 
 export default wrapRoot(RootLayout);
+
+function ThemedStatusBar() {
+  return <StatusBar style={useTheme().scheme === 'dark' ? 'light' : 'dark'} />;
+}
 
 // Route groups only exist while their guard is true (see routeGuards). When one
 // flips (sign in/out, onboarding done, password reset) Expo Router falls back to

@@ -1,79 +1,30 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
-import { useBrand } from '@/features/branding/brand-context';
+import { size } from '@/theme';
 
-// 56pt min height: comfortably above the 44pt/48dp platform minimums, for one-handed use.
-export const MIN_TAP_TARGET = 56;
+import { Button } from './ui/button';
 
-type BigButtonProps = Omit<PressableProps, 'children'> & {
+// 56 pt: comfortably above the 48 pt minimum, for one-handed use.
+export const MIN_TAP_TARGET = size.control;
+
+type BigButtonProps = {
   label: string;
+  onPress?: () => void;
   variant?: 'primary' | 'secondary';
   /** Shows a spinner and disables the button. */
   loading?: boolean;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  testID?: string;
 };
 
-export function BigButton({
-  label,
-  variant = 'primary',
-  loading = false,
-  disabled,
-  style,
-  ...rest
-}: BigButtonProps) {
-  const isDisabled = !!disabled || loading;
-  const isPrimary = variant === 'primary';
-  // White-label: the business's primary color (readable text is picked for it).
-  const { colors } = useBrand();
-  const tone = isPrimary
-    ? { backgroundColor: colors.primary }
-    : { backgroundColor: '#FFFFFF', borderColor: colors.primaryOnWhite };
-  const labelColor = isPrimary ? colors.onPrimary : colors.primaryOnWhite;
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: isDisabled, busy: loading }}
-      disabled={isDisabled}
-      hitSlop={8}
-      style={(state) => [
-        styles.button,
-        !isPrimary && styles.secondary,
-        tone,
-        state.pressed && styles.pressed,
-        isDisabled && styles.disabled,
-        typeof style === 'function' ? style(state) : style,
-      ]}
-      {...rest}
-    >
-      {loading ? (
-        <ActivityIndicator color={labelColor} />
-      ) : (
-        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
-      )}
-    </Pressable>
-  );
+/**
+ * The original full-width button, now drawn by the design system's Button so
+ * every existing screen gets the new look. New screens use Button from
+ * '@/components/ui' directly.
+ */
+export function BigButton({ variant = 'primary', ...props }: BigButtonProps) {
+  return <Button variant={variant} {...props} />;
 }
-
-const styles = StyleSheet.create({
-  button: {
-    minHeight: MIN_TAP_TARGET,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  secondary: {
-    borderWidth: 2,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  label: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-});

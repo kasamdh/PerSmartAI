@@ -99,7 +99,7 @@ describe('AllergyBanner', () => {
     const severe = within(banner).getByText(/Bee stings · SEVERE/);
     const mild = within(banner).getByText(/Pollen · MILD/);
     expect(StyleSheet.flatten(severe.props.style).fontWeight).toBe('800');
-    expect(StyleSheet.flatten(mild.props.style).fontWeight).toBeUndefined();
+    expect(StyleSheet.flatten(mild.props.style).fontWeight).not.toBe('800');
   });
 });
 
