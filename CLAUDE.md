@@ -22,7 +22,7 @@ Roles:
 - Jest (`jest-expo` preset) + React Native Testing Library for tests
 - ESLint (`eslint-config-expo`) + Prettier
 
-Installed so far: Expo/Router, `@supabase/supabase-js` (+ `@react-native-async-storage/async-storage`, `react-native-url-polyfill`), and the lint/test tooling. The remaining stack libraries are approved but not yet installed. Add them with `npx expo install <pkg>` when a feature needs them.
+Installed so far: Expo/Router, `@supabase/supabase-js` (+ `@react-native-async-storage/async-storage`, `react-native-url-polyfill`), `rrule` (date expansion only, see Scheduling), and the lint/test tooling. The remaining stack libraries are approved but not yet installed. Add them with `npx expo install <pkg>` when a feature needs them.
 
 ## Folder structure
 
@@ -75,10 +75,21 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - Every new table needs RLS policies plus cases in `supabase/tests/database/` proving cross-owner, cross-sitter, and cross-org isolation.
 - After any schema change, regenerate types with `npm run db:types` (also copies them to `supabase/functions/_shared/` for Edge Functions).
 
-- Visits are generated from bookings only by `public.confirm_booking(booking_id, sitter_id)` (admin-only RPC). It converts wall-clock booking times in the org timezone to UTC in Postgres (DST-safe), supports no rule / FREQ=DAILY / FREQ=WEEKLY;BYDAY=..., generates 90 days ahead, and is idempotent (unique `(booking_id, scheduled_start)`). Re-confirming reassigns upcoming visits.
-- Visit generation lives in `private.generate_booking_visits(booking_id)` (idempotent, never recreates cancelled visits). A nightly pg_cron job (`top-up-booking-visits`, 08:15 UTC) runs `private.top_up_booking_visits()` so confirmed open-ended and long bookings stay scheduled 90 days ahead. Five minutes earlier, `complete-finished-bookings` marks confirmed bookings `completed` once their last day has passed in the org timezone and no visit is under way.
-- Owners create bookings only through `public.request_booking(...)` (security invoker, so RLS applies), which inserts the booking and its `booking_pets` atomically and rejects past dates and recurrence rules `confirm_booking` can't expand. Overnight windows are arrival on the start date and departure on the end date, so `window_end < window_start` is allowed for them.
-- Setting a booking to `cancelled` cancels its `scheduled` visits that haven't ended (trigger `cancel_visits_on_booking_cancel`); visits already under way are left for the sitter. The trigger sets the transaction-local flag `app.booking_cancel_cascade`, which `guard_visit_update` honors.
+- Owners create bookings only through `public.request_booking(...)` (security invoker, so RLS applies), which inserts the booking, its `booking_pets` and (multi-day) `booking_care_times` atomically and rejects past dates and rules the scheduler can't expand (`private.is_supported_rrule`). Overnight windows are arrival on the start date and departure on the end date, so `window_end < window_start` is allowed for them.
+- Setting a booking to `cancelled` cancels its `scheduled` visits that haven't ended (trigger `cancel_visits_on_booking_cancel`); visits already under way are left for the sitter. The trigger sets the transaction-local flag `app.booking_cancel_cascade`, which `guard_visit_update` honors. `stamp_booking_cancellation` records `cancelled_at` and `late_cancellation` (a visit starts within `organizations.cancellation_cutoff_hours`) on the booking and each visit.
+- `complete-finished-bookings` (pg_cron, 08:10 UTC) marks confirmed bookings `completed` once their last day has passed in the org timezone and no visit is under way.
+
+## Scheduling
+
+- The scheduler is pure TypeScript in `supabase/functions/_shared/scheduling/` (Jest-tested via `src/features/scheduling`, which re-exports it; Edge Functions import it directly). Callers pass `now`; nothing reads the clock. Relative imports there use `.ts` extensions (Deno); `rrule` is mapped to `npm:rrule` in each function's `deno.json` and is loaded through its CommonJS default export under Deno.
+- Recurrence: RRULE subset FREQ=DAILY|WEEKLY, INTERVAL, BYDAY, UNTIL or COUNT (`recurrence.ts`). `rrule` only expands dates (floating UTC-midnight); `time-zone.ts` converts wall-clock times in the org timezone, so a 12:00 walk stays 12:00 across DST. Times skipped by spring-forward move past the gap; repeated fall-back times use the first one. `private.is_supported_rrule` mirrors the parser in SQL.
+- Visit plans (`visit-plan.ts`): drop-in/walk one visit per occurrence; overnight one visit from arrival to departure; multi-day one visit per care time per day. Generated 60 days ahead (`SCHEDULE_HORIZON_DAYS`). Each visit has `slot_start` (unique per booking) identifying its occurrence; moving a visit keeps the slot, so regeneration never recreates moved or cancelled visits.
+- Conflicts (`conflicts.ts`, `schedule-check.ts`): overlap, travel buffer (`organizations.travel_buffer_minutes`, none between visits at the same home), approved time off, and sitter availability (wall-clock, adjacent blocks join) block; requested time off and no availability set are warnings. Whole bookings are checked up to a year ahead by projecting the sitter's other confirmed bookings past the stored window. Every conflict has a readable reason (`describeConflict`).
+- Series edits (`series.ts`): one visit changes only that visit; "this and future" splits the booking (original ends the day before, a new booking in the same `series_id` takes over, keeping every-other-week parity and remaining COUNT; cancelled dates carry over).
+- Writes: the `schedule-booking` Edge Function (caller's JWT, so RLS applies) runs the checks and calls `apply_booking_plan` (confirm/reassign), `reschedule_booking` (this and future), `update_visit_schedule` (move/reassign one visit). These RPCs are admin-only and re-check overlap, buffer and approved time off under a per-sitter advisory lock (`23P01` with a reason). Actions: `check_sitters`, `confirm`, `reschedule`, `update_visit`, `decide_request`.
+- Nightly: pg_cron `generate-visits` (08:15 UTC) calls the `generate-visits` Edge Function (service_role) via `private.invoke_edge_function`; `store_generated_visits` adds only missing slots and leaves visits the sitter can no longer take unassigned for an admin.
+- Owners reschedule through `schedule_change_requests` (one visit, or this and future); admins approve (applied with conflict checks) or decline. Sitters request time off (`sitter_time_off.status`), admins approve.
+- Lists use `useLiveQueries` (`src/lib/realtime.ts`) to refetch on Realtime changes; bookings, visits, care times, availability, time off and change requests are in the publication.
 
 ## Auth and routing
 
