@@ -71,6 +71,9 @@ export function useVisitLiveUpdates(visitId: string) {
         { event: '*', schema: 'public', table: 'media', filter: byVisit },
         () => queryClient.invalidateQueries({ queryKey: visitKeys.photos(visitId) }),
       )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'media_reactions' }, () =>
+        queryClient.invalidateQueries({ queryKey: visitKeys.photos(visitId) }),
+      )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'incidents', filter: byVisit },

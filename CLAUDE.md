@@ -99,6 +99,14 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - `visits.status_line` is the sitter's live one-liner for the owner (cleared when the visit ends). Incidents can link a photo (`incidents.media_id`).
 - Owner report card: `src/features/care/report-card.ts`. Admin live board: `src/features/admin/live-board.ts` (late = not checked in 10 minutes after the start).
 
+## Photos and videos
+
+- Sitters capture with expo-camera (photos, videos up to 15 s) or pick up to 10 from the gallery. Photos are compressed to 1080 px wide at JPEG 0.7; every item gets a 300 px JPEG thumbnail (videos: first frame). Paths: `{org}/{visit}/{uuid}.jpg|.mp4|.mov` and `{uuid}-thumb.jpg`. Tags go in `media_pets`.
+- Everything a sitter captures, and every care tap, goes through the offline queue (`src/features/media/upload-queue.ts`, pure and tested; device wiring in `queue-runtime.ts`, persisted in AsyncStorage per user, files in `Paths.document/media-queue`). Items keep the id made on the phone, so a retried upload that already arrived returns 409/23505 and counts as sent. The queue retries when signal returns, on foreground, and on backoff (30 s doubling to 10 min, 5 tries).
+- Care events that happened during a visit are accepted after check-out (they may sync late), but nothing timed after check-out.
+- Owners see media through signed URLs that expire after 1 hour (thumbnails in lists, full size on tap), never public URLs. They can heart (`media_reactions`) and save to the phone (expo-media-library `Asset.create`; the legacy save API throws in SDK 58).
+- `organizations.media_retention_months` (null keeps everything): `purge-old-media` (pg_cron 08:45 UTC) deletes expired files, then their rows.
+
 ## Auth and routing
 
 - Sessions are stored in expo-secure-store, chunked to stay under its value size limit (`src/lib/secure-storage.ts`), with a fixed `storageKey`. The client uses the PKCE flow.

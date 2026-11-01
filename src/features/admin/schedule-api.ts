@@ -123,12 +123,14 @@ export async function saveOrgSettings(input: {
   id: string;
   travelBufferMinutes: number;
   cancellationCutoffHours: number;
+  mediaRetentionMonths: number | null;
 }): Promise<void> {
   const { data, error } = await supabase
     .from('organizations')
     .update({
       travel_buffer_minutes: input.travelBufferMinutes,
       cancellation_cutoff_hours: input.cancellationCutoffHours,
+      media_retention_months: input.mediaRetentionMonths,
     })
     .eq('id', input.id)
     .select('id');

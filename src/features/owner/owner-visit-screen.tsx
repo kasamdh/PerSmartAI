@@ -149,6 +149,21 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
                   </Pressable>
                 ))
               : null}
+            {role === 'owner'
+              ? petList.map((p) => (
+                  <Pressable
+                    key={`gallery-${p.id}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${p.name}'s photos`}
+                    onPress={() =>
+                      router.push({ pathname: '/pets/[id]/gallery', params: { id: p.id } })
+                    }
+                    style={styles.petLink}
+                  >
+                    <Text style={styles.petLinkLabel}>{p.name}’s photos ›</Text>
+                  </Pressable>
+                ))
+              : null}
           </View>
         ) : null}
 
@@ -160,8 +175,13 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
         ) : null}
 
         <View style={styles.card}>
-          <Text style={styles.title}>Photos</Text>
-          <PhotoGrid photos={photos.data} isLoading={photos.isPending} />
+          <Text style={styles.title}>Photos & videos</Text>
+          <PhotoGrid
+            photos={photos.data}
+            isLoading={photos.isPending}
+            canReact={role === 'owner'}
+            visitId={visitId}
+          />
         </View>
 
         <View style={styles.card}>

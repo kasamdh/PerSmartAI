@@ -10,6 +10,8 @@ export type OrgSettings = {
   timeZone: string;
   travelBufferMinutes: number;
   cancellationCutoffHours: number;
+  /** Visit media older than this is deleted nightly; null keeps it. */
+  mediaRetentionMonths: number | null;
 };
 
 export const orgKeys = { settings: ['org-settings'] as const };
@@ -18,7 +20,9 @@ async function fetchOrgSettings(): Promise<OrgSettings | null> {
   // RLS: members read only their own organization.
   const { data, error } = await supabase
     .from('organizations')
-    .select('id, name, timezone, travel_buffer_minutes, cancellation_cutoff_hours')
+    .select(
+      'id, name, timezone, travel_buffer_minutes, cancellation_cutoff_hours, media_retention_months',
+    )
     .maybeSingle();
   if (error) throw error;
   return data
@@ -28,6 +32,7 @@ async function fetchOrgSettings(): Promise<OrgSettings | null> {
         timeZone: data.timezone,
         travelBufferMinutes: data.travel_buffer_minutes,
         cancellationCutoffHours: data.cancellation_cutoff_hours,
+        mediaRetentionMonths: data.media_retention_months,
       }
     : null;
 }

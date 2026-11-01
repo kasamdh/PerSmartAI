@@ -11,6 +11,13 @@ import { useSaveOrgSettings } from './schedule-hooks';
 
 const BUFFERS = ['0', '10', '15', '20', '30', '45', '60'];
 const CUTOFFS = ['0', '12', '24', '48', '72'];
+const RETENTION = [
+  { value: 'keep', label: 'Keep' },
+  { value: '3', label: '3 months' },
+  { value: '6', label: '6 months' },
+  { value: '12', label: '1 year' },
+  { value: '24', label: '2 years' },
+];
 
 const withCurrent = (values: string[], current: number, unit: string) =>
   [...new Set([...values, String(current)])]
@@ -29,6 +36,9 @@ function SettingsForm({ org }: { org: OrgSettings }) {
   const save = useSaveOrgSettings();
   const [buffer, setBuffer] = useState(String(org.travelBufferMinutes));
   const [cutoff, setCutoff] = useState(String(org.cancellationCutoffHours));
+  const [retention, setRetention] = useState(
+    org.mediaRetentionMonths ? String(org.mediaRetentionMonths) : 'keep',
+  );
 
   const onSave = () =>
     save.mutate(
@@ -36,6 +46,7 @@ function SettingsForm({ org }: { org: OrgSettings }) {
         id: org.id,
         travelBufferMinutes: Number(buffer),
         cancellationCutoffHours: Number(cutoff),
+        mediaRetentionMonths: retention === 'keep' ? null : Number(retention),
       },
       {
         onSuccess: () => Alert.alert('Saved', 'New bookings and changes use these settings.'),
@@ -68,6 +79,22 @@ function SettingsForm({ org }: { org: OrgSettings }) {
             options={withCurrent(CUTOFFS, org.cancellationCutoffHours, 'hours')}
             value={cutoff}
             onChange={setCutoff}
+          />
+        </View>
+        <View style={styles.card}>
+          <Text style={styles.title}>Delete old photos and videos</Text>
+          <Text style={styles.body}>
+            Saves storage costs. Visit photos and videos older than this are deleted every night;
+            owners can save favorites to their phones first.
+          </Text>
+          <ChoiceChips
+            options={
+              RETENTION.some((r) => r.value === retention)
+                ? RETENTION
+                : [...RETENTION, { value: retention, label: `${retention} months` }]
+            }
+            value={retention}
+            onChange={setRetention}
           />
         </View>
         <Text style={styles.body}>Time zone: {org.timeZone.replace(/_/g, ' ')}</Text>

@@ -96,38 +96,97 @@ export async function deleteCareEvent(eventId: string): Promise<void> {
   }
 }
 
-/** Visit photos with short-lived signed thumbnail and full-size URLs (bucket is private). */
+const MEDIA_FIELDS =
+  'id, type, storage_path, thumb_path, caption, created_at, pet_id, duration_seconds, media_reactions ( user_id )';
+
+/** Signed URLs expire after an hour: never public. Thumbnails for lists, full size on tap. */
+export const SIGNED_URL_SECONDS = 60 * 60;
+
+type MediaRow = {
+  id: string;
+  type: 'photo' | 'video';
+  storage_path: string;
+  thumb_path: string | null;
+  caption: string | null;
+  created_at: string;
+  pet_id: string | null;
+  duration_seconds: number | null;
+  media_reactions: { user_id: string }[];
+};
+
+/** Adds short-lived signed URLs (thumbnail and full size) to media rows, in one call. */
+export async function signMedia<T extends MediaRow>(rows: T[]) {
+  if (rows.length === 0) return [];
+  const paths = [...new Set(rows.flatMap((m) => [m.storage_path, m.thumb_path ?? m.storage_path]))];
+  const { data: signed, error } = await supabase.storage
+    .from(PET_MEDIA_BUCKET)
+    .createSignedUrls(paths, SIGNED_URL_SECONDS);
+  if (error) {
+    throw error;
+  }
+  const urlFor = new Map(signed.map((s) => [s.path, s.signedUrl]));
+  return rows.map((m) => ({
+    ...m,
+    url: urlFor.get(m.storage_path) ?? null,
+    // A video without a thumbnail has no still image to show.
+    thumbUrl: m.thumb_path
+      ? (urlFor.get(m.thumb_path) ?? null)
+      : m.type === 'photo'
+        ? (urlFor.get(m.storage_path) ?? null)
+        : null,
+    hearts: m.media_reactions.length,
+  }));
+}
+
+/** A visit's photos and videos, newest first, with signed URLs and hearts. */
 export async function fetchVisitPhotos(visitId: string) {
   const { data, error } = await supabase
     .from('media')
-    .select('id, storage_path, thumb_path, caption, created_at, pet_id')
+    .select(MEDIA_FIELDS)
     .eq('visit_id', visitId)
-    .eq('type', 'photo')
     .order('created_at', { ascending: false });
   if (error) {
     throw error;
   }
-  if (data.length === 0) {
-    return [];
-  }
-
-  const paths = data.flatMap((m) => [m.storage_path, m.thumb_path ?? m.storage_path]);
-  const { data: signed, error: signError } = await supabase.storage
-    .from(PET_MEDIA_BUCKET)
-    .createSignedUrls(paths, 60 * 60);
-  if (signError) {
-    throw signError;
-  }
-  const urlFor = new Map(signed.map((s) => [s.path, s.signedUrl]));
-
-  return data.map((m) => ({
-    ...m,
-    url: urlFor.get(m.storage_path) ?? null,
-    thumbUrl: urlFor.get(m.thumb_path ?? m.storage_path) ?? null,
-  }));
+  return signMedia(data as MediaRow[]);
 }
 
 export type VisitPhoto = Awaited<ReturnType<typeof fetchVisitPhotos>>[number];
+
+/** Every photo and video of a pet (through media_pets), with the visit it's from. */
+export async function fetchPetGallery(petId: string, limit = 300) {
+  const { data, error } = await supabase
+    .from('media_pets')
+    .select(`media:media!inner ( ${MEDIA_FIELDS}, visit:visits ( scheduled_start ) )`)
+    .eq('pet_id', petId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) {
+    throw error;
+  }
+  const rows = (
+    data as unknown as { media: MediaRow & { visit: { scheduled_start: string } | null } }[]
+  )
+    .map((r) => r.media)
+    .filter(Boolean);
+  return (await signMedia(rows)).map((m) => ({
+    ...m,
+    visitStart: m.visit?.scheduled_start ?? m.created_at,
+  }));
+}
+
+export type GalleryItem = Awaited<ReturnType<typeof fetchPetGallery>>[number];
+
+/** Heart or un-heart a photo (owners of the visit only, by RLS). */
+export async function setHeart(mediaId: string, hearted: boolean): Promise<void> {
+  const { error } = hearted
+    ? await supabase.from('media_reactions').insert({ media_id: mediaId })
+    : await supabase.from('media_reactions').delete().eq('media_id', mediaId);
+  // Tapping twice quickly: the heart is already there.
+  if (error && error.code !== '23505') {
+    throw error;
+  }
+}
 
 async function renderJpeg(uri: string, width: number, maxWidth: number, quality: number) {
   return (await compressImage(uri, width, { maxWidth, quality })).data;

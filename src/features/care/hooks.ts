@@ -6,6 +6,8 @@ import {
   deleteCareEvent,
   fetchCareEvents,
   fetchIncidents,
+  fetchPetGallery,
+  setHeart,
   reportIncident,
   updateCareEvent,
   fetchVisitDetail,
@@ -19,7 +21,32 @@ export const visitKeys = {
   careEvents: (visitId: string) => ['care-events', visitId] as const,
   photos: (visitId: string) => ['visit-photos', visitId] as const,
   incidents: (visitId: string) => ['visit-incidents', visitId] as const,
+  petGallery: (petId: string) => ['pet-gallery', petId] as const,
 };
+
+export function usePetGallery(petId: string) {
+  return useQuery({
+    queryKey: visitKeys.petGallery(petId),
+    queryFn: () => fetchPetGallery(petId),
+    staleTime: 10 * 60 * 1000, // signed URLs last an hour
+  });
+}
+
+/** Heart toggle; refreshes the visit's photos and any pet gallery. */
+export function useSetHeart(visitId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ mediaId, hearted }: { mediaId: string; hearted: boolean }) =>
+      setHeart(mediaId, hearted),
+    onSettled: () =>
+      Promise.all([
+        visitId
+          ? queryClient.invalidateQueries({ queryKey: visitKeys.photos(visitId) })
+          : Promise.resolve(),
+        queryClient.invalidateQueries({ queryKey: ['pet-gallery'] }),
+      ]),
+  });
+}
 
 /** Keeps the sitter's visit screen in sync with changes from other devices or admins. */
 export function useSitterVisitLiveUpdates(visitId: string) {

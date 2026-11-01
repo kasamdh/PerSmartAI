@@ -466,7 +466,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Photos</Text>
           <PendingMediaStrip items={pendingMedia} onRetry={(id) => void queue?.retry(id)} />
-          <PhotoGrid photos={photos.data} isLoading={photos.isPending} />
+          <PhotoGrid photos={photos.data} isLoading={photos.isPending} visitId={visitId} />
           {loggable ? (
             <View style={styles.actions}>
               <BigButton label="Camera: photo or video" onPress={() => setCapturing(true)} />
