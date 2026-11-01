@@ -14,13 +14,17 @@ export function visitRouteFor(role: AppRole, visitId: string): Href {
   }
 }
 
+// The sitter can no longer open these visits; show their schedule instead.
+const GONE_FOR_SITTER = ['visit_unassigned', 'visit_cancelled'];
+const SITTER_BOOKING = ['booking_assigned', 'booking_changed', 'booking_unassigned'];
+
 /** Where tapping a booking notification should take this user. */
 export function bookingRouteFor(role: AppRole, bookingId: string, type: string): Href {
   switch (role) {
     case 'owner':
       return '/my-bookings';
     case 'sitter':
-      return '/sitter';
+      return SITTER_BOOKING.includes(type) ? '/sitter-week' : '/sitter';
     case 'admin':
       return type === 'booking_requested'
         ? { pathname: '/bookings/[id]', params: { id: bookingId } }
@@ -33,7 +37,12 @@ export function pushRouteFor(
   role: AppRole,
   data: Record<string, unknown> | undefined,
 ): Href | null {
-  if (typeof data?.visitId === 'string') return visitRouteFor(role, data.visitId);
+  if (typeof data?.visitId === 'string') {
+    if (role === 'sitter' && typeof data.type === 'string' && GONE_FOR_SITTER.includes(data.type)) {
+      return '/sitter';
+    }
+    return visitRouteFor(role, data.visitId);
+  }
   if (typeof data?.bookingId === 'string' && typeof data.type === 'string') {
     return bookingRouteFor(role, data.bookingId, data.type);
   }

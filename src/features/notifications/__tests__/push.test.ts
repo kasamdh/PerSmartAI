@@ -62,6 +62,37 @@ describe('pushRouteFor', () => {
     expect(pushRouteFor('sitter', { bookingId: 'b1', type: 'booking_cancelled' })).toBe('/sitter');
   });
 
+  it('opens the visit for reminders, assignments, medication, late check-ins and food alerts', () => {
+    for (const type of ['visit_reminder', 'visit_assigned', 'visit_changed', 'medication_due']) {
+      expect(pushRouteFor('sitter', { visitId: 'v1', type })).toEqual({
+        pathname: '/visit/[id]',
+        params: { id: 'v1' },
+      });
+    }
+    expect(pushRouteFor('owner', { visitId: 'v1', type: 'late_check_in' })).toEqual({
+      pathname: '/visits/[id]',
+      params: { id: 'v1' },
+    });
+    expect(pushRouteFor('admin', { visitId: 'v1', type: 'food_refused' })).toEqual({
+      pathname: '/visit-overview/[id]',
+      params: { id: 'v1' },
+    });
+  });
+
+  it('sends sitters to their schedule when a visit or booking was taken away', () => {
+    expect(pushRouteFor('sitter', { visitId: 'v1', type: 'visit_unassigned' })).toBe('/sitter');
+    expect(pushRouteFor('sitter', { visitId: 'v1', type: 'visit_cancelled' })).toBe('/sitter');
+    expect(pushRouteFor('sitter', { bookingId: 'b1', type: 'booking_assigned' })).toBe(
+      '/sitter-week',
+    );
+    expect(pushRouteFor('sitter', { bookingId: 'b1', type: 'booking_changed' })).toBe(
+      '/sitter-week',
+    );
+    expect(pushRouteFor('sitter', { bookingId: 'b1', type: 'booking_unassigned' })).toBe(
+      '/sitter-week',
+    );
+  });
+
   it('ignores payloads it does not understand', () => {
     expect(pushRouteFor('owner', undefined)).toBeNull();
     expect(pushRouteFor('owner', { bookingId: 'b1' })).toBeNull();
