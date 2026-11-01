@@ -8,7 +8,7 @@ import {
   PHOTO_ALERT_GAP_MS,
   PHOTO_SETTLE_MS,
   visitReminders,
-} from '../../../../supabase/functions/_shared/alerts';
+} from '../../../../../../supabase/functions/_shared/alerts';
 
 const t = (iso: string) => new Date(iso);
 const min = 60_000;

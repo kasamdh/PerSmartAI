@@ -1,9 +1,9 @@
-// Regenerates Supabase types into src/types/database.ts (and the Edge Functions copy).
+// Regenerates Supabase types into apps/mobile/src/types/database.ts (and the Edge Functions copy).
 // Writes nothing if generation fails, so a DB hiccup can't clobber good types.
 import { execSync } from 'node:child_process';
 import { copyFileSync, writeFileSync } from 'node:fs';
 
-const target = 'src/types/database.ts';
+const target = 'apps/mobile/src/types/database.ts';
 let output;
 try {
   output = execSync('npx supabase gen types typescript --local --schema public', {

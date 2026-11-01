@@ -3,13 +3,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/auth-provider';
 import { supabase } from '@/lib/supabase';
 
-import { ALERT_KINDS, type AlertKind } from '../../../supabase/functions/_shared/alerts';
+import { ALERT_KINDS, type AlertKind } from '../../../../../supabase/functions/_shared/alerts';
 
 export {
   alertKindsFor,
   ALERT_KINDS,
   type AlertKind,
-} from '../../../supabase/functions/_shared/alerts';
+} from '../../../../../supabase/functions/_shared/alerts';
 
 const settingsKey = (userId: string | undefined) => ['notification-settings', userId] as const;
 

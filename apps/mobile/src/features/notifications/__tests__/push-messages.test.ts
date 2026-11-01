@@ -5,7 +5,7 @@ import {
   joinNames,
   shortDate,
   type BookingPushContext,
-} from '../../../../supabase/functions/_shared/push-messages';
+} from '../../../../../../supabase/functions/_shared/push-messages';
 
 const ctx = { sitterName: 'Monika Pokhrel', petNames: ['Biscuit', 'Mochi'] };
 

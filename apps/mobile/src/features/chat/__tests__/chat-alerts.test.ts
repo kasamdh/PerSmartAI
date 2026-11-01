@@ -3,7 +3,7 @@ import {
   decideMessageAlert,
   MESSAGE_ALERT_GAP_MS,
   messageAlertsByRecipient,
-} from '../../../../supabase/functions/_shared/chat-alerts';
+} from '../../../../../../supabase/functions/_shared/chat-alerts';
 
 const now = new Date('2026-11-10T16:00:00Z');
 const ago = (ms: number) => new Date(now.getTime() - ms);

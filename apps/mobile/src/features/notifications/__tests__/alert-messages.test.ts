@@ -2,7 +2,7 @@ import {
   buildSitterBookingAlert,
   buildVisitAlert,
   type VisitAlertContext,
-} from '../../../../supabase/functions/_shared/push-messages';
+} from '../../../../../../supabase/functions/_shared/push-messages';
 
 const ctx: VisitAlertContext = {
   sitterName: 'Monika Pokhrel',

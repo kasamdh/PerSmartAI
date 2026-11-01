@@ -49,3 +49,8 @@ example
 *firebase-adminsdk*.json
 fcm-service-account*.json
 *.p8
+
+# Monorepo builds
+.turbo/
+.next/
+next-env.d.ts
