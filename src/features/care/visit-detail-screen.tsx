@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,6 +16,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
 import { useAuth } from '@/features/auth/auth-provider';
+import { CameraCapture } from '@/features/media/camera-capture';
+import { useUploadQueue } from '@/features/media/hooks';
+import { MAX_PICK, mergePendingCareEvents, uuidv4 } from '@/features/media/media-logic';
+import { PendingMediaStrip } from '@/features/media/pending-media-strip';
+import { prepareMedia, type PickedMedia } from '@/features/media/prepare';
+import { ShareMediaSheet } from '@/features/media/share-media-sheet';
+import type { MediaQueueItem } from '@/features/media/upload-queue';
 import { AllergyBanner } from '@/features/pets/allergy-banner';
 import { petRouteFor } from '@/features/pets/routes';
 import { useOrgTimeZone } from '@/features/scheduling/hooks';
@@ -23,7 +31,6 @@ import { CheckOutSheet } from '@/features/visits/check-out-sheet';
 import { formatTime, formatTimeRange } from '@/features/visits/time';
 import { useVisitActionRunner } from '@/features/visits/use-sitter-visits';
 import { primaryActionFor, statusLabel } from '@/features/visits/visit-actions';
-import type { Json } from '@/types/database';
 
 import type { VisitPet } from './api';
 import {
@@ -39,11 +46,8 @@ import {
   useCareEvents,
   useDeleteCareEvent,
   useIncidents,
-  useLogCareEvent,
   useReportIncident,
   useSitterVisitLiveUpdates,
-  useUpdateCareEvent,
-  useUploadVisitPhoto,
   useVisitDetail,
   useVisitPhotos,
   visitKeys,
@@ -86,10 +90,12 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
   const events = useCareEvents(visitId);
   const photos = useVisitPhotos(visitId);
   const incidents = useIncidents(visitId);
-  const logEvent = useLogCareEvent(visitId);
   const removeEvent = useDeleteCareEvent(visitId);
-  const updateEvent = useUpdateCareEvent(visitId);
-  const uploadPhoto = useUploadVisitPhoto(visitId);
+  // Care taps and media go through the offline queue (sent now, or when signal returns).
+  const { queue, items: queueItems } = useUploadQueue();
+  const [capturing, setCapturing] = useState(false);
+  const [sharing, setSharing] = useState<PickedMedia[] | null>(null);
+  const [preparing, setPreparing] = useState<string | null>(null);
   const report = useReportIncident(visitId);
   const statusLine = useMutation({
     mutationFn: (text: string) => setStatusLine(visitId, text),
@@ -102,9 +108,28 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
   const [reporting, setReporting] = useState(false);
   const dismissUndo = useCallback(() => setUndo(null), []);
 
+  const pendingCare = useMemo(
+    () => queueItems.filter((i) => i.visitId === visitId && i.kind === 'care_event'),
+    [queueItems, visitId],
+  );
   const eventList = useMemo(
-    () => (events.data ?? []).map((e) => ({ ...e, pet_id: e.pet_id ?? e.pet?.id ?? null })),
-    [events.data],
+    () =>
+      mergePendingCareEvents(
+        (events.data ?? []).map((e) => ({ ...e, pet_id: e.pet_id ?? e.pet?.id ?? null })),
+        pendingCare.flatMap((i) => (i.kind === 'care_event' ? [i] : [])),
+      ),
+    [events.data, pendingCare],
+  );
+  const pendingMedia = useMemo(
+    () =>
+      queueItems.filter(
+        (i): i is MediaQueueItem =>
+          i.visitId === visitId &&
+          i.kind === 'media' &&
+          // Sent ones stay (with a check mark) until the server list has them.
+          !(i.status === 'sent' && (photos.data ?? []).some((p) => p.id === i.id)),
+      ),
+    [queueItems, visitId, photos.data],
   );
   const walking = eventList.some(
     (e) => e.type === 'walk' && e.pet_id && ongoingWalk([e], e.pet_id) !== null,
@@ -150,13 +175,34 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
   const primary = primaryActionFor(visit.status);
   const allergic = pets.filter((p) => p.pet_allergies.length > 0);
 
-  const log = (pet: VisitPet | null, type: CareEventType, value: Json, message: string) =>
-    logEvent.mutate(
-      { petId: pet?.id ?? null, type, value },
-      {
-        onSuccess: (id) => setUndo({ id, message }),
-        onError: showError("Couldn't save that"),
-      },
+  const log = (
+    pet: VisitPet | null,
+    type: CareEventType,
+    value: Record<string, unknown>,
+    message: string,
+  ) => {
+    if (!queue) return;
+    const id = uuidv4();
+    setUndo({ id, message });
+    void queue
+      .enqueue({
+        kind: 'care_event',
+        op: 'insert',
+        id,
+        visitId,
+        petId: pet?.id ?? null,
+        type,
+        value,
+        occurredAt: new Date().toISOString(),
+      })
+      .catch(showError("Couldn't save that"));
+  };
+
+  const finishWalk = (walk: { id: string; value: unknown }) =>
+    queue?.updateCareEvent(
+      walk.id,
+      visitId,
+      finishWalkValue(walk.value as never, new Date()) as Record<string, unknown>,
     );
 
   const onFed = (pet: VisitPet, amount: FedAmount, task: ChecklistTask | null) =>
@@ -183,10 +229,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
   const onWalk = (pet: VisitPet) => {
     const walk = ongoingWalk(eventList, pet.id);
     if (walk) {
-      updateEvent.mutate(
-        { id: walk.id, value: finishWalkValue(walk.value, new Date()) },
-        { onError: showError("Couldn't stop the walk") },
-      );
+      void finishWalk(walk)?.catch(showError("Couldn't stop the walk"));
       statusLine.mutate(`Back from a walk with ${pet.name}`);
       return;
     }
@@ -208,11 +251,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
     // Walks still running end at check-out.
     const running = pets.map((p) => ongoingWalk(eventList, p.id)).filter((w) => w !== null);
     try {
-      await Promise.all(
-        running.map((w) =>
-          updateEvent.mutateAsync({ id: w.id, value: finishWalkValue(w.value, new Date()) }),
-        ),
-      );
+      await Promise.all(running.map((w) => finishWalk(w)));
     } catch (error) {
       showError("Couldn't stop the walk")(error as Error);
       return;
@@ -220,33 +259,46 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
     setCheckingOut(true);
   }
 
-  const addPhoto = async (source: 'camera' | 'library') => {
-    if (source === 'camera') {
-      const permission = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert(
-          'Camera access needed',
-          'Allow camera access in Settings to take visit photos.',
-        );
-        return;
+  const pickFromGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images', 'videos'],
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_PICK,
+      videoMaxDuration: 15,
+      quality: 1,
+    });
+    if (result.canceled || result.assets.length === 0) return;
+    setSharing(
+      result.assets.map((a) => ({
+        uri: a.uri,
+        type: a.type === 'video' ? 'video' : 'photo',
+        width: a.width,
+        height: a.height,
+        durationMs: a.duration,
+      })),
+    );
+  };
+
+  const sendMedia = async ({ caption, petIds }: { caption: string; petIds: string[] }) => {
+    if (!sharing || !queue) return;
+    const problems: string[] = [];
+    for (const [index, item] of sharing.entries()) {
+      setPreparing(`Preparing ${index + 1} of ${sharing.length}…`);
+      try {
+        const queued = await prepareMedia(item, {
+          visitId,
+          organizationId: visit.organization_id,
+          petIds,
+          caption,
+        });
+        await queue.enqueue(queued);
+      } catch (error) {
+        problems.push((error as Error).message || 'Couldn’t prepare one of them.');
       }
     }
-    const options: ImagePicker.ImagePickerOptions = { mediaTypes: 'images', quality: 1 };
-    const result =
-      source === 'camera'
-        ? await ImagePicker.launchCameraAsync(options)
-        : await ImagePicker.launchImageLibraryAsync(options);
-    const asset = result.canceled ? null : result.assets[0];
-    if (!asset) return;
-    uploadPhoto.mutate(
-      {
-        organizationId: visit.organization_id,
-        petId: pets.length === 1 ? pets[0].id : null,
-        uri: asset.uri,
-        width: asset.width,
-      },
-      { onError: showError("Couldn't upload the photo") },
-    );
+    setPreparing(null);
+    setSharing(null);
+    if (problems.length) Alert.alert('Some weren’t sent', [...new Set(problems)].join('\n'));
   };
 
   const sendIncident = (input: IncidentInput) =>
@@ -279,6 +331,21 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
             router.back();
           });
         }}
+      />
+      <CameraCapture
+        visible={capturing}
+        onCancel={() => setCapturing(false)}
+        onDone={(items) => {
+          setCapturing(false);
+          setSharing(items);
+        }}
+      />
+      <ShareMediaSheet
+        items={sharing}
+        pets={pets.map((p) => ({ id: p.id, name: p.name }))}
+        progress={preparing}
+        onCancel={() => setSharing(null)}
+        onSend={(details) => void sendMedia(details)}
       />
       <IncidentSheet
         visible={reporting}
@@ -367,7 +434,7 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
             })()}
             now={now}
             enabled={loggable}
-            busy={logEvent.isPending || updateEvent.isPending}
+            busy={!queue}
             onFed={(amount, task) => onFed(pet, amount, task)}
             onMeds={(task, reason) => onMeds(pet, task, reason)}
             onLog={(type) => log(pet, type, {}, SIMPLE_MESSAGES[type](pet.name))}
@@ -398,19 +465,15 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Photos</Text>
+          <PendingMediaStrip items={pendingMedia} onRetry={(id) => void queue?.retry(id)} />
           <PhotoGrid photos={photos.data} isLoading={photos.isPending} />
           {loggable ? (
             <View style={styles.actions}>
+              <BigButton label="Camera: photo or video" onPress={() => setCapturing(true)} />
               <BigButton
-                label="Take photo"
-                onPress={() => void addPhoto('camera')}
-                loading={uploadPhoto.isPending}
-              />
-              <BigButton
-                label="Choose from library"
+                label="Choose from gallery"
                 variant="secondary"
-                onPress={() => void addPhoto('library')}
-                disabled={uploadPhoto.isPending}
+                onPress={() => void pickFromGallery()}
               />
             </View>
           ) : null}
@@ -419,7 +482,10 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Care log</Text>
           <CareTimeline
-            events={events.data ?? []}
+            events={eventList.map((e) => ({
+              ...e,
+              pet: pets.find((p) => p.id === e.pet_id) ?? null,
+            }))}
             canRemove={(e) => loggable && e.created_by === session?.user.id}
             onRemove={(e) =>
               removeEvent.mutate(e.id, { onError: showError("Couldn't remove that entry") })
@@ -432,7 +498,13 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
         message={undo?.message ?? null}
         onDismiss={dismissUndo}
         onUndo={() => {
-          if (undo) removeEvent.mutate(undo.id, { onError: showError("Couldn't undo that") });
+          if (undo) {
+            const { id } = undo;
+            // Not sent yet: drop it from the queue. Already sent: delete it.
+            void queue?.cancel(id).then((cancelled) => {
+              if (!cancelled) removeEvent.mutate(id, { onError: showError("Couldn't undo that") });
+            });
+          }
           setUndo(null);
         }}
       />
