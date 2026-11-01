@@ -107,6 +107,7 @@ We use these providers to run Pet Sitter. They process data only on our instruct
 - [Supabase Inc.] – database, file storage, sign-in and hosting ([REGION]).
 - [Expo / 650 Industries] – sends push notifications. Notification text can include a pet's name and visit status.
 - [Apple and Google] – deliver push notifications to devices.
+- [Cloudflare, Inc.] – the security check on sign-in and sign-up (Turnstile). It sees your IP address and browser or device signals for a moment, to tell people from bots.
 - [Functional Software Inc. (Sentry)] – error reports, with personal details removed.
 - [PostHog Inc.] – anonymous usage statistics.
 - [EMAIL PROVIDER] – sign-in and account emails.

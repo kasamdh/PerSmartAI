@@ -56,3 +56,20 @@ describe('inviteLookupErrorMessage', () => {
     expect(inviteLookupErrorMessage({ message: 'Failed to fetch' })).toMatch(/connection/);
   });
 });
+
+describe('CAPTCHA failures', () => {
+  it('ask to try again instead of blaming the password or email', () => {
+    const error = {
+      code: 'captcha_failed',
+      status: 400,
+      message: 'captcha protection: request disallowed',
+    };
+    for (const message of [
+      signInErrorMessage(error),
+      signUpErrorMessage(error, 'invite'),
+      otpErrorMessage(error),
+    ]) {
+      expect(message).toBe('The security check didn’t go through. Please try again.');
+    }
+  });
+});

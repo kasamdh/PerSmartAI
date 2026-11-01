@@ -17,23 +17,21 @@ each one should block launch. "Verified" means it was run, not just written.
    gitleaks, Deno check, expo export, bundle scan, web build).
 3. **Email confirmation is off** in `supabase/config.toml` (fine locally). Production
    must turn it on, with custom SMTP; otherwise anyone can sign up with someone else's email.
-4. **No CAPTCHA.** Sign-in, sign-up and invite lookups are limited per IP only. A
-   distributed attacker can still stuff credentials or create spam businesses (business
-   sign-up is open to anyone). Turn on Supabase Auth CAPTCHA (Turnstile/hCaptcha) and
-   wire the token into both apps' sign-in and sign-up forms (code change needed).
-5. **Push is sent without an Expo access token.** Enable Expo "enhanced push security",
-   set `EXPO_ACCESS_TOKEN` as a function secret, and send it from `_shared/expo-push.ts`
-   (code change needed). Without it, anyone who obtains a device's push token can send
-   it notifications that look like they come from the app.
-6. **Admins have no second factor.** The admin web shows every client's address, entry
-   codes and messages. Require Supabase MFA (TOTP) for the admin role, and add an idle
-   timeout to the admin web.
-7. **Legal review:** the privacy policy, terms, account-deletion and support pages
+4. **Turn on CAPTCHA, push security and admin two-step in production.** They're
+   built and tested, and work once configured (see `docs/environments.md`):
+   - Turnstile widget plus the Supabase CAPTCHA setting, plus both site keys;
+   - `EXPO_ACCESS_TOKEN` plus "Enhanced Security for Push Notifications";
+   - TOTP multi-factor enabled in the Supabase dashboard.
+
+   Admins can't use admin features until they set up an authenticator. The admin site
+   signs out after 30 idle minutes.
+
+5. **Legal review:** the privacy policy, terms, account-deletion and support pages
    (`docs/legal/`) and the store privacy answers (`docs/store/privacy-labels.md`) are
    drafts. A lawyer must fill the [brackets] and approve them. Also needed: data
    processing agreements with Supabase, Sentry and PostHog, and a data export path for
    privacy requests (deletion exists; export doesn't).
-8. **Backups:** turn on Point-in-Time Recovery for production and do one restore
+6. **Backups:** turn on Point-in-Time Recovery for production and do one restore
    drill before launch.
 
 ## High

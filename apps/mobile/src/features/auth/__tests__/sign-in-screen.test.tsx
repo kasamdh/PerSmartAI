@@ -33,10 +33,11 @@ describe('SignInScreen', () => {
     await fireEvent.changeText(screen.getByLabelText('Password'), 'password123');
     await fireEvent.press(screen.getByRole('button', { name: 'Log in' }));
 
-    expect(mockSignIn).toHaveBeenCalledWith({
-      email: 'olivia@example.test',
-      password: 'password123',
-    });
+    // Second argument: the CAPTCHA token (none while CAPTCHA isn't configured).
+    expect(mockSignIn).toHaveBeenCalledWith(
+      { email: 'olivia@example.test', password: 'password123' },
+      undefined,
+    );
   });
 
   it('shows the API error message when sign-in fails', async () => {

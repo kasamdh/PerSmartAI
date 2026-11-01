@@ -17,6 +17,7 @@ import {
 } from '@/features/auth/schemas';
 import { zodResolver } from '@/lib/zod-resolver';
 import { SignUpConsent } from '@/features/legal/legal-links';
+import { useCaptcha } from '@/features/auth/captcha';
 
 const ROLE_TEXT = { owner: 'a pet owner', sitter: 'a sitter', admin: 'an admin' } as const;
 
@@ -25,6 +26,8 @@ export default function AcceptInviteScreen() {
   const params = useLocalSearchParams<{ code?: string }>();
   const [invite, setInvite] = useState<{ code: string; preview: InvitePreview } | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  // Security check for this form (Turnstile; single-use token).
+  const captcha = useCaptcha();
   const [confirmEmailFor, setConfirmEmailFor] = useState<string | null>(null);
 
   const codeForm = useForm<InviteCodeValues>({
@@ -53,12 +56,18 @@ export default function AcceptInviteScreen() {
   const join = signUpForm.handleSubmit(async (values) => {
     if (!invite) return;
     setFormError(null);
+    if (!captcha.ready) {
+      setFormError('Please wait a moment for the security check, then try again.');
+      return;
+    }
     try {
-      const { needsEmailConfirmation } = await signUpWithInvite(invite.code, values);
+      const { needsEmailConfirmation } = await signUpWithInvite(invite.code, values, captcha.token);
       if (needsEmailConfirmation) setConfirmEmailFor(values.email);
       // Otherwise routing takes over (owners go on to add their household).
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      captcha.reset();
     }
   });
 
@@ -146,6 +155,7 @@ export default function AcceptInviteScreen() {
         returnKeyType="go"
         onSubmitEditing={() => join()}
       />
+      {captcha.view}
       <BigButton
         label="Create account"
         onPress={() => join()}

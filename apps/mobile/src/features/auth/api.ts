@@ -23,19 +23,30 @@ export function authCallbackUrl(params?: Record<string, string>): string {
 // Sign in / out
 // ---------------------------------------------------------------------------
 
-export async function signIn({ email, password }: SignInValues): Promise<void> {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+// `captchaToken` (Turnstile, see captcha.tsx) is required by Supabase Auth when
+// CAPTCHA is on; each token works once.
+
+export async function signIn(
+  { email, password }: SignInValues,
+  captchaToken?: string,
+): Promise<void> {
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken },
+  });
   if (error) {
     throw new Error(signInErrorMessage(error));
   }
 }
 
 /** Emails a magic link plus a 6-digit code. Only for existing accounts. */
-export async function sendSignInCode(email: string): Promise<void> {
+export async function sendSignInCode(email: string, captchaToken?: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: false, emailRedirectTo: authCallbackUrl() },
+    options: { shouldCreateUser: false, emailRedirectTo: authCallbackUrl(), captchaToken },
   });
+  if (error?.code === 'captcha_failed') throw new Error(otpErrorMessage(error));
   // Don't reveal whether the email has an account.
   if (error && error.code !== 'otp_disabled' && error.status !== 400 && error.status !== 422) {
     throw new Error(otpErrorMessage(error));
@@ -69,11 +80,15 @@ export async function signOut(): Promise<void> {
 /** Result of a sign-up: signed in right away, or email confirmation required. */
 export type SignUpResult = { needsEmailConfirmation: boolean };
 
-export async function signUpBusiness(values: BusinessSignUpValues): Promise<SignUpResult> {
+export async function signUpBusiness(
+  values: BusinessSignUpValues,
+  captchaToken?: string,
+): Promise<SignUpResult> {
   const { data, error } = await supabase.auth.signUp({
     email: values.email,
     password: values.password,
     options: {
+      captchaToken,
       emailRedirectTo: authCallbackUrl(),
       // Read by the on_auth_user_created trigger to create the business + admin profile.
       data: {
@@ -107,11 +122,13 @@ export async function checkInvite(code: string): Promise<InvitePreview | null> {
 export async function signUpWithInvite(
   code: string,
   values: InviteSignUpValues,
+  captchaToken?: string,
 ): Promise<SignUpResult> {
   const { data, error } = await supabase.auth.signUp({
     email: values.email,
     password: values.password,
     options: {
+      captchaToken,
       emailRedirectTo: authCallbackUrl(),
       data: {
         invite_code: normalizeInviteCode(code),
@@ -128,10 +145,12 @@ export async function signUpWithInvite(
 // Password reset
 // ---------------------------------------------------------------------------
 
-export async function sendPasswordReset(email: string): Promise<void> {
+export async function sendPasswordReset(email: string, captchaToken?: string): Promise<void> {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: authCallbackUrl({ type: 'recovery' }),
+    captchaToken,
   });
+  if (error?.code === 'captcha_failed') throw new Error(otpErrorMessage(error));
   if (error && error.status !== 400 && error.status !== 422) {
     throw new Error(otpErrorMessage(error));
   }

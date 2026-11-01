@@ -4,6 +4,9 @@ type MaybeAuthError = { message?: string; status?: number; code?: string } | nul
 export function signInErrorMessage(error: MaybeAuthError): string {
   const code = error?.code;
   const message = error?.message?.toLowerCase() ?? '';
+  if (code === 'captcha_failed') {
+    return 'The security check didn’t go through. Please try again.';
+  }
 
   if (code === 'invalid_credentials' || message.includes('invalid login credentials')) {
     return 'Email or password is incorrect.';
@@ -24,6 +27,9 @@ export function signInErrorMessage(error: MaybeAuthError): string {
 export function signUpErrorMessage(error: MaybeAuthError, kind: 'business' | 'invite'): string {
   const code = error?.code;
   const message = error?.message?.toLowerCase() ?? '';
+  if (code === 'captcha_failed') {
+    return 'The security check didn’t go through. Please try again.';
+  }
 
   if (code === 'user_already_exists' || message.includes('already registered')) {
     return 'An account with this email already exists. Log in instead.';
@@ -53,6 +59,9 @@ export function signUpErrorMessage(error: MaybeAuthError, kind: 'business' | 'in
 export function otpErrorMessage(error: MaybeAuthError): string {
   const code = error?.code;
   const message = error?.message?.toLowerCase() ?? '';
+  if (code === 'captcha_failed') {
+    return 'The security check didn’t go through. Please try again.';
+  }
   if (code === 'otp_expired' || message.includes('expired') || message.includes('invalid')) {
     return 'That code is wrong or has expired. Request a new one.';
   }

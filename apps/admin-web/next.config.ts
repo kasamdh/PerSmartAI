@@ -11,7 +11,9 @@ const supabaseWs = supabaseUrl.replace(/^http/, 'ws');
 // and Sentry. frame-ancestors stops clickjacking of the admin site.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // Cloudflare Turnstile (sign-in security check) loads a script and an iframe.
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  'frame-src https://challenges.cloudflare.com',
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabaseUrl}`,
   "font-src 'self' data:",

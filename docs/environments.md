@@ -33,7 +33,18 @@ The `e2e` profile is `preview` built for the iOS simulator / an Android APK, for
    - Email confirmations **on**. Custom SMTP (the built-in sender is for testing only).
    - Rate limits: sign-ups and sign-ins 15 per 5 min per IP, token verifications 15,
      emails as your SMTP allows. Minimum password length 8. Email OTP expiry 900 s.
-   - Turn on CAPTCHA (hCaptcha or Turnstile) for sign-in and sign-up before launch.
+   - CAPTCHA:
+     1. In Cloudflare > Turnstile, add a widget (Managed mode) whose hostnames include
+        the admin site's domain.
+     2. In the Supabase dashboard (Authentication > Attack Protection), turn on CAPTCHA
+        with provider **Turnstile** and the widget's **secret key**.
+     3. Set the **site key** as `EXPO_PUBLIC_TURNSTILE_SITE_KEY` (EAS) and
+        `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (admin site).
+
+     The app's check runs in a web view on the admin site's hostname
+     (`EXPO_PUBLIC_LEGAL_URL`, or `EXPO_PUBLIC_TURNSTILE_BASE_URL`). Turn the site keys on
+     at the same time as the dashboard setting, or sign-in breaks.
+
    - Multi-Factor: enable **TOTP (App Authenticator)** enroll and verify. Admins can't use
      admin features without it (`private.is_admin()` requires an `aal2` session).
    - Copy the email templates from `supabase/templates/`.
@@ -56,16 +67,17 @@ The `e2e` profile is `preview` built for the iOS simulator / an Android APK, for
 
 Environment variables per EAS environment (`eas env:create --environment <env>`):
 
-| Name                            | Visibility | development / preview                 | production                      |
-| ------------------------------- | ---------- | ------------------------------------- | ------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | plain text | staging URL                           | production URL                  |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | plain text | staging anon key                      | production anon key             |
-| `EXPO_PUBLIC_SENTRY_DSN`        | plain text | mobile DSN                            | mobile DSN                      |
-| `EXPO_PUBLIC_POSTHOG_KEY`       | plain text | staging project key                   | production project key          |
-| `EXPO_PUBLIC_POSTHOG_HOST`      | plain text | `https://us.i.posthog.com` or EU      | same                            |
-| `EXPO_PUBLIC_LEGAL_URL`         | plain text | staging admin site URL                | production admin site URL       |
-| `SENTRY_AUTH_TOKEN`             | secret     | org token                             | org token                       |
-| `GOOGLE_SERVICES_JSON`          | file       | Firebase file for `.dev` / `.preview` | Firebase file for the store app |
+| Name                             | Visibility | development / preview                 | production                      |
+| -------------------------------- | ---------- | ------------------------------------- | ------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`       | plain text | staging URL                           | production URL                  |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`  | plain text | staging anon key                      | production anon key             |
+| `EXPO_PUBLIC_SENTRY_DSN`         | plain text | mobile DSN                            | mobile DSN                      |
+| `EXPO_PUBLIC_POSTHOG_KEY`        | plain text | staging project key                   | production project key          |
+| `EXPO_PUBLIC_POSTHOG_HOST`       | plain text | `https://us.i.posthog.com` or EU      | same                            |
+| `EXPO_PUBLIC_LEGAL_URL`          | plain text | staging admin site URL                | production admin site URL       |
+| `EXPO_PUBLIC_TURNSTILE_SITE_KEY` | plain text | Turnstile site key                    | Turnstile site key              |
+| `SENTRY_AUTH_TOKEN`              | secret     | org token                             | org token                       |
+| `GOOGLE_SERVICES_JSON`           | file       | Firebase file for `.dev` / `.preview` | Firebase file for the store app |
 
 `EXPO_PUBLIC_*` values are compiled into the app, so only public values go there (the
 anon key, DSNs and PostHog project keys are public by design). Never put a

@@ -10,10 +10,13 @@ import { businessSignUpSchema, type BusinessSignUpValues } from '@/features/auth
 import { deviceTimeZone } from '@/lib/time-zone';
 import { zodResolver } from '@/lib/zod-resolver';
 import { SignUpConsent } from '@/features/legal/legal-links';
+import { useCaptcha } from '@/features/auth/captcha';
 
 /** Starts a new pet-sitting business; the signer-up becomes its admin. */
 export default function SignUpScreen() {
   const [formError, setFormError] = useState<string | null>(null);
+  // Security check for this form (Turnstile; single-use token).
+  const captcha = useCaptcha();
   const [confirmEmailFor, setConfirmEmailFor] = useState<string | null>(null);
   const {
     control,
@@ -32,12 +35,18 @@ export default function SignUpScreen() {
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
+    if (!captcha.ready) {
+      setFormError('Please wait a moment for the security check, then try again.');
+      return;
+    }
     try {
-      const { needsEmailConfirmation } = await signUpBusiness(values);
+      const { needsEmailConfirmation } = await signUpBusiness(values, captcha.token);
       if (needsEmailConfirmation) setConfirmEmailFor(values.email);
       // Otherwise the new session routes straight to the admin dashboard.
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      captcha.reset();
     }
   });
 
@@ -100,6 +109,7 @@ export default function SignUpScreen() {
         returnKeyType="go"
         onSubmitEditing={() => onSubmit()}
       />
+      {captcha.view}
       <BigButton label="Create business" onPress={() => onSubmit()} loading={isSubmitting} />
       <SignUpConsent />
     </FormScreen>

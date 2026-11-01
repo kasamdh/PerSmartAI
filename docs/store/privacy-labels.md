@@ -8,24 +8,25 @@ Items marked **Decide** are judgment calls. Confirm them with your lawyer.
 
 ## What the app collects
 
-| Data                                                                                                                  | Where it comes from | Who provides it         | Required?                            |
-| --------------------------------------------------------------------------------------------------------------------- | ------------------- | ----------------------- | ------------------------------------ |
-| Name, email                                                                                                           | Sign-up             | Everyone                | Yes                                  |
-| Phone number                                                                                                          | My profile          | Everyone                | Optional                             |
-| Home address, home coordinates (if entered)                                                                           | Household setup     | Owners                  | Yes (to book)                        |
-| Entry instructions, alarm notes, Wi-Fi                                                                                | Household setup     | Owners                  | Optional                             |
-| Emergency contacts (other people's names and phones)                                                                  | Household setup     | Owners                  | Optional                             |
-| Pet profile: species, breed, birth date, weight, microchip, temperament, vet details, allergies, medications, feeding | Pet screens         | Owners                  | Optional (name and species required) |
-| Bookings, visits, check-in and check-out times                                                                        | Booking and visits  | Owners, sitters, admins | Yes                                  |
-| Precise location at check-in and check-out only (foreground)                                                          | Check-in button     | Sitters                 | Optional (can deny)                  |
-| Care log, notes, incident reports, visit summary, live status line                                                    | Visit screen        | Sitters                 | Optional                             |
-| Photos and videos (videos include sound)                                                                              | Camera or library   | Sitters, owners         | Optional                             |
-| In-app messages and chat photos                                                                                       | Chat                | Everyone                | Optional                             |
-| Push token, notification settings                                                                                     | Device              | Everyone                | Optional (can deny)                  |
-| User ID                                                                                                               | Account             | Everyone                | Yes                                  |
-| Crash and error reports (scrubbed), performance traces                                                                | Sentry              | Automatic               | Yes                                  |
-| 3 anonymous product events                                                                                            | PostHog             | Automatic               | Yes                                  |
-| IP address (kept for up to 1 day for rate limiting)                                                                   | Server              | Automatic               | Yes                                  |
+| Data                                                                                                                  | Where it comes from  | Who provides it                  | Required?                            |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------- | -------------------------------- | ------------------------------------ |
+| Name, email                                                                                                           | Sign-up              | Everyone                         | Yes                                  |
+| Phone number                                                                                                          | My profile           | Everyone                         | Optional                             |
+| Home address, home coordinates (if entered)                                                                           | Household setup      | Owners                           | Yes (to book)                        |
+| Entry instructions, alarm notes, Wi-Fi                                                                                | Household setup      | Owners                           | Optional                             |
+| Emergency contacts (other people's names and phones)                                                                  | Household setup      | Owners                           | Optional                             |
+| Pet profile: species, breed, birth date, weight, microchip, temperament, vet details, allergies, medications, feeding | Pet screens          | Owners                           | Optional (name and species required) |
+| Bookings, visits, check-in and check-out times                                                                        | Booking and visits   | Owners, sitters, admins          | Yes                                  |
+| Precise location at check-in and check-out only (foreground)                                                          | Check-in button      | Sitters                          | Optional (can deny)                  |
+| Care log, notes, incident reports, visit summary, live status line                                                    | Visit screen         | Sitters                          | Optional                             |
+| Photos and videos (videos include sound)                                                                              | Camera or library    | Sitters, owners                  | Optional                             |
+| In-app messages and chat photos                                                                                       | Chat                 | Everyone                         | Optional                             |
+| Push token, notification settings                                                                                     | Device               | Everyone                         | Optional (can deny)                  |
+| User ID                                                                                                               | Account              | Everyone                         | Yes                                  |
+| Crash and error reports (scrubbed), performance traces                                                                | Sentry               | Automatic                        | Yes                                  |
+| 3 anonymous product events                                                                                            | PostHog              | Automatic                        | Yes                                  |
+| IP address (kept for up to 1 day for rate limiting)                                                                   | Server               | Automatic                        | Yes                                  |
+| Device and browser signals for the sign-in security check                                                             | Cloudflare Turnstile | Automatic at sign-in and sign-up | Yes                                  |
 
 **Not collected:**
 
@@ -143,5 +144,5 @@ For each type: collected, processed ephemerally (No for all), required or option
 
 1. **Pet health information.** Apple's "Health" and Google's "Health and fitness" are about the user's own health. Pet allergies and medications are declared as "Other User Content" (Apple) and "Other user-generated content" (Google). If you or your lawyer see it otherwise, declare Health as well. Declaring more is never a rejection reason; declaring less can be.
 2. **Sound in videos.** Videos keep their sound, so Audio is declared. If videos become silent, remove it.
-3. **IP address for rate limiting.** It's kept for up to a day for fraud prevention and security. Neither store has an exact type for it. Many apps don't declare it; to be thorough, add "Fraud prevention, security, and compliance" as a purpose under Device or other IDs.
+3. **IP address for rate limiting and the Cloudflare security check.** It's kept for up to a day for fraud prevention and security. Neither store has an exact type for it. Many apps don't declare it; to be thorough, add "Fraud prevention, security, and compliance" as a purpose under Device or other IDs.
 4. **Business admins on the website.** The labels cover the mobile app. The admin website isn't covered by the store forms, but the privacy policy covers both.

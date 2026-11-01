@@ -12,6 +12,7 @@ import {
   type OtpCodeValues,
 } from '@/features/auth/schemas';
 import { zodResolver } from '@/lib/zod-resolver';
+import { useCaptcha } from '@/features/auth/captcha';
 
 /**
  * Step 1 emails a reset link + code; step 2 verifies the code, which signs the user
@@ -20,6 +21,8 @@ import { zodResolver } from '@/lib/zod-resolver';
 export default function ForgotPasswordScreen() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  // Security check for this form (Turnstile; single-use token).
+  const captcha = useCaptcha();
 
   const emailForm = useForm<EmailOnlyValues>({
     resolver: zodResolver(emailOnlySchema),
@@ -32,11 +35,17 @@ export default function ForgotPasswordScreen() {
 
   const send = emailForm.handleSubmit(async ({ email }) => {
     setFormError(null);
+    if (!captcha.ready) {
+      setFormError('Please wait a moment for the security check, then try again.');
+      return;
+    }
     try {
-      await sendPasswordReset(email);
+      await sendPasswordReset(email, captcha.token);
       setSentTo(email);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      captcha.reset();
     }
   });
 
@@ -68,6 +77,7 @@ export default function ForgotPasswordScreen() {
           returnKeyType="send"
           onSubmitEditing={() => send()}
         />
+        {captcha.view}
         <BigButton
           label="Send reset code"
           onPress={() => send()}

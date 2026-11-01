@@ -12,11 +12,14 @@ import {
   type OtpCodeValues,
 } from '@/features/auth/schemas';
 import { zodResolver } from '@/lib/zod-resolver';
+import { useCaptcha } from '@/features/auth/captcha';
 
 /** Passwordless sign-in: emails a magic link and a 6-digit code (either works). */
 export default function MagicLinkScreen() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  // Security check for this form (Turnstile; single-use token).
+  const captcha = useCaptcha();
 
   const emailForm = useForm<EmailOnlyValues>({
     resolver: zodResolver(emailOnlySchema),
@@ -29,11 +32,17 @@ export default function MagicLinkScreen() {
 
   const send = emailForm.handleSubmit(async ({ email }) => {
     setFormError(null);
+    if (!captcha.ready) {
+      setFormError('Please wait a moment for the security check, then try again.');
+      return;
+    }
     try {
-      await sendSignInCode(email);
+      await sendSignInCode(email, captcha.token);
       setSentTo(email);
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      captcha.reset();
     }
   });
 
@@ -65,6 +74,7 @@ export default function MagicLinkScreen() {
           returnKeyType="send"
           onSubmitEditing={() => send()}
         />
+        {captcha.view}
         <BigButton
           label="Email me a code"
           onPress={() => send()}
