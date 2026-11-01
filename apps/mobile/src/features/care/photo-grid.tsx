@@ -4,6 +4,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/auth-provider';
 import { MediaViewer } from '@/features/media/media-viewer';
+import { cachedImageSource } from '@/lib/image-cache';
 
 import type { VisitPhoto } from './api';
 import { useSetHeart } from './hooks';
@@ -69,7 +70,12 @@ export function MediaTile({
   return (
     <Pressable accessibilityRole="imagebutton" accessibilityLabel={label} onPress={onPress}>
       {item.thumbUrl ? (
-        <Image source={{ uri: item.thumbUrl }} style={styles.thumb} contentFit="cover" />
+        <Image
+          source={cachedImageSource(item.thumbUrl)}
+          cachePolicy="memory-disk"
+          style={styles.thumb}
+          contentFit="cover"
+        />
       ) : (
         <View style={[styles.thumb, styles.noThumb]} />
       )}

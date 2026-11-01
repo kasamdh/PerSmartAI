@@ -137,3 +137,34 @@ const STATUS_LABELS: Record<QueueStatus, string> = {
 export function queueStatusLabel(status: QueueStatus): string {
   return STATUS_LABELS[status];
 }
+
+export type GalleryRow<T> =
+  | { kind: 'header'; key: string; date: string }
+  | { kind: 'tiles'; key: string; date: string; tiles: { item: T; index: number }[] };
+
+/**
+ * Flattens gallery groups into list rows for a virtualized list: a header per
+ * day, then rows of `perRow` tiles. `index` is each item's position across the
+ * whole gallery (for the full-screen viewer).
+ */
+export function galleryRows<T extends { id: string }>(
+  groups: readonly { date: string; items: readonly T[] }[],
+  perRow: number,
+): GalleryRow<T>[] {
+  const size = Math.max(1, Math.floor(perRow));
+  const rows: GalleryRow<T>[] = [];
+  let index = 0;
+  for (const group of groups) {
+    rows.push({ kind: 'header', key: `h-${group.date}`, date: group.date });
+    for (let i = 0; i < group.items.length; i += size) {
+      const tiles = group.items.slice(i, i + size).map((item) => ({ item, index: index++ }));
+      rows.push({ kind: 'tiles', key: `t-${tiles[0].item.id}`, date: group.date, tiles });
+    }
+  }
+  return rows;
+}
+
+/** How many 96 pt tiles (8 pt gaps) fit across a screen with 16 pt padding. */
+export function tilesPerRow(screenWidth: number, tile = 96, gap = 8, padding = 16): number {
+  return Math.max(1, Math.floor((screenWidth - padding * 2 + gap) / (tile + gap)));
+}

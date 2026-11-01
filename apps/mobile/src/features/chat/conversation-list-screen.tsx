@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MIN_TAP_TARGET } from '@/components/big-button';
@@ -19,7 +20,7 @@ export function ConversationListScreen() {
   const now = new Date();
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
-      <FlatList
+      <FlashList
         data={conversations.data}
         keyExtractor={(c) => c.household_id}
         contentContainerStyle={styles.content}

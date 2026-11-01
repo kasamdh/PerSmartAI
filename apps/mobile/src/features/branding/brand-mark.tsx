@@ -1,6 +1,8 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { cachedImageSource } from '@/lib/image-cache';
+
 import { useBrand } from './brand-context';
 
 /** The business's logo and name, shown at the top of each home screen. */
@@ -10,7 +12,12 @@ export function BrandMark() {
   return (
     <View style={styles.row} accessible accessibilityLabel={name ?? 'Business logo'}>
       {logoUrl ? (
-        <Image source={{ uri: logoUrl }} style={styles.logo} contentFit="contain" />
+        <Image
+          source={cachedImageSource(logoUrl)}
+          cachePolicy="memory-disk"
+          style={styles.logo}
+          contentFit="contain"
+        />
       ) : null}
       {name ? <Text style={[styles.name, { color: colors.accentOnWhite }]}>{name}</Text> : null}
     </View>

@@ -1,9 +1,11 @@
 import {
   checkVideoLength,
+  galleryRows,
   groupByVisitDate,
   mediaPaths,
   mergePendingCareEvents,
   queueStatusLabel,
+  tilesPerRow,
   uuidv4,
   videoContentType,
 } from '../media-logic';
@@ -144,5 +146,27 @@ describe('queueStatusLabel', () => {
     expect(queueStatusLabel('sent')).toBe('Sent');
     expect(queueStatusLabel('waiting')).toBe('Waiting for signal');
     expect(queueStatusLabel('failed')).toBe('Failed');
+  });
+});
+
+describe('galleryRows', () => {
+  const groups = [
+    { date: '2026-11-03', items: [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }] },
+    { date: '2026-11-01', items: [{ id: 'e' }] },
+  ];
+
+  it('makes a header per day and rows of tiles, numbering items across the gallery', () => {
+    expect(
+      galleryRows(groups, 3).map((r) =>
+        r.kind === 'header' ? r.key : r.tiles.map((t) => `${t.item.id}${t.index}`).join(' '),
+      ),
+    ).toEqual(['h-2026-11-03', 'a0 b1 c2', 'd3', 'h-2026-11-01', 'e4']);
+  });
+
+  it('fits tiles to the screen width', () => {
+    expect(tilesPerRow(390)).toBe(3);
+    expect(tilesPerRow(430)).toBe(3);
+    expect(tilesPerRow(440)).toBe(4);
+    expect(tilesPerRow(200)).toBe(1);
   });
 });

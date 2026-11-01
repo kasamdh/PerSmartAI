@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton, MIN_TAP_TARGET } from '@/components/big-button';
@@ -22,6 +22,7 @@ import { MediaViewer } from '@/features/media/media-viewer';
 import { useOrgSettings } from '@/features/scheduling/hooks';
 import { formatTime } from '@/features/visits/time';
 import { formatDateLabel } from '@/lib/wall-clock';
+import { cachedImageSource } from '@/lib/image-cache';
 
 import type { ChatMessage } from './api';
 import { daySeparators, readReceipt } from './chat-logic';
@@ -102,7 +103,7 @@ export function ChatScreen({ householdId }: { householdId: string }) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 96 : 0}
       >
-        <FlatList
+        <FlashList
           inverted
           data={list}
           keyExtractor={(m) => m.id}
@@ -144,7 +145,8 @@ export function ChatScreen({ householdId }: { householdId: string }) {
                         onPress={() => setViewing(item)}
                       >
                         <Image
-                          source={{ uri: item.thumbUrl }}
+                          source={cachedImageSource(item.thumbUrl)}
+                          cachePolicy="memory-disk"
                           style={styles.photo}
                           contentFit="cover"
                         />

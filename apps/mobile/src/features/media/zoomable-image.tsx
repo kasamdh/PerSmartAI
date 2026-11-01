@@ -9,6 +9,8 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
+import { cachedImageSource } from '@/lib/image-cache';
+
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 const MAX_SCALE = 5;
 
@@ -77,7 +79,8 @@ export function ZoomableImage({ uri, label }: { uri: string; label: string }) {
   return (
     <GestureDetector gesture={gesture}>
       <AnimatedImage
-        source={{ uri }}
+        source={cachedImageSource(uri)}
+        cachePolicy="memory-disk"
         style={[styles.image, style]}
         contentFit="contain"
         accessibilityLabel={label}

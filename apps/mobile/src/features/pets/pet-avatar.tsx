@@ -1,6 +1,8 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { cachedImageSource } from '@/lib/image-cache';
+
 import { usePetPhotoUrl } from './hooks';
 
 /** Pet photo from private storage, or a colored initial when there's none. */
@@ -19,7 +21,8 @@ export function PetAvatar({
   if (url.data) {
     return (
       <Image
-        source={{ uri: url.data }}
+        source={cachedImageSource(url.data)}
+        cachePolicy="memory-disk"
         style={[styles.frame, frame]}
         contentFit="cover"
         accessibilityLabel={`Photo of ${name}`}
