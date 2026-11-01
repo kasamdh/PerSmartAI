@@ -7,15 +7,15 @@ tags: [owner]
 - runFlow:
     file: subflows/login.yaml
     env:
-      EMAIL: "rudradh@gmail.com"
-      PASSWORD: "password123"
+      EMAIL: 'rudradh@gmail.com'
+      PASSWORD: 'password123'
 - scrollUntilVisible:
-    element: ".*Maestro check-out.*"
+    element: '.*Maestro check-out.*'
     direction: DOWN
-- tapOn: ".*Maestro check-out.*"
-- assertVisible: "Report card"
-- assertVisible: "Biscuit"
-- assertVisible: ".*Maestro check-out: Biscuit ate everything.*"
+- tapOn: '.*Maestro check-out.*'
+- assertVisible: 'Report card'
+- assertVisible: 'Biscuit'
+- assertVisible: '.*Maestro check-out: Biscuit ate everything.*'
 - scrollUntilVisible:
     element: "Biscuit's photos"
     direction: DOWN

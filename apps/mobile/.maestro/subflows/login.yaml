@@ -4,22 +4,22 @@ appId: ${APP_ID}
 - launchApp:
     clearState: true
     clearKeychain: true
-- tapOn: "Log in"
+- tapOn: 'Log in'
 - tapOn:
-    id: "sign-in-email"
+    id: 'sign-in-email'
 - inputText: ${EMAIL}
 - tapOn:
-    id: "sign-in-password"
+    id: 'sign-in-password'
 - inputText: ${PASSWORD}
 - hideKeyboard
-- tapOn: "Log in"
+- tapOn: 'Log in'
 # Push permission prompt (first launch on a device).
 - runFlow:
     when:
-      visible: "Allow"
+      visible: 'Allow'
     commands:
-      - tapOn: "Allow"
+      - tapOn: 'Allow'
 - extendedWaitUntil:
     notVisible:
-      id: "sign-in-email"
+      id: 'sign-in-email'
     timeout: 15000

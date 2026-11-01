@@ -6,17 +6,17 @@ tags: [owner]
 - runFlow:
     file: subflows/login.yaml
     env:
-      EMAIL: "rudradh@gmail.com"
-      PASSWORD: "password123"
-- tapOn: "Book a visit"
-- assertVisible: "Which pets?"
-- tapOn: "Biscuit"
-- tapOn: "Drop-in"
-- tapOn: "Just once"
+      EMAIL: 'rudradh@gmail.com'
+      PASSWORD: 'password123'
+- tapOn: 'Book a visit'
+- assertVisible: 'Which pets?'
+- tapOn: 'Biscuit'
+- tapOn: 'Drop-in'
+- tapOn: 'Just once'
 - scrollUntilVisible:
-    element: "Send request"
+    element: 'Send request'
     direction: DOWN
-- tapOn: "Send request"
+- tapOn: 'Send request'
 - extendedWaitUntil:
-    visible: "Waiting for confirmation"
+    visible: 'Waiting for confirmation'
     timeout: 15000

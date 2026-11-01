@@ -23,6 +23,7 @@ Roles:
 - ESLint (`eslint-config-expo`) + Prettier
 - Monorepo: npm workspaces + Turborepo (`apps/*`, `packages/*`; one hoisted React 19.3.0)
 - Admin web: Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind CSS 4 + `@supabase/ssr`, TanStack Query
+- Sentry (`@sentry/react-native`, `@sentry/nextjs`) for errors; PostHog (`posthog-react-native`) for key events; `@shopify/flash-list` v2 for long lists; `expo-updates` (EAS Update); Maestro for end-to-end flows
 
 Installed so far: Expo/Router, `@supabase/supabase-js` (+ `@react-native-async-storage/async-storage`, `react-native-url-polyfill`), `rrule` (date expansion only, see Scheduling), and the lint/test tooling. The remaining stack libraries are approved but not yet installed. Add them with `npx expo install <pkg>` (run in `apps/mobile`) when a feature needs them.
 
@@ -175,6 +176,19 @@ In `apps/mobile`, keep non-route code out of `app/`. Route groups don't add a UR
 - Expo changes between SDKs. Check the versioned docs (https://docs.expo.dev/versions/v58.0.0/) rather than memory.
 - Expo Go only bundles its built-in native modules. A library with custom native code needs a development build.
 
+## Security, telemetry and releases
+
+- `supabase/tests/database/security_audit.test.sql` fails if any public table lacks RLS, policies or `organization_id`, if `anon` gets a table grant, if a definer function doesn't pin `search_path`, or if anything besides `check_invite` is callable signed out. Keep it passing; add attack cases for new tables.
+- Public RPCs that could be brute-forced call `private.hit_rate_limit(bucket, private.request_ip(), max, window)` (HTTP 429 via SQLSTATE `PT429`). `check_invite`: 10 per IP per 10 minutes. Auth limits are in `[auth.rate_limit]` and must match the hosted dashboard.
+- System-only Edge Functions (cron, triggers) check the caller with `_shared/service-auth.ts` (exact service key, constant time). Functions the web calls answer CORS with `_shared/cors.ts`.
+- Error reports: everything goes through `packages/shared/src/telemetry-scrub.ts` (`beforeSend` / `beforeBreadcrumb`). No default PII, screenshots, view hierarchy, session replay or console breadcrumbs. Never pass addresses, messages, notes or contact details to `reportError` / `captureException` context.
+- Analytics: only the events in `packages/shared/src/analytics-events.ts`, through `track()` (`apps/mobile/src/lib/analytics.ts`). Properties are allowlisted enums, booleans and rounded counts; nobody is identified. Add an event there (with a test) before tracking it.
+- Both are off unless their keys are set (`EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_SENTRY_DSN`) and in `__DEV__`.
+- Variants: `APP_VARIANT` = development / preview / production picks the app id, name and deep-link scheme (`app.config.ts`); `EXPO_PUBLIC_APP_ENV` tags reports. EAS profiles and channels: `eas.json`. Setup runbook: `docs/environments.md`. Open launch risks: `docs/launch-risks.md`.
+- CI (`.github/workflows/ci.yml`) on every PR: `npm run check`, web build, mobile JS export plus the bundle secret scan, Supabase from scratch with db lint, pgTAP and a generated-types diff, a guard against editing applied migrations, Deno type check of the functions, gitleaks.
+- Accessibility: `npm run a11y:check` (in `npm run check`) requires a role on every touchable, a label on every input and switch, and a label or `accessible={false}` on every image. Text colors must reach 4.5:1 on their background (the default brand blue is `#1565C0`; muted text `#666666`).
+- Remote images use `cachedImageSource(url)` (`src/lib/image-cache.ts`) with `cachePolicy="memory-disk"`, so re-signed URLs reuse the cached file. Unbounded lists use FlashList.
+
 ## Commands
 
 Run from the repo root unless noted.
@@ -187,8 +201,11 @@ npm run lint            # ESLint in every workspace (turbo)
 npm run format          # Prettier write (format:check to verify)
 npm run typecheck       # tsc --noEmit in every workspace (turbo)
 npm test                # Jest in every workspace (turbo)
-npm run check           # shared:check + lint + format:check + typecheck + test (run before "done")
+npm run check           # shared:check + a11y:check + lint + format:check + typecheck + test (run before "done")
 npm run shared:sync     # copy shared logic into supabase/functions/_shared
+npm run functions:check # Deno type check of every Edge Function (needs Deno)
+npm run secrets:check -- <dirs>  # fail if a built bundle contains a non-anon key
+npm run e2e             # Maestro flows against the seeded backend (emulator + e2e build)
 cd apps/mobile && npx expo install <pkg>   # add mobile packages (SDK-compatible versions)
 npm install <pkg> -w @petsitter/admin-web  # add web packages
 npm run db:reset        # re-apply migrations + seed (needs Docker running)

@@ -3,12 +3,12 @@
 #
 #   npm run db:reset                                   # fresh seed (visits relative to now)
 #   eas build --profile e2e --platform android         # or a local dev build
-#   APP_ID=com.kasamdh.petsitter.preview maestro test apps/mobile/.maestro
+#   maestro test -e APP_ID=com.kasamdh.petsitter.preview apps/mobile/.maestro
 #
 # The app must point at a backend the emulator can reach (Android emulator:
 # http://10.0.2.2:54321 for local Supabase).
 flows:
-  - "0*.yaml"
+  - '0*.yaml'
 executionOrder:
   continueOnFailure: false
   flowsOrder:
