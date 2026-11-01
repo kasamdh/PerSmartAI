@@ -4,3 +4,7 @@
 export * from './dates.ts';
 export * from './time-zone.ts';
 export * from './recurrence.ts';
+export * from './visit-plan.ts';
+export * from './conflicts.ts';
+export * from './series.ts';
+export * from './cancellation.ts';
