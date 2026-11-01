@@ -11,6 +11,9 @@ const visit: OwnerVisit = {
   check_in_at: null,
   check_out_at: null,
   summary_note: null,
+  on_the_way_at: '2026-10-31T13:50:00Z',
+  started_at: null,
+  status_line: null,
   sitter: { full_name: 'Monika', avatar_url: null },
   booking: {
     service_type: 'drop_in',

@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 const OWNER_VISIT_SELECT = `
   id, status, scheduled_start, scheduled_end, check_in_at, check_out_at, summary_note,
+  on_the_way_at, started_at, status_line,
   sitter:profiles ( full_name, avatar_url ),
   booking:bookings (
     service_type,
@@ -41,3 +42,28 @@ export async function fetchOwnerVisit(visitId: string) {
   }
   return data;
 }
+
+/**
+ * One pet's finished and missed visits, newest first, with that visit's care events
+ * so each row can show what happened. RLS limits rows to the owner's own pets.
+ */
+export async function fetchPetVisitHistory(petId: string, limit = 30) {
+  const { data, error } = await supabase
+    .from('visits')
+    .select(
+      `id, status, scheduled_start, scheduled_end, check_in_at, check_out_at, summary_note,
+       sitter:profiles ( full_name ),
+       booking:bookings!inner ( service_type, booking_pets!inner ( pet_id ) ),
+       care_events ( type, value, pet_id, occurred_at )`,
+    )
+    .eq('booking.booking_pets.pet_id', petId)
+    .in('status', ['completed', 'missed'])
+    .order('scheduled_start', { ascending: false })
+    .limit(limit);
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+export type PetVisitHistoryRow = Awaited<ReturnType<typeof fetchPetVisitHistory>>[number];

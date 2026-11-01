@@ -12,14 +12,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
 import { CareTimeline } from '@/features/care/care-timeline';
-import { useCareEvents, useVisitPhotos } from '@/features/care/hooks';
+import { useCareEvents, useIncidents, useVisitPhotos } from '@/features/care/hooks';
 import { PhotoGrid } from '@/features/care/photo-grid';
+import { buildReportCard } from '@/features/care/report-card';
 import { useProfile } from '@/features/auth/use-profile';
 import { petRouteFor } from '@/features/pets/routes';
 import { formatDayAndTime, formatTime } from '@/features/visits/time';
 
 import { useOwnerVisit, useVisitLiveUpdates } from './hooks';
 import { isActiveVisit, ownerStatusText } from './owner-visits';
+import { ReportCardView } from './report-card-view';
+import { VisitTimeline } from './visit-timeline';
 
 /** Read-only, live view of one visit for the pet owner. */
 export function OwnerVisitScreen({ visitId }: { visitId: string }) {
@@ -28,6 +31,7 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
   const visit = useOwnerVisit(visitId);
   const events = useCareEvents(visitId);
   const photos = useVisitPhotos(visitId);
+  const incidents = useIncidents(visitId);
   useVisitLiveUpdates(visitId);
 
   if (visit.isPending) {
@@ -52,6 +56,13 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
   const petList = v.booking.booking_pets.flatMap((bp) => (bp.pet ? [bp.pet] : []));
   const pets = petList.map((p) => p.name);
   const active = isActiveVisit(v.status);
+  const done = v.status === 'completed';
+  const card = done
+    ? buildReportCard(
+        (events.data ?? []).map((e) => ({ ...e, pet_id: e.pet_id ?? e.pet?.id ?? null })),
+        petList,
+      )
+    : null;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
@@ -85,8 +96,30 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
               {v.check_out_at ? ` · checked out ${formatTime(v.check_out_at)}` : ''}
             </Text>
           ) : null}
+          {active && v.status_line ? (
+            <Text style={styles.statusLine} accessibilityLiveRegion="polite">
+              “{v.status_line}”
+            </Text>
+          ) : null}
           {active ? <Text style={styles.live}>● Live: updates appear automatically</Text> : null}
         </View>
+
+        <View style={styles.card}>
+          <VisitTimeline visit={v} />
+        </View>
+
+        {card ? (
+          <ReportCardView card={card} summary={v.summary_note} sitterName={sitterName} />
+        ) : null}
+
+        {(incidents.data ?? []).map((i) => (
+          <View key={i.id} style={[styles.card, styles.incident]} accessibilityRole="alert">
+            <Text style={styles.incidentTitle}>
+              Incident ({i.severity}){i.pet ? ` · ${i.pet.name}` : ''} · {formatTime(i.created_at)}
+            </Text>
+            <Text style={styles.body}>{i.description}</Text>
+          </View>
+        ))}
 
         {role ? (
           <View style={styles.petLinks}>
@@ -101,10 +134,25 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
                 <Text style={styles.petLinkLabel}>{p.name}’s profile ›</Text>
               </Pressable>
             ))}
+            {role === 'owner'
+              ? petList.map((p) => (
+                  <Pressable
+                    key={`history-${p.id}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${p.name}'s visit history`}
+                    onPress={() =>
+                      router.push({ pathname: '/pets/[id]/history', params: { id: p.id } })
+                    }
+                    style={styles.petLink}
+                  >
+                    <Text style={styles.petLinkLabel}>{p.name}’s visits ›</Text>
+                  </Pressable>
+                ))
+              : null}
           </View>
         ) : null}
 
-        {v.summary_note ? (
+        {v.summary_note && !card ? (
           <View style={styles.card}>
             <Text style={styles.title}>Visit summary</Text>
             <Text style={styles.body}>{v.summary_note}</Text>
@@ -117,7 +165,7 @@ export function OwnerVisitScreen({ visitId }: { visitId: string }) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.title}>Care log</Text>
+          <Text style={styles.title}>{active ? 'Live feed' : 'Care log'}</Text>
           <CareTimeline events={events.data ?? []} canRemove={() => false} onRemove={() => {}} />
         </View>
       </ScrollView>
@@ -181,6 +229,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   petLinkLabel: { fontSize: 16, fontWeight: '600', color: '#0B5CAD' },
+  statusLine: {
+    fontSize: 19,
+    fontWeight: '600',
+    color: '#1B5E20',
+  },
+  incident: { borderColor: '#C62828', borderWidth: 2 },
+  incidentTitle: { fontSize: 17, fontWeight: '700', color: '#B71C1C' },
   live: {
     fontSize: 15,
     fontWeight: '600',

@@ -151,6 +151,13 @@ export function PetDetailScreen({ petId, editable }: PetDetailScreenProps) {
             >
               <Text style={styles.editLabel}>Allergies</Text>
             </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push({ pathname: '/pets/[id]/history', params: { id: petId } })}
+              style={styles.editPill}
+            >
+              <Text style={styles.editLabel}>Visit history</Text>
+            </Pressable>
           </View>
         ) : null}
 

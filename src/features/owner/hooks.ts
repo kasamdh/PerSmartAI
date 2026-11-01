@@ -4,12 +4,20 @@ import { useEffect } from 'react';
 import { visitKeys } from '@/features/care/hooks';
 import { supabase } from '@/lib/supabase';
 
-import { fetchOwnerVisit, fetchOwnerVisits } from './api';
+import { fetchOwnerVisit, fetchOwnerVisits, fetchPetVisitHistory } from './api';
 
 export const ownerKeys = {
   visits: ['owner-visits'] as const,
   visit: (visitId: string) => ['owner-visit', visitId] as const,
+  petHistory: (petId: string) => ['owner-pet-history', petId] as const,
 };
+
+export function usePetVisitHistory(petId: string) {
+  return useQuery({
+    queryKey: ownerKeys.petHistory(petId),
+    queryFn: () => fetchPetVisitHistory(petId),
+  });
+}
 
 export function useOwnerVisits() {
   return useQuery({ queryKey: ownerKeys.visits, queryFn: () => fetchOwnerVisits(new Date()) });
@@ -62,6 +70,11 @@ export function useVisitLiveUpdates(visitId: string) {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'media', filter: byVisit },
         () => queryClient.invalidateQueries({ queryKey: visitKeys.photos(visitId) }),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'incidents', filter: byVisit },
+        () => queryClient.invalidateQueries({ queryKey: visitKeys.incidents(visitId) }),
       )
       .subscribe();
     return () => {
