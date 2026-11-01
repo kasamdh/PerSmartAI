@@ -116,6 +116,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   image: { width: '100%', height: '100%' },
-  placeholder: { fontSize: 15, color: '#777777' },
+  placeholder: { fontSize: 15, color: '#666666' },
   actions: { flex: 1, gap: 8 },
 });

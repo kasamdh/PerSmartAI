@@ -73,7 +73,7 @@ export function SitterWeekScreen() {
                     <Text style={styles.rowTime}>
                       {formatTimeRange(v.scheduled_start, v.scheduled_end)}
                     </Text>
-                    <Text style={styles.rowPlace} numberOfLines={1}>
+                    <Text style={styles.rowPlace} numberOfLines={2}>
                       {SERVICE_LABELS[v.booking.service_type]} ·{' '}
                       {v.booking.household.name ?? v.booking.household.address_line1}
                     </Text>
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   day: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, gap: 6 },
   dayTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
   today: { color: '#0B5CAD' },
-  free: { fontSize: 16, color: '#777777' },
+  free: { fontSize: 16, color: '#666666' },
   row: {
     minHeight: MIN_TAP_TARGET,
     justifyContent: 'center',

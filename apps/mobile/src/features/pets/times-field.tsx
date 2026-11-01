@@ -74,7 +74,7 @@ export function TimesField({ label, value, onChange, error }: TimesFieldProps) {
           value={custom}
           onChangeText={setCustom}
           placeholder="Other time, e.g. 15:30"
-          placeholderTextColor="#8A8A8A"
+          placeholderTextColor="#666666"
           accessibilityLabel="Add another time"
           keyboardType="numbers-and-punctuation"
           onSubmitEditing={addCustom}
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  on: { borderColor: '#208AEF', backgroundColor: '#E3F0FD' },
+  on: { borderColor: '#1565C0', backgroundColor: '#E3F0FD' },
   chipLabel: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
   chipTime: { fontSize: 13, color: '#555555' },
   onLabel: { color: '#0B5CAD' },
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     minHeight: MIN_TAP_TARGET,
     minWidth: 72,
     borderRadius: 12,
-    backgroundColor: '#208AEF',
+    backgroundColor: '#1565C0',
     alignItems: 'center',
     justifyContent: 'center',
   },

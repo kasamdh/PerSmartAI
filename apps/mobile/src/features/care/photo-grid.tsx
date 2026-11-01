@@ -71,6 +71,7 @@ export function MediaTile({
     <Pressable accessibilityRole="imagebutton" accessibilityLabel={label} onPress={onPress}>
       {item.thumbUrl ? (
         <Image
+          accessible={false}
           source={cachedImageSource(item.thumbUrl)}
           cachePolicy="memory-disk"
           style={styles.thumb}
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
     right: 6,
     top: 6,
     color: '#FFFFFF',
-    backgroundColor: 'rgba(233,30,99,0.85)',
+    backgroundColor: 'rgba(194,24,91,0.92)',
     borderRadius: 6,
     paddingHorizontal: 5,
     fontSize: 12,

@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   name: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
   stats: { fontSize: 16, color: '#333333' },
   barTrack: { height: 10, borderRadius: 5, backgroundColor: '#E8EEF5', overflow: 'hidden' },
-  bar: { height: 10, borderRadius: 5, backgroundColor: '#208AEF' },
+  bar: { height: 10, borderRadius: 5, backgroundColor: '#1565C0' },
   nav: { flexDirection: 'row', gap: 12, padding: 16, paddingTop: 8 },
   navButton: { flex: 1 },
 });

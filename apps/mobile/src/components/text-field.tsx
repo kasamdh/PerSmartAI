@@ -20,7 +20,7 @@ export function TextField({ label, error, style, ...rest }: TextFieldProps) {
         accessibilityHint={error}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        placeholderTextColor="#8A8A8A"
+        placeholderTextColor="#666666"
         style={[styles.input, !!error && styles.inputError, style]}
         {...rest}
       />

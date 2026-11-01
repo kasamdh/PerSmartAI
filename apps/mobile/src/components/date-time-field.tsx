@@ -127,6 +127,6 @@ const styles = StyleSheet.create({
   inputError: { borderColor: '#C62828' },
   pressed: { backgroundColor: '#E3F0FD' },
   value: { fontSize: 18, color: '#1A1A1A' },
-  placeholder: { fontSize: 18, color: '#8A8A8A' },
+  placeholder: { fontSize: 18, color: '#666666' },
   error: { fontSize: 15, color: '#C62828' },
 });

@@ -24,7 +24,12 @@ export function PendingMediaStrip({
           accessible={item.status !== 'failed'}
           accessibilityLabel={`${item.mediaType === 'video' ? 'Video' : 'Photo'}: ${queueStatusLabel(item.status)}`}
         >
-          <Image source={{ uri: item.thumbUri }} style={styles.thumb} contentFit="cover" />
+          <Image
+            accessible={false}
+            source={{ uri: item.thumbUri }}
+            style={styles.thumb}
+            contentFit="cover"
+          />
           <View style={styles.status}>
             <View style={styles.statusRow}>
               {item.status === 'uploading' || item.status === 'queued' ? (
@@ -76,7 +81,7 @@ const styles = StyleSheet.create({
   queued: { color: '#0B5CAD' },
   uploading: { color: '#0B5CAD' },
   sent: { color: '#1B7F3B' },
-  waiting: { color: '#9A6700' },
+  waiting: { color: '#855A00' },
   failed: { color: '#C62828' },
   caption: { fontSize: 14, color: '#555555' },
   retry: {

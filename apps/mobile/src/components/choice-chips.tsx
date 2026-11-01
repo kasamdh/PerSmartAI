@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  selected: { borderColor: '#208AEF', backgroundColor: '#E3F0FD' },
+  selected: { borderColor: '#1565C0', backgroundColor: '#E3F0FD' },
   chipLabel: { fontSize: 17, color: '#1A1A1A' },
   selectedLabel: { fontWeight: '700', color: '#0B5CAD' },
   error: { fontSize: 15, color: '#C62828' },

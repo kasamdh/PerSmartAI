@@ -29,7 +29,7 @@ const SERVICE_LABELS = {
 
 const STATE_COLORS = {
   free: '#1B7F3B',
-  warning: '#9A6700',
+  warning: '#855A00',
   blocked: '#C62828',
   checking: '#666666',
 } as const;
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     borderColor: '#E3E3E3',
   },
   optionSelected: {
-    borderColor: '#208AEF',
+    borderColor: '#1565C0',
     backgroundColor: '#E3F0FD',
   },
   radio: {
@@ -262,11 +262,11 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#8A8A8A',
+    borderColor: '#666666',
   },
   radioSelected: {
-    borderColor: '#208AEF',
-    backgroundColor: '#208AEF',
+    borderColor: '#1565C0',
+    backgroundColor: '#1565C0',
   },
   optionLabel: {
     fontSize: 18,

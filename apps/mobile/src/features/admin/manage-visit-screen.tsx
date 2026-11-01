@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     borderColor: '#D6D6D6',
     paddingHorizontal: 14,
   },
-  optionSelected: { borderColor: '#208AEF', backgroundColor: '#E8F3FE' },
+  optionSelected: { borderColor: '#1565C0', backgroundColor: '#E8F3FE' },
   optionLabel: { fontSize: 17, color: '#1A1A1A' },
   optionLabelSelected: { fontWeight: '700', color: '#0B5CAD' },
   footer: { padding: 16, paddingTop: 8 },

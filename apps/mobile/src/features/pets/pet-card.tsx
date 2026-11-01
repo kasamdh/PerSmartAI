@@ -54,5 +54,5 @@ const styles = StyleSheet.create({
   details: { fontSize: 16, color: '#555555' },
   allergy: { fontSize: 15, fontWeight: '600', color: '#C62828' },
   severe: { fontWeight: '800' },
-  chevron: { fontSize: 28, color: '#999999' },
+  chevron: { fontSize: 28, color: '#666666' },
 });

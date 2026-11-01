@@ -1,6 +1,11 @@
 'use client';
 
-import { brandPalette, contrastRatio, isHexColor } from '@petsitter/shared/branding';
+import {
+  DEFAULT_PRIMARY,
+  brandPalette,
+  contrastRatio,
+  isHexColor,
+} from '@petsitter/shared/branding';
 import {
   logoProblem,
   orgSettingsSchema,
@@ -240,7 +245,7 @@ function ColorField({
           type="color"
           aria-label={`${label} picker`}
           className="h-10 w-14 cursor-pointer rounded border border-gray-300"
-          value={isHexColor(value) ? value : '#208AEF'}
+          value={isHexColor(value) ? value : DEFAULT_PRIMARY}
           onChange={(e) => onChange(e.target.value.toUpperCase())}
         />
         <input
@@ -342,7 +347,7 @@ function LogoUpload() {
             className="h-16 w-16 rounded-lg border border-gray-200 object-contain"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-400">
+          <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-gray-300 text-xs text-gray-500">
             None
           </div>
         )}

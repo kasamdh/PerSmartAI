@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  segmentSelected: { borderColor: '#208AEF', backgroundColor: '#E3F0FD' },
+  segmentSelected: { borderColor: '#1565C0', backgroundColor: '#E3F0FD' },
   segmentLabel: { fontSize: 18, color: '#1A1A1A' },
   segmentLabelSelected: { fontWeight: '700', color: '#0B5CAD' },
   created: { borderColor: '#2E7D32', borderWidth: 2, alignItems: 'stretch' },

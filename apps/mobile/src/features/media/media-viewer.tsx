@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  toolActive: { backgroundColor: '#E91E63' },
+  toolActive: { backgroundColor: '#C2185B' },
   pressed: { opacity: 0.7 },
   disabled: { opacity: 0.35 },
   toolLabel: { color: '#FFFFFF', fontSize: 20, fontWeight: '700' },

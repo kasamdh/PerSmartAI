@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   group: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, gap: 4 },
   unassigned: { borderWidth: 2, borderColor: '#F0A202' },
   groupTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
-  free: { fontSize: 16, color: '#777777' },
+  free: { fontSize: 16, color: '#666666' },
   row: {
     minHeight: MIN_TAP_TARGET,
     justifyContent: 'center',

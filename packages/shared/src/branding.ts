@@ -2,7 +2,7 @@
 // web app; the mobile app uses them for buttons, headers and tabs. These helpers
 // keep text readable whatever colors are chosen (WCAG contrast).
 
-export const DEFAULT_PRIMARY = '#208AEF';
+export const DEFAULT_PRIMARY = '#1565C0';
 export const DEFAULT_ACCENT = '#0B5CAD';
 
 const DARK_TEXT = '#111111';

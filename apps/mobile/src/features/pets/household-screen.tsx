@@ -249,6 +249,6 @@ const styles = StyleSheet.create({
   primaryButton: { minHeight: 40, justifyContent: 'center', alignSelf: 'flex-start' },
   primaryLabel: { fontSize: 15, fontWeight: '600', color: '#0B5CAD' },
   checkbox: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  checkboxBox: { fontSize: 28, color: '#208AEF' },
+  checkboxBox: { fontSize: 28, color: '#1565C0' },
   checkboxLabel: { fontSize: 17, color: '#1A1A1A' },
 });

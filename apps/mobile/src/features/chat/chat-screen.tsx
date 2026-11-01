@@ -145,6 +145,7 @@ export function ChatScreen({ householdId }: { householdId: string }) {
                         onPress={() => setViewing(item)}
                       >
                         <Image
+                          accessible={false}
                           source={cachedImageSource(item.thumbUrl)}
                           cachePolicy="memory-disk"
                           style={styles.photo}
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   list: { padding: 12, gap: 6, flexGrow: 1 },
   loadingMore: { padding: 12 },
-  start: { textAlign: 'center', color: '#777777', fontSize: 14, padding: 12 },
+  start: { textAlign: 'center', color: '#666666', fontSize: 14, padding: 12 },
   empty: {
     textAlign: 'center',
     color: '#555555',
@@ -244,13 +245,13 @@ const styles = StyleSheet.create({
   bubbleRow: { flexDirection: 'row', justifyContent: 'flex-start' },
   bubbleRowMine: { justifyContent: 'flex-end' },
   bubble: { maxWidth: '82%', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, gap: 4 },
-  mine: { backgroundColor: '#208AEF', borderBottomRightRadius: 4 },
+  mine: { backgroundColor: '#1565C0', borderBottomRightRadius: 4 },
   theirs: { backgroundColor: '#FFFFFF', borderBottomLeftRadius: 4 },
   sender: { fontSize: 13, fontWeight: '700', color: '#0B5CAD' },
   photo: { width: 220, height: 165, borderRadius: 10, backgroundColor: '#DDDDDD' },
   body: { fontSize: 17, color: '#1A1A1A' },
   bodyMine: { color: '#FFFFFF' },
-  time: { fontSize: 12, color: '#777777', alignSelf: 'flex-end' },
+  time: { fontSize: 12, color: '#666666', alignSelf: 'flex-end' },
   timeMine: { color: '#E3F0FD' },
   receipt: { fontSize: 12, color: '#666666', textAlign: 'right', marginTop: 2, marginRight: 4 },
   composer: {

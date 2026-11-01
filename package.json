@@ -12,7 +12,7 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run shared:check && npm run lint && npm run format:check && npm run typecheck && npm test",
+    "check": "npm run shared:check && npm run a11y:check && npm run lint && npm run format:check && npm run typecheck && npm test",
     "mobile": "npm run start -w @petsitter/mobile",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
@@ -23,7 +23,8 @@
     "web": "npm run dev -w @petsitter/admin-web",
     "web:build": "npm run build -w @petsitter/admin-web",
     "functions:check": "node scripts/check-functions.mjs",
-    "secrets:check": "node scripts/check-bundle-secrets.mjs"
+    "secrets:check": "node scripts/check-bundle-secrets.mjs",
+    "a11y:check": "node scripts/check-a11y.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

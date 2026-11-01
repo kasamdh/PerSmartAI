@@ -2,7 +2,7 @@
 
 /* --brand / --on-brand are set per business from organizations.primary_color. */
 @theme inline {
-  --color-brand: var(--brand, #208aef);
+  --color-brand: var(--brand, #1565c0);
   --color-on-brand: var(--on-brand, #ffffff);
   --color-brand-ink: var(--brand-ink, #0b5cad);
 }

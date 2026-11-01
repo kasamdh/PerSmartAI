@@ -13,6 +13,8 @@ export function BrandMark() {
     <View style={styles.row} accessible accessibilityLabel={name ?? 'Business logo'}>
       {logoUrl ? (
         <Image
+          // The row is labelled with the business name.
+          accessible={false}
           source={cachedImageSource(logoUrl)}
           cachePolicy="memory-disk"
           style={styles.logo}

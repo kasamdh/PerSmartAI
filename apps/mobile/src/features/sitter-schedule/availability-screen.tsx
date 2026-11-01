@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   intro: { fontSize: 16, color: '#444444' },
   day: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 12, gap: 6 },
   dayName: { fontSize: 18, fontWeight: '700', color: '#1A1A1A' },
-  off: { fontSize: 16, color: '#777777' },
+  off: { fontSize: 16, color: '#666666' },
   block: {
     minHeight: MIN_TAP_TARGET,
     flexDirection: 'row',
