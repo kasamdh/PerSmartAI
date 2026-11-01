@@ -8,3 +8,4 @@ export * from './visit-plan.ts';
 export * from './conflicts.ts';
 export * from './series.ts';
 export * from './cancellation.ts';
+export * from './schedule-check.ts';
