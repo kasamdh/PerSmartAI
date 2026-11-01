@@ -1,0 +1,77 @@
+# Sitter: check in -> log food -> send a photo -> check out, on today's seeded
+# drop-in at Rudra's home (Biscuit and Mochi).
+appId: ${APP_ID}
+name: Sitter visit
+tags: [sitter]
+---
+# A photo in the device gallery to pick.
+- addMedia:
+    - "assets/test-photo.png"
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      EMAIL: "monikapokhrel55@gmail.com"
+      PASSWORD: "password123"
+- assertVisible: "Rudra's home"
+- tapOn: "Check in"
+# Location: allow once, then the far-from-home warning (simulators are elsewhere).
+- runFlow:
+    when:
+      visible: "While using the app"
+    commands:
+      - tapOn: "While using the app"
+- runFlow:
+    when:
+      visible: "Allow While Using App"
+    commands:
+      - tapOn: "Allow While Using App"
+- runFlow:
+    when:
+      visible: "Check in here?"
+    commands:
+      - tapOn:
+          text: "Check in"
+          index: 1
+- tapOn: "Open visit at Rudra's home"
+# Log food.
+- tapOn: "Fed Biscuit, ate all"
+- assertVisible: "Undo"
+# Send a photo from the gallery.
+- scrollUntilVisible:
+    element: "Choose from gallery"
+    direction: DOWN
+- tapOn: "Choose from gallery"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: "com.google.android.providers.media.module:id/icon_thumbnail"
+          index: 0
+      - tapOn: "Add"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: "PXGGridLayout-Info"
+          index: 0
+      - tapOn: "Add"
+- tapOn:
+    text: "Send.*"
+- extendedWaitUntil:
+    visible: "Sent"
+    timeout: 30000
+# Check out with a note for the owner.
+- scrollUntilVisible:
+    element: "Check out"
+    direction: DOWN
+- tapOn: "Check out"
+- tapOn: "How did it go?"
+- inputText: "Maestro check-out: Biscuit ate everything."
+- hideKeyboard
+- tapOn:
+    text: "Check out"
+    index: 1
+- assertVisible: "Checked out"
+- tapOn: "OK"

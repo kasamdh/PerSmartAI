@@ -24,7 +24,8 @@
     "web:build": "npm run build -w @petsitter/admin-web",
     "functions:check": "node scripts/check-functions.mjs",
     "secrets:check": "node scripts/check-bundle-secrets.mjs",
-    "a11y:check": "node scripts/check-a11y.mjs"
+    "a11y:check": "node scripts/check-a11y.mjs",
+    "e2e": "maestro test apps/mobile/.maestro"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

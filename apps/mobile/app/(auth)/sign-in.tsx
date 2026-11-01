@@ -52,6 +52,7 @@ export default function SignInScreen() {
         control={control}
         name="email"
         label="Email"
+        testID="sign-in-email"
         autoCapitalize="none"
         autoComplete="email"
         autoCorrect={false}
@@ -66,6 +67,7 @@ export default function SignInScreen() {
         name="password"
         ref={passwordRef}
         label="Password"
+        testID="sign-in-password"
         secureTextEntry
         autoComplete="current-password"
         textContentType="password"
