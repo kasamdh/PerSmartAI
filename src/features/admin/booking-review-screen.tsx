@@ -17,12 +17,21 @@ import { describeSchedule } from '@/features/bookings/booking-text';
 import { schedulingErrorText } from '@/features/scheduling/api';
 
 import { useBooking, useConfirmBooking, useDeclineBooking, useSitters } from './hooks';
+import { useSitterChecks } from './schedule-hooks';
+import { rankSitterOptions } from './schedule-logic';
 
 const SERVICE_LABELS = {
   drop_in: 'Drop-in',
   walk: 'Walk',
   overnight: 'Overnight',
   multi_day: 'Multi-day',
+} as const;
+
+const STATE_COLORS = {
+  free: '#1B7F3B',
+  warning: '#9A6700',
+  blocked: '#C62828',
+  checking: '#666666',
 } as const;
 
 function errorAlert(title: string) {
@@ -37,6 +46,10 @@ export function BookingReviewScreen({ bookingId }: { bookingId: string }) {
   const confirm = useConfirmBooking();
   const decline = useDeclineBooking();
   const [sitterId, setSitterId] = useState<string | null>(null);
+  const checks = useSitterChecks(
+    bookingId,
+    booking.data?.status === 'requested' ? sitters.data?.map((s) => s.id) : undefined,
+  );
 
   if (booking.isPending || sitters.isPending) {
     return (
@@ -123,28 +136,41 @@ export function BookingReviewScreen({ bookingId }: { bookingId: string }) {
         {pending ? (
           <View style={styles.card}>
             <Text style={styles.title}>Choose a sitter</Text>
+            <Text style={styles.body}>
+              Checked against each sitter’s visits, travel time, hours and time off.
+            </Text>
             {sitters.data.length === 0 ? (
               <Text style={styles.body}>No sitters in your business yet.</Text>
             ) : (
-              sitters.data.map((s) => {
+              rankSitterOptions(sitters.data, checks.isError ? undefined : checks.data).map((s) => {
                 const selected = s.id === sitterId;
                 return (
                   <Pressable
                     key={s.id}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: selected }}
-                    accessibilityLabel={s.full_name}
+                    accessibilityLabel={`${s.full_name}. ${s.note}`}
                     onPress={() => setSitterId(s.id)}
                     style={[styles.option, selected && styles.optionSelected]}
                   >
                     <View style={[styles.radio, selected && styles.radioSelected]} />
-                    <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
-                      {s.full_name}
-                    </Text>
+                    <View style={styles.optionText}>
+                      <Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>
+                        {s.full_name}
+                      </Text>
+                      <Text style={[styles.optionNote, { color: STATE_COLORS[s.state] }]}>
+                        {s.note}
+                      </Text>
+                    </View>
                   </Pressable>
                 );
               })
             )}
+            {checks.isError ? (
+              <Text style={styles.body}>
+                Couldn’t check schedules; confirming will still check.
+              </Text>
+            ) : null}
           </View>
         ) : null}
       </ScrollView>
@@ -173,6 +199,8 @@ export function BookingReviewScreen({ bookingId }: { bookingId: string }) {
 }
 
 const styles = StyleSheet.create({
+  optionText: { flex: 1, gap: 2 },
+  optionNote: { fontSize: 14 },
   safeArea: {
     flex: 1,
     backgroundColor: '#F2F4F7',

@@ -18,6 +18,7 @@ import { statusLabel } from '@/features/visits/visit-actions';
 
 import { describeSchedule } from '@/features/bookings/booking-text';
 import { useBookingRequests, useTodaysVisits } from './hooks';
+import { ChangeRequestsSection, TimeOffRequestsSection } from './inbox-sections';
 
 const SERVICE_LABELS = {
   drop_in: 'Drop-in',
@@ -48,7 +49,26 @@ export function AdminHomeScreen() {
         <Text style={styles.greeting} accessibilityRole="header">
           {firstName ? `Hi, ${firstName}` : 'Dashboard'}
         </Text>
-        <BigButton label="Invite sitters and owners" onPress={() => router.push('/invites')} />
+        <BigButton label="Calendar" onPress={() => router.push('/schedule')} />
+        <View style={styles.navRow}>
+          <BigButton
+            label="Workload"
+            variant="secondary"
+            style={styles.navButton}
+            onPress={() => router.push('/workload')}
+          />
+          <BigButton
+            label="Settings"
+            variant="secondary"
+            style={styles.navButton}
+            onPress={() => router.push('/business-settings')}
+          />
+        </View>
+        <BigButton
+          label="Invite sitters and owners"
+          variant="secondary"
+          onPress={() => router.push('/invites')}
+        />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle} accessibilityRole="header">
@@ -95,6 +115,20 @@ export function AdminHomeScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle} accessibilityRole="header">
+            Reschedule requests
+          </Text>
+          <ChangeRequestsSection />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            Time off requests
+          </Text>
+          <TimeOffRequestsSection />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle} accessibilityRole="header">
             Today
           </Text>
           {today.isPending ? (
@@ -112,7 +146,7 @@ export function AdminHomeScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Visit at ${place}, ${statusLabel(v.status)}`}
                   onPress={() =>
-                    router.push({ pathname: '/visit-overview/[id]', params: { id: v.id } })
+                    router.push({ pathname: '/manage-visit/[id]', params: { id: v.id } })
                   }
                   style={({ pressed }) => [styles.card, pressed && styles.pressed]}
                 >
@@ -223,5 +257,12 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 32,
+  },
+  navRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  navButton: {
+    flex: 1,
   },
 });

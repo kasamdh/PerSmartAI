@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { useLiveQueries } from '@/lib/realtime';
+
 import {
   confirmBooking,
   declineBooking,
@@ -16,7 +18,9 @@ export const adminKeys = {
   sitters: ['admin', 'sitters'] as const,
 };
 
+/** New requests arrive live. */
 export function useBookingRequests() {
+  useLiveQueries(['bookings'], [adminKeys.requests]);
   return useQuery({ queryKey: adminKeys.requests, queryFn: fetchBookingRequests });
 }
 
@@ -28,6 +32,7 @@ export function useBooking(bookingId: string) {
 }
 
 export function useTodaysVisits() {
+  useLiveQueries(['visits'], [adminKeys.today]);
   return useQuery({ queryKey: adminKeys.today, queryFn: () => fetchTodaysVisits(new Date()) });
 }
 

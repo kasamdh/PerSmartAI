@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 
 import { BookingReviewScreen } from '../booking-review-screen';
 import * as hooks from '../hooks';
+import * as scheduleHooks from '../schedule-hooks';
 
 jest.mock('expo-router', () => ({ useRouter: () => ({ back: jest.fn() }) }));
 jest.mock(
@@ -11,8 +12,10 @@ jest.mock(
 );
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
 jest.mock('../hooks');
+jest.mock('../schedule-hooks');
 
 const mockedHooks = jest.mocked(hooks);
+const mockedScheduleHooks = jest.mocked(scheduleHooks);
 const confirmMutate = jest.fn();
 const declineMutate = jest.fn();
 
@@ -61,6 +64,26 @@ beforeEach(() => {
     mutate: declineMutate,
     isPending: false,
   } as never);
+  mockedScheduleHooks.useSitterChecks.mockReturnValue({
+    isError: false,
+    data: [
+      {
+        sitter_id: 's1',
+        ok: false,
+        blocking: 1,
+        problems: [
+          {
+            local_date: '2026-11-20',
+            start: '',
+            end: '',
+            blocking: true,
+            reasons: ['Time off Fri, Nov 20, 12:00 AM – Sun, Nov 22, 12:00 AM'],
+          },
+        ],
+      },
+      { sitter_id: 's2', ok: true, blocking: 0, problems: [] },
+    ],
+  } as never);
 });
 
 describe('BookingReviewScreen', () => {
@@ -79,12 +102,23 @@ describe('BookingReviewScreen', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Pick a sitter to confirm' }));
     expect(confirmMutate).not.toHaveBeenCalled();
 
-    await fireEvent.press(screen.getByRole('radio', { name: 'Sky Sitter' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Sky Sitter. Free for every visit' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Confirm with Sky' }));
     expect(confirmMutate).toHaveBeenCalledWith(
       { bookingId: 'b3', sitterId: 's2' },
       expect.any(Object),
     );
+  });
+
+  it('shows which sitters are free, and why the others are not', async () => {
+    await render(<BookingReviewScreen bookingId="b3" />);
+
+    const options = screen.getAllByRole('radio');
+    expect(options.map((o) => o.props.accessibilityLabel)).toEqual([
+      'Sky Sitter. Free for every visit',
+      'Monika. Can’t take 1 visit: Time off Fri, Nov 20, 12:00 AM – Sun, Nov 22, 12:00 AM',
+    ]);
+    expect(mockedScheduleHooks.useSitterChecks).toHaveBeenCalledWith('b3', ['s1', 's2']);
   });
 
   it('asks before declining', async () => {
