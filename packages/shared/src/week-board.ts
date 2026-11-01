@@ -92,3 +92,23 @@ export function boardTimeLabel(visit: BoardVisit, timeZone: string): string {
   const end = utcToLocal(new Date(visit.scheduled_end), timeZone).time;
   return `${start}–${end}`;
 }
+
+/**
+ * The update_visit arguments for an edited visit (sitter, local date and time), or
+ * null when nothing changed. Moving sends both date and time, as the server expects.
+ */
+export function editChange(
+  visit: BoardVisit,
+  draft: { sitterId: string | null; date: LocalDate; time: string },
+  timeZone: string,
+): VisitChange | null {
+  if (!canMoveVisit(visit)) return null;
+  const local = utcToLocal(new Date(visit.scheduled_start), timeZone);
+  const change: VisitChange = {};
+  if (draft.sitterId && draft.sitterId !== visit.sitter_id) change.sitter_id = draft.sitterId;
+  if (draft.date !== local.date || draft.time !== local.time) {
+    change.date = draft.date;
+    change.time = draft.time;
+  }
+  return Object.keys(change).length > 0 ? change : null;
+}

@@ -1,4 +1,11 @@
-import { canMoveVisit, dropChange, weekBoard, weekRange, boardTimeLabel } from '../week-board.ts';
+import {
+  boardTimeLabel,
+  canMoveVisit,
+  dropChange,
+  editChange,
+  weekBoard,
+  weekRange,
+} from '../week-board.ts';
 
 const TZ = 'America/New_York';
 const sitters = [
@@ -99,4 +106,30 @@ it('labels times in the business zone', () => {
   expect(boardTimeLabel(visit('v', 's1', '2026-11-02T14:00:00Z', '2026-11-02T14:30:00Z'), TZ)).toBe(
     '09:00–09:30',
   );
+});
+
+describe('editChange', () => {
+  const walk = visit('v', 's1', '2026-11-02T14:00:00Z', '2026-11-02T14:30:00Z');
+
+  it('sends only what changed, and date with time when moving', () => {
+    expect(editChange(walk, { sitterId: 's1', date: '2026-11-02', time: '09:00' }, TZ)).toBeNull();
+    expect(editChange(walk, { sitterId: 's2', date: '2026-11-02', time: '09:00' }, TZ)).toEqual({
+      sitter_id: 's2',
+    });
+    expect(editChange(walk, { sitterId: 's1', date: '2026-11-02', time: '10:15' }, TZ)).toEqual({
+      date: '2026-11-02',
+      time: '10:15',
+    });
+  });
+
+  it("can't unassign or change a started visit", () => {
+    expect(editChange(walk, { sitterId: null, date: '2026-11-02', time: '09:00' }, TZ)).toBeNull();
+    expect(
+      editChange(
+        { ...walk, status: 'in_progress' },
+        { sitterId: 's2', date: '2026-11-03', time: '09:00' },
+        TZ,
+      ),
+    ).toBeNull();
+  });
 });

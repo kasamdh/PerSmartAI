@@ -19,7 +19,9 @@
     "db:test": "supabase test db",
     "db:types": "node scripts/gen-types.mjs",
     "shared:sync": "node scripts/sync-shared.mjs",
-    "shared:check": "node scripts/sync-shared.mjs --check"
+    "shared:check": "node scripts/sync-shared.mjs --check",
+    "web": "npm run dev -w @petsitter/admin-web",
+    "web:build": "npm run build -w @petsitter/admin-web"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

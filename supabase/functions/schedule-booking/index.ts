@@ -16,6 +16,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+import { corsHeaders, preflight } from '../_shared/cors.ts';
 import type { Database } from '../_shared/database.ts';
 import {
   loadBooking,
@@ -58,7 +59,7 @@ class HttpError extends Error {
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
 }
 
@@ -393,6 +394,8 @@ const ACTIONS = {
 } as const;
 
 Deno.serve(async (req) => {
+  const cors = preflight(req);
+  if (cors) return cors;
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   const authorization = req.headers.get('Authorization');
   if (!authorization) return json({ error: 'Not signed in' }, 401);
