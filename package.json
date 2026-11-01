@@ -21,7 +21,9 @@
     "shared:sync": "node scripts/sync-shared.mjs",
     "shared:check": "node scripts/sync-shared.mjs --check",
     "web": "npm run dev -w @petsitter/admin-web",
-    "web:build": "npm run build -w @petsitter/admin-web"
+    "web:build": "npm run build -w @petsitter/admin-web",
+    "functions:check": "node scripts/check-functions.mjs",
+    "secrets:check": "node scripts/check-bundle-secrets.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.10",
