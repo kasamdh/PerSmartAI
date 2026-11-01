@@ -13,6 +13,7 @@ import { profileSchema, type ProfileValues } from '@/features/auth/schemas';
 import { SignOutButton } from '@/features/auth/sign-out-button';
 import { profileQueryKey, useProfile } from '@/features/auth/use-profile';
 import { zodResolver } from '@/lib/zod-resolver';
+import { LegalLinks } from '@/features/legal/legal-links';
 
 const ROLE_LABELS = { owner: 'Pet owner', sitter: 'Sitter', admin: 'Admin' } as const;
 
@@ -100,6 +101,7 @@ export default function ProfileScreen() {
 
         <View style={styles.divider} />
         <SignOutButton />
+        <LegalLinks />
 
         <View style={styles.danger}>
           <Text style={styles.dangerTitle}>Delete account</Text>

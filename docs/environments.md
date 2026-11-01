@@ -60,6 +60,7 @@ Environment variables per EAS environment (`eas env:create --environment <env>`)
 | `EXPO_PUBLIC_SENTRY_DSN`        | plain text | mobile DSN                            | mobile DSN                      |
 | `EXPO_PUBLIC_POSTHOG_KEY`       | plain text | staging project key                   | production project key          |
 | `EXPO_PUBLIC_POSTHOG_HOST`      | plain text | `https://us.i.posthog.com` or EU      | same                            |
+| `EXPO_PUBLIC_LEGAL_URL`         | plain text | staging admin site URL                | production admin site URL       |
 | `SENTRY_AUTH_TOKEN`             | secret     | org token                             | org token                       |
 | `GOOGLE_SERVICES_JSON`          | file       | Firebase file for `.dev` / `.preview` | Firebase file for the store app |
 

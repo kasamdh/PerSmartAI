@@ -9,6 +9,7 @@ import { signUpBusiness } from '@/features/auth/api';
 import { businessSignUpSchema, type BusinessSignUpValues } from '@/features/auth/schemas';
 import { deviceTimeZone } from '@/lib/time-zone';
 import { zodResolver } from '@/lib/zod-resolver';
+import { SignUpConsent } from '@/features/legal/legal-links';
 
 /** Starts a new pet-sitting business; the signer-up becomes its admin. */
 export default function SignUpScreen() {
@@ -100,6 +101,7 @@ export default function SignUpScreen() {
         onSubmitEditing={() => onSubmit()}
       />
       <BigButton label="Create business" onPress={() => onSubmit()} loading={isSubmitting} />
+      <SignUpConsent />
     </FormScreen>
   );
 }

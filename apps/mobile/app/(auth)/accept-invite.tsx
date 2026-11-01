@@ -16,6 +16,7 @@ import {
   type InviteSignUpValues,
 } from '@/features/auth/schemas';
 import { zodResolver } from '@/lib/zod-resolver';
+import { SignUpConsent } from '@/features/legal/legal-links';
 
 const ROLE_TEXT = { owner: 'a pet owner', sitter: 'a sitter', admin: 'an admin' } as const;
 
@@ -150,6 +151,7 @@ export default function AcceptInviteScreen() {
         onPress={() => join()}
         loading={signUpForm.formState.isSubmitting}
       />
+      <SignUpConsent />
     </FormScreen>
   );
 }
