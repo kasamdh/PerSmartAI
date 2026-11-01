@@ -77,6 +77,9 @@ function RootNavigator() {
       <Stack.Protected guard={guards.sitter}>
         <Stack.Screen name="(sitter)" />
       </Stack.Protected>
+      <Stack.Protected guard={guards.twoStep}>
+        <Stack.Screen name="(two-step)" />
+      </Stack.Protected>
       <Stack.Protected guard={guards.admin}>
         <Stack.Screen name="(admin)" />
       </Stack.Protected>

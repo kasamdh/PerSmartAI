@@ -34,6 +34,8 @@ The `e2e` profile is `preview` built for the iOS simulator / an Android APK, for
    - Rate limits: sign-ups and sign-ins 15 per 5 min per IP, token verifications 15,
      emails as your SMTP allows. Minimum password length 8. Email OTP expiry 900 s.
    - Turn on CAPTCHA (hCaptcha or Turnstile) for sign-in and sign-up before launch.
+   - Multi-Factor: enable **TOTP (App Authenticator)** enroll and verify. Admins can't use
+     admin features without it (`private.is_admin()` requires an `aal2` session).
    - Copy the email templates from `supabase/templates/`.
 6. Storage: the `pet-media` bucket and its policies come from the migrations; check it
    is private.

@@ -8,6 +8,10 @@
 --   rudradh@gmail.com      Rudra          owner   (Biscuit the dog, Mochi the cat)
 --   oscar@example.test     Oscar Owner    owner   (Rex the dog)
 --
+-- Admins must sign in with two steps. Both seeded admins have an authenticator
+-- factor with the dev-only secret JBSWY3DPEHPK3PXP: add it to any authenticator app
+-- (or generate codes with node scripts/totp.mjs JBSWY3DPEHPK3PXP).
+--
 -- Visit times are relative to now() so "today" always has something on the schedule.
 
 -- ---------------------------------------------------------------------------
@@ -194,3 +198,11 @@ select vault.create_secret(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU',
   'service_role_key'
 );
+
+-- ---------------------------------------------------------------------------
+-- Two-step sign-in for the seeded admins (dev-only secret, see the top)
+-- ---------------------------------------------------------------------------
+
+insert into auth.mfa_factors (id, user_id, friendly_name, factor_type, status, created_at, updated_at, secret) values
+  ('a0000000-0000-4000-8000-0000000000f9', 'a0000000-0000-4000-8000-0000000000a1', 'Dev authenticator', 'totp', 'verified', now(), now(), 'JBSWY3DPEHPK3PXP'),
+  ('a0000000-0000-4000-8000-0000000000fa', 'a0000000-0000-4000-8000-0000000000a2', 'Dev authenticator', 'totp', 'verified', now(), now(), 'JBSWY3DPEHPK3PXP');

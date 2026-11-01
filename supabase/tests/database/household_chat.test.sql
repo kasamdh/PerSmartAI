@@ -52,7 +52,7 @@ insert into public.visits (organization_id, booking_id, sitter_id, scheduled_sta
   ('f9000000-0000-4000-8000-000000000001', 'f9000000-0000-4000-8000-0000000000f1', 'f9000000-0000-4000-8000-0000000000b5', now() + interval '40 days', now() + interval '40 days 30 minutes', 'scheduled');
 
 create function pg_temp.sign_in(p_user_id uuid) returns void language sql as $$
-  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated')::text, true);
+  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- Can this user send a message to household d1 / read its thread?

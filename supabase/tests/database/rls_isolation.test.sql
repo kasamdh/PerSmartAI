@@ -106,7 +106,7 @@ language sql
 as $$
   select set_config(
     'request.jwt.claims',
-    json_build_object('sub', p_user_id, 'role', 'authenticated')::text,
+    json_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', 'aal2')::text,
     true
   );
 $$;

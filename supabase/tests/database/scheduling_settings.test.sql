@@ -39,7 +39,7 @@ insert into public.visits (id, organization_id, booking_id, sitter_id, scheduled
    'f4000000-0000-4000-8000-0000000000b1', now() + interval '3 days', now() + interval '3 days 1 hour');
 
 create function pg_temp.sign_in(p_user_id uuid) returns void language sql as $$
-  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated')::text, true);
+  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- ---------------------------------------------------------------------------

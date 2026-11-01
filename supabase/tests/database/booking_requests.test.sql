@@ -39,7 +39,7 @@ insert into public.pets (id, organization_id, household_id, name, species) value
   ('f0000000-0000-4000-8000-0000000000e9', 'f0000000-0000-4000-8000-000000000002', 'f0000000-0000-4000-8000-0000000000d9', 'Zed', 'dog');
 
 create function pg_temp.sign_in(p_user_id uuid) returns void language sql as $$
-  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated')::text, true);
+  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- ---------------------------------------------------------------------------

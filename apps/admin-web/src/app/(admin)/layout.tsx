@@ -6,6 +6,7 @@ import { signOut } from '@/app/actions';
 import { Button } from '@/components/ui';
 import { OrgProvider, type Org } from '@/features/org/org-context';
 import { AdminNav } from '@/features/org/admin-nav';
+import { IdleSignOut } from '@/features/org/idle-sign-out';
 import { createClient } from '@/lib/supabase/server';
 import { PET_MEDIA_BUCKET } from '@/lib/storage';
 
@@ -41,6 +42,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       </main>
     );
   }
+
+  // Admin access needs a two-step session (the database enforces it too).
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel !== 'aal2') redirect('/two-step');
 
   const { data: row, error } = await supabase
     .from('organizations')
@@ -79,6 +84,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <OrgProvider org={org} admin={{ id: profile.id, fullName: profile.full_name }}>
+      <IdleSignOut />
       <div style={brandVars} className="min-h-screen lg:flex">
         <AdminNav orgName={org.name} logoUrl={logoUrl} adminName={profile.full_name} />
         <main className="min-w-0 flex-1 p-4 lg:p-8">{children}</main>

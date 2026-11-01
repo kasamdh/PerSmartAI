@@ -129,7 +129,7 @@ insert into public.messages (organization_id, household_id, sender_id, body) val
   ('5e000000-0000-4000-8000-00000000000b', '5e000000-0000-4000-8000-0000000000db', '5e000000-0000-4000-8000-0000000000c9', 'B private message');
 
 create function pg_temp.sign_in(p_user_id uuid) returns void language sql as $$
-  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated')::text, true);
+  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- ---------------------------------------------------------------------------

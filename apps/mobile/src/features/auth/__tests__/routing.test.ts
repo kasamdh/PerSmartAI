@@ -39,7 +39,10 @@ describe('resolveDestination', () => {
     ['sitter', '/sitter'],
     ['admin', '/admin'],
   ] as const)('sends a %s to %s', (role, href) => {
-    expect(resolveDestination(signedIn({ profile: { role } }))).toEqual({ kind: 'redirect', href });
+    expect(resolveDestination(signedIn({ profile: { role }, adminTwoStep: 'done' }))).toEqual({
+      kind: 'redirect',
+      href,
+    });
   });
 
   it('sends owners without a household to finish their profile first', () => {
@@ -78,7 +81,10 @@ describe('routeGuards', () => {
 
   it("opens exactly one role's screens, plus the account screens", () => {
     expect(open(signedIn({ profile: { role: 'sitter' } }))).toEqual(['account', 'sitter']);
-    expect(open(signedIn({ profile: { role: 'admin' } }))).toEqual(['account', 'admin']);
+    expect(open(signedIn({ profile: { role: 'admin' }, adminTwoStep: 'done' }))).toEqual([
+      'account',
+      'admin',
+    ]);
     expect(open(signedIn({ profile: { role: 'owner' }, ownerHasHousehold: true }))).toEqual([
       'account',
       'owner',
@@ -103,9 +109,40 @@ describe('routeGuards', () => {
     const roleGroups = ['owner', 'ownerOnboarding', 'sitter', 'admin'] as const;
     for (const role of ['owner', 'sitter', 'admin'] as const) {
       for (const ownerHasHousehold of [true, false, undefined]) {
-        const guards = routeGuards(signedIn({ profile: { role }, ownerHasHousehold }));
+        const guards = routeGuards(
+          signedIn({ profile: { role }, ownerHasHousehold, adminTwoStep: 'done' }),
+        );
         expect(roleGroups.filter((g) => guards[g]).length).toBeLessThanOrEqual(1);
       }
     }
+  });
+});
+
+describe('admin two-step sign-in', () => {
+  const admin = (adminTwoStep: RoutingState['adminTwoStep']) =>
+    signedIn({ profile: { role: 'admin' }, adminTwoStep });
+
+  it('sends admins to the two-step screen until the session is verified', () => {
+    expect(resolveDestination(admin(undefined))).toEqual({ kind: 'loading' });
+    expect(resolveDestination(admin('needed'))).toEqual({ kind: 'redirect', href: '/two-step' });
+    expect(resolveDestination(admin('done'))).toEqual({ kind: 'redirect', href: '/admin' });
+  });
+
+  it('opens only the two-step screen before the second step, and no admin or account screens', () => {
+    const guards = routeGuards(admin('needed'));
+    expect(
+      Object.entries(guards)
+        .filter(([, on]) => on)
+        .map(([g]) => g),
+    ).toEqual(['twoStep']);
+    expect(Object.values(routeGuards(admin(undefined))).some(Boolean)).toBe(false);
+  });
+
+  it('never asks owners or sitters for a second step', () => {
+    expect(routeGuards(signedIn({ profile: { role: 'sitter' } })).twoStep).toBe(false);
+    expect(resolveDestination(signedIn({ profile: { role: 'sitter' } }))).toEqual({
+      kind: 'redirect',
+      href: '/sitter',
+    });
   });
 });

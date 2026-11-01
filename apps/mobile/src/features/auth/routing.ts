@@ -13,6 +13,11 @@ export type RoutingState = {
   profile: { role: AppRole } | null | 'error' | undefined;
   /** Owners only: whether they've added their household. */
   ownerHasHousehold: boolean | 'error' | undefined;
+  /**
+   * Admins only: whether this session passed two-step sign-in (aal2). The database
+   * grants admin access only then, so admins finish it before anything else.
+   */
+  adminTwoStep?: 'done' | 'needed' | undefined;
 };
 
 export type Destination =
@@ -29,6 +34,10 @@ export function resolveDestination(state: RoutingState): Destination {
   if (state.profile === 'error') return { kind: 'error' };
   if (state.profile === null) return { kind: 'not-set-up' };
 
+  if (state.profile.role === 'admin') {
+    if (state.adminTwoStep === undefined) return { kind: 'loading' };
+    if (state.adminTwoStep === 'needed') return { kind: 'redirect', href: '/two-step' };
+  }
   if (state.profile.role === 'owner') {
     if (state.ownerHasHousehold === undefined) return { kind: 'loading' };
     if (state.ownerHasHousehold === 'error') return { kind: 'error' };
@@ -44,6 +53,8 @@ export type RouteGuards = {
   ownerOnboarding: boolean;
   sitter: boolean;
   admin: boolean;
+  /** Admins who still need their second sign-in step. */
+  twoStep: boolean;
   account: boolean;
 };
 
@@ -54,6 +65,8 @@ export type RouteGuards = {
 export function routeGuards(state: RoutingState): RouteGuards {
   const ready = state.signedIn && !state.recoveringPassword;
   const role = ready && state.profile && state.profile !== 'error' ? state.profile.role : null;
+  const adminReady = role === 'admin' && state.adminTwoStep === 'done';
+  const adminPending = role === 'admin' && !adminReady;
 
   return {
     auth: !state.signedIn,
@@ -61,7 +74,8 @@ export function routeGuards(state: RoutingState): RouteGuards {
     owner: role === 'owner' && state.ownerHasHousehold === true,
     ownerOnboarding: role === 'owner' && state.ownerHasHousehold === false,
     sitter: role === 'sitter',
-    admin: role === 'admin',
-    account: role !== null,
+    admin: adminReady,
+    twoStep: role === 'admin' && state.adminTwoStep === 'needed',
+    account: role !== null && !adminPending,
   };
 }

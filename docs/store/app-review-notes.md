@@ -42,5 +42,5 @@ Steps:
 - **Notifications:** the app explains what notifications are for before the system prompt. Saying no doesn't block anything.
 - **Account deletion:** My profile > Delete my account.
 - **Chat:** messages are private between a household, its pet-sitting business and the sitters assigned to it. They are not public. Business admins can delete any message.
-- **Admin site (optional):** businesses manage schedules on a website: [ADMIN SITE URL]. Admin account: appreview-admin@[DOMAIN], same password.
+- **Admin site:** businesses manage schedules on a website. Business admins must use two-step sign-in with an authenticator app, so the review only needs the owner and sitter accounts above.
 - **Data:** this demo business is isolated. No real clients' data is visible.

@@ -3,12 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { ownerHasHousehold } from './api';
 import { useAuth } from './auth-provider';
 import type { RoutingState } from './routing';
+import { sessionAal } from './session-aal';
 import { useProfile } from './use-profile';
 
 export const ownerHouseholdKey = (userId: string | undefined) =>
   ['owner-has-household', userId] as const;
 
-/** Collects what role routing needs: session, recovery mode, profile, and owner household. */
+/**
+ * Collects what role routing needs: session, recovery mode, profile, owner
+ * household, and (admins) whether this session passed two-step sign-in.
+ */
 export function useRoutingState(): RoutingState & { role: string | undefined } {
   const { session, recoveringPassword } = useAuth();
   const profile = useProfile();
@@ -40,6 +44,12 @@ export function useRoutingState(): RoutingState & { role: string | undefined } {
         : household.isPending
           ? undefined
           : household.data,
+    adminTwoStep:
+      profile.data?.role !== 'admin'
+        ? undefined
+        : sessionAal(session?.access_token) === 'aal2'
+          ? 'done'
+          : 'needed',
     role: profile.data?.role,
   };
 }
