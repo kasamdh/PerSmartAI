@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
+import { MessagesButton } from '@/features/chat/messages-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
 import { useProfile } from '@/features/auth/use-profile';
 import { usePets } from '@/features/pets/hooks';
@@ -100,6 +101,7 @@ export function OwnerHomeScreen() {
             variant="secondary"
             onPress={() => router.push('/my-bookings')}
           />
+          <MessagesButton />
         </View>
 
         {visits.isPending ? (

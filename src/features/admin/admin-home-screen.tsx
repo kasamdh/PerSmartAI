@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
+import { MessagesButton } from '@/features/chat/messages-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
 import { useProfile } from '@/features/auth/use-profile';
 import { formatTimeRange } from '@/features/visits/time';
@@ -51,6 +52,7 @@ export function AdminHomeScreen() {
           {firstName ? `Hi, ${firstName}` : 'Dashboard'}
         </Text>
         <BigButton label="Live board" onPress={() => router.push('/live-board')} />
+        <MessagesButton />
         <BigButton label="Calendar" variant="secondary" onPress={() => router.push('/schedule')} />
         <View style={styles.navRow}>
           <BigButton

@@ -107,6 +107,13 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - Owners see media through signed URLs that expire after 1 hour (thumbnails in lists, full size on tap), never public URLs. They can heart (`media_reactions`) and save to the phone (expo-media-library `Asset.create`; the legacy save API throws in SDK 58).
 - `organizations.media_retention_months` (null keeps everything): `purge-old-media` (pg_cron 08:45 UTC) deletes expired files, then their rows.
 
+## Chat
+
+- One conversation per household (`messages.household_id`). Participants: the owner, the business's admins, and sitters with a non-cancelled visit there in the last 30 or next 30 days. `private.can_chat(household_id)` decides, and the messages, `conversation_reads` and storage (`{org}/chat/{household_id}/{file}`) policies all use it. Messages can't be edited; senders and admins can delete.
+- Read receipts are per participant: `conversation_reads.read_at` (only moves forward). `my_conversations()` and `unread_message_count()` (security invoker) feed the list and the badges (sitters: Messages tab; owners and admins: Messages button).
+- Messages load newest first in pages of 30 with keyset paging on `(created_at, id)`; live via Realtime. Photos use the same 1080 px / 300 px / JPEG 0.7 compression.
+- Push: the insert trigger calls notify-owner, which alerts at once unless the conversation had an alert in the last minute; `alert-checks` (every minute) sends the rest as one alert (`_shared/chat-alerts.ts`, tested). People who've already read the messages aren't alerted. Screens are in the `(account)` group: `/messages` and `/messages/[householdId]`.
+
 ## Auth and routing
 
 - Sessions are stored in expo-secure-store, chunked to stay under its value size limit (`src/lib/secure-storage.ts`), with a fixed `storageKey`. The client uses the PKCE flow.

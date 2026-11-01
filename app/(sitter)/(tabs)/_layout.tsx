@@ -1,7 +1,10 @@
 import { Tabs } from 'expo-router/js-tabs';
 
+import { useUnreadCount } from '@/features/chat/hooks';
+
 // Big labels and a tall bar: sitters tap these one-handed.
 export default function SitterTabsLayout() {
+  const unread = useUnreadCount().data ?? 0;
   return (
     <Tabs
       screenOptions={{
@@ -19,6 +22,15 @@ export default function SitterTabsLayout() {
         options={{ title: 'My availability', tabBarLabel: 'Hours' }}
       />
       <Tabs.Screen name="time-off" options={{ title: 'Time off', tabBarLabel: 'Time off' }} />
+      <Tabs.Screen
+        name="sitter-messages"
+        options={{
+          title: 'Messages',
+          tabBarLabel: 'Messages',
+          tabBarBadge: unread > 0 ? (unread > 99 ? '99+' : unread) : undefined,
+          tabBarAccessibilityLabel: unread > 0 ? `Messages, ${unread} unread` : 'Messages',
+        }}
+      />
     </Tabs>
   );
 }

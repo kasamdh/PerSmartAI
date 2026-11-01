@@ -37,6 +37,9 @@ export function pushRouteFor(
   role: AppRole,
   data: Record<string, unknown> | undefined,
 ): Href | null {
+  if (data?.type === 'message' && typeof data.householdId === 'string') {
+    return { pathname: '/messages/[householdId]', params: { householdId: data.householdId } };
+  }
   if (typeof data?.visitId === 'string') {
     if (role === 'sitter' && typeof data.type === 'string' && GONE_FOR_SITTER.includes(data.type)) {
       return '/sitter';

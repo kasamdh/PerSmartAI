@@ -93,6 +93,15 @@ describe('pushRouteFor', () => {
     );
   });
 
+  it('opens the conversation from a message alert, for every role', () => {
+    for (const role of ['owner', 'sitter', 'admin'] as const) {
+      expect(pushRouteFor(role, { type: 'message', householdId: 'h1' })).toEqual({
+        pathname: '/messages/[householdId]',
+        params: { householdId: 'h1' },
+      });
+    }
+  });
+
   it('ignores payloads it does not understand', () => {
     expect(pushRouteFor('owner', undefined)).toBeNull();
     expect(pushRouteFor('owner', { bookingId: 'b1' })).toBeNull();
