@@ -8,6 +8,19 @@ import { allowedRecipients, type AlertKind } from './alerts.ts';
 import type { Database } from './database.ts';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+
+/**
+ * With "Enhanced Security for Push Notifications" on in the Expo dashboard, Expo
+ * only accepts pushes carrying this access token (function secret
+ * EXPO_ACCESS_TOKEN), so a leaked device token can't be used to message people.
+ */
+export function expoPushHeaders(accessToken = Deno.env.get('EXPO_ACCESS_TOKEN')): HeadersInit {
+  return {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+  };
+}
 const CHUNK = 100;
 
 type ExpoTicket = { status: 'ok' | 'error'; details?: { error?: string } };
@@ -51,7 +64,7 @@ export async function sendPush(
     const batch = tokens.slice(i, i + CHUNK);
     const response = await fetch(EXPO_PUSH_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: expoPushHeaders(),
       body: JSON.stringify(
         batch.map((t) => ({
           to: t.token,
@@ -65,6 +78,10 @@ export async function sendPush(
         })),
       ),
     });
+    if (response.status === 401 || response.status === 403) {
+      // Enhanced push security is on but EXPO_ACCESS_TOKEN is missing or wrong.
+      console.error(`Expo push refused (${response.status}): check the EXPO_ACCESS_TOKEN secret`);
+    }
     const result = (await response.json().catch(() => ({}))) as { data?: ExpoTicket[] };
     (result.data ?? []).forEach((ticket, j) => {
       if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered') {

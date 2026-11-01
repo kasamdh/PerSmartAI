@@ -23,9 +23,10 @@ The `e2e` profile is `preview` built for the iOS simulator / an Android APK, for
    select vault.create_secret('<service_role key from Settings > API>', 'service_role_key');
    ```
 4. Edge Functions: `npx supabase functions deploy --project-ref <ref>`.
-   The functions only read `SUPABASE_URL`, `SUPABASE_ANON_KEY` and
-   `SUPABASE_SERVICE_ROLE_KEY`, which Supabase provides automatically. (Pushes are sent
-   without an Expo access token today; see the launch risks.)
+   Supabase provides `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`.
+   Set one secret yourself: `npx supabase secrets set --project-ref <ref> EXPO_ACCESS_TOKEN=<token>`
+   (expo.dev > Account settings > Access tokens). Then turn on **Enhanced Security for Push
+   Notifications** in the Expo project's settings, so Expo refuses pushes without the token.
 5. Auth (Dashboard > Authentication), matching `supabase/config.toml`:
    - Site URL: the admin web URL. Redirect URLs: `petsitter://**` (production) or
      `petsitter-preview://**` / `petsitter-development://**` (staging), plus the admin web URL.
