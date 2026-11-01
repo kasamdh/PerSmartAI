@@ -6,7 +6,8 @@ export type LocalDate = string;
 export type LocalTime = string;
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
-const TIME_PATTERN = /^(\d{2}):(\d{2})(?::(\d{2}))?$/;
+// Postgres `time` values may carry fractional seconds (ignored).
+const TIME_PATTERN = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/;
 
 export const MINUTE_MS = 60_000;
 export const DAY_MS = 86_400_000;
@@ -32,7 +33,7 @@ function requireDate(value: string): [number, number, number] {
   return parts;
 }
 
-/** Minutes after midnight for "HH:MM" or "HH:MM:SS" (00:00–24:00), or null. */
+/** Minutes after midnight for "HH:MM", "HH:MM:SS" or "HH:MM:SS.ffffff" (00:00–24:00), or null. */
 export function parseLocalTime(value: string): number | null {
   const match = TIME_PATTERN.exec(value);
   if (!match) return null;

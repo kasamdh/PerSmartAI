@@ -858,6 +858,92 @@ export type Database = {
           },
         ];
       };
+      notification_log: {
+        Row: {
+          covered_until: string | null;
+          id: string;
+          key: string;
+          kind: string;
+          organization_id: string;
+          sent_at: string;
+          visit_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          covered_until?: string | null;
+          id?: string;
+          key: string;
+          kind: string;
+          organization_id: string;
+          sent_at?: string;
+          visit_id?: string | null;
+        };
+        Update: {
+          covered_until?: string | null;
+          id?: string;
+          key?: string;
+          kind?: string;
+          organization_id?: string;
+          sent_at?: string;
+          visit_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_log_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notification_log_visit_id_organization_id_fkey';
+            columns: ['visit_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'visits';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
+      notification_settings: {
+        Row: {
+          created_at: string;
+          muted: string[];
+          organization_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          muted?: string[];
+          organization_id?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          muted?: string[];
+          organization_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_settings_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notification_settings_user_id_organization_id_fkey';
+            columns: ['user_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
       organizations: {
         Row: {
           cancellation_cutoff_hours: number;

@@ -100,8 +100,8 @@ select is(
 
 select is(
   (select count(*)::int from pg_temp.booking_events()),
-  5,
-  'nothing else was queued (2 requests, confirm, decline, cancel)'
+  6,
+  'nothing else was queued (2 requests, confirm, the sitter''s assignment, decline, cancel)'
 );
 
 select * from finish();

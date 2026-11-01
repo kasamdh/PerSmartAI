@@ -89,6 +89,12 @@ describe('localToUtc', () => {
     );
   });
 
+  it('accepts Postgres times with fractional seconds', () => {
+    expect(iso(localToUtc('2026-12-01', '09:15:30.431335', 'America/New_York'))).toBe(
+      '2026-12-01T14:15:00.000Z',
+    );
+  });
+
   it('accepts HH:MM:SS from Postgres time columns', () => {
     expect(iso(localToUtc('2026-12-01', '09:15:00', 'America/New_York'))).toBe(
       '2026-12-01T14:15:00.000Z',
