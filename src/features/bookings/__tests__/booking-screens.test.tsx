@@ -19,6 +19,10 @@ jest.mock(
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
 jest.mock('../hooks');
 jest.mock('@/features/pets/hooks');
+jest.mock('@react-native-community/datetimepicker', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 const mockedHooks = jest.mocked(hooks);
 const mockedPetHooks = jest.mocked(petHooks);
@@ -145,8 +149,8 @@ describe('BookingRequestScreen', () => {
     await render(<BookingRequestScreen />);
     await fireEvent.press(screen.getByRole('radio', { name: 'What do you need?: Overnight' }));
     expect(screen.queryByText('How often?')).toBeNull();
-    expect(screen.getByDisplayValue('19:00')).toBeTruthy();
-    expect(screen.getByDisplayValue('08:00')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Sitter arrives (evening): 7:00 PM' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Sitter leaves (morning): 8:00 AM' })).toBeTruthy();
     expect(screen.getByText('Back home on')).toBeTruthy();
   });
 

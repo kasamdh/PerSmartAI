@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { ownerKeys } from '@/features/owner/hooks';
+import { toDateString } from '@/lib/wall-clock';
 
 import { cancelBooking, fetchOwnerBookings, requestBooking } from './api';
-import { toDateString } from './schemas';
 
 export const bookingKeys = {
   all: ['bookings'] as const,

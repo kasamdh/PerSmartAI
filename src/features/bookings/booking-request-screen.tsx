@@ -5,11 +5,13 @@ import { StyleSheet, Text } from 'react-native';
 
 import { BigButton } from '@/components/big-button';
 import { ChoiceChips } from '@/components/choice-chips';
+import { DateTimeField } from '@/components/date-time-field';
 import { FormField } from '@/components/form-field';
 import { FormScreen } from '@/components/form-screen';
 import { MultiChoiceChips } from '@/components/multi-choice-chips';
 import { EmptyView, ErrorView, LoadingView } from '@/components/query-states';
 import { useOwnHousehold, usePets } from '@/features/pets/hooks';
+import { toDateString } from '@/lib/wall-clock';
 import { zodResolver } from '@/lib/zod-resolver';
 
 import { useRequestBooking } from './hooks';
@@ -18,7 +20,6 @@ import {
   defaultTimesFor,
   DURATIONS,
   emptyBookingRequest,
-  toDateString,
   toRequestBookingArgs,
   WEEKDAYS,
   type BookingRequestValues,
@@ -52,6 +53,7 @@ export function BookingRequestScreen() {
   });
   const service = useWatch({ control, name: 'service' });
   const repeat = useWatch({ control, name: 'repeat' });
+  const startDate = useWatch({ control, name: 'startDate' });
 
   if (household.isPending || pets.isPending) return <LoadingView />;
   if (household.isError || pets.isError) {
@@ -156,37 +158,67 @@ export function BookingRequestScreen() {
         />
       ) : null}
 
-      <FormField
+      <Controller
         control={control}
         name="startDate"
-        label={overnight ? 'First night' : repeat === 'once' ? 'Date' : 'Starting'}
-        placeholder="YYYY-MM-DD"
-        keyboardType="numbers-and-punctuation"
+        render={({ field, fieldState }) => (
+          <DateTimeField
+            mode="date"
+            label={overnight ? 'First night' : repeat === 'once' ? 'Date' : 'Starting'}
+            value={field.value}
+            onChange={field.onChange}
+            minimumDate={today}
+            error={fieldState.error?.message}
+          />
+        )}
       />
       {overnight || repeat !== 'once' ? (
-        <FormField
+        <Controller
           control={control}
           name="endDate"
-          label={overnight ? 'Back home on' : 'Until (optional)'}
-          placeholder="YYYY-MM-DD"
-          keyboardType="numbers-and-punctuation"
+          render={({ field, fieldState }) => (
+            <DateTimeField
+              mode="date"
+              label={overnight ? 'Back home on' : 'Until (optional)'}
+              value={field.value}
+              onChange={field.onChange}
+              minimumDate={startDate || today}
+              placeholder={overnight ? 'Choose' : 'No end date'}
+              clearable={!overnight}
+              error={fieldState.error?.message}
+            />
+          )}
         />
       ) : null}
 
       <Text style={styles.heading}>{overnight ? 'Times' : 'Arrival time'}</Text>
-      <FormField
+      <Controller
         control={control}
         name="arrivalStart"
-        label={overnight ? 'Sitter arrives (evening)' : 'Earliest arrival'}
-        placeholder="09:00"
-        keyboardType="numbers-and-punctuation"
+        render={({ field, fieldState }) => (
+          <DateTimeField
+            mode="time"
+            label={overnight ? 'Sitter arrives (evening)' : 'Earliest arrival'}
+            value={field.value}
+            onChange={field.onChange}
+            error={fieldState.error?.message}
+          />
+        )}
       />
-      <FormField
+      <Controller
         control={control}
         name="arrivalEnd"
-        label={overnight ? 'Sitter leaves (morning)' : 'Latest arrival (optional)'}
-        placeholder={overnight ? '08:00' : '11:00'}
-        keyboardType="numbers-and-punctuation"
+        render={({ field, fieldState }) => (
+          <DateTimeField
+            mode="time"
+            label={overnight ? 'Sitter leaves (morning)' : 'Latest arrival (optional)'}
+            value={field.value}
+            onChange={field.onChange}
+            placeholder={overnight ? 'Choose' : 'Any time after'}
+            clearable={!overnight}
+            error={fieldState.error?.message}
+          />
+        )}
       />
       {overnight ? null : (
         <Controller

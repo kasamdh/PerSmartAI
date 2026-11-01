@@ -18,6 +18,7 @@ Roles:
 - TanStack Query for server data, Zustand for small local state
 - React Hook Form + Zod for forms and validation
 - Expo Notifications, Expo Image Picker, Expo Image Manipulator, Expo Location
+- `@react-native-community/datetimepicker` for date and time fields (via `DateTimeField`; native module, so dev builds must be rebuilt after it changes)
 - Jest (`jest-expo` preset) + React Native Testing Library for tests
 - ESLint (`eslint-config-expo`) + Prettier
 
@@ -75,7 +76,7 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - After any schema change, regenerate types with `npm run db:types` (also copies them to `supabase/functions/_shared/` for Edge Functions).
 
 - Visits are generated from bookings only by `public.confirm_booking(booking_id, sitter_id)` (admin-only RPC). It converts wall-clock booking times in the org timezone to UTC in Postgres (DST-safe), supports no rule / FREQ=DAILY / FREQ=WEEKLY;BYDAY=..., generates 90 days ahead, and is idempotent (unique `(booking_id, scheduled_start)`). Re-confirming reassigns upcoming visits.
-- Visit generation lives in `private.generate_booking_visits(booking_id)` (idempotent, never recreates cancelled visits). A nightly pg_cron job (`top-up-booking-visits`, 08:15 UTC) runs `private.top_up_booking_visits()` so confirmed open-ended and long bookings stay scheduled 90 days ahead.
+- Visit generation lives in `private.generate_booking_visits(booking_id)` (idempotent, never recreates cancelled visits). A nightly pg_cron job (`top-up-booking-visits`, 08:15 UTC) runs `private.top_up_booking_visits()` so confirmed open-ended and long bookings stay scheduled 90 days ahead. Five minutes earlier, `complete-finished-bookings` marks confirmed bookings `completed` once their last day has passed in the org timezone and no visit is under way.
 - Owners create bookings only through `public.request_booking(...)` (security invoker, so RLS applies), which inserts the booking and its `booking_pets` atomically and rejects past dates and recurrence rules `confirm_booking` can't expand. Overnight windows are arrival on the start date and departure on the end date, so `window_end < window_start` is allowed for them.
 - Setting a booking to `cancelled` cancels its `scheduled` visits that haven't ended (trigger `cancel_visits_on_booking_cancel`); visits already under way are left for the sitter. The trigger sets the transaction-local flag `app.booking_cancel_cascade`, which `guard_visit_update` honors.
 

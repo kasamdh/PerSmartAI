@@ -21,12 +21,6 @@ export const DURATIONS = ['15', '30', '45', '60'] as const;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-/** A Date → "YYYY-MM-DD" in the device's local calendar. */
-export function toDateString(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
 /** True for a real calendar date written as YYYY-MM-DD. */
 export function isCalendarDate(value: string): boolean {
   if (!DATE_PATTERN.test(value)) return false;

@@ -4,7 +4,6 @@ import {
   defaultTimesFor,
   emptyBookingRequest,
   isCalendarDate,
-  toDateString,
   toRequestBookingArgs,
   type BookingRequestValues,
 } from '../schemas';
@@ -24,10 +23,6 @@ function errorsFor(values: BookingRequestValues) {
 }
 
 describe('date helpers', () => {
-  it('formats local dates as YYYY-MM-DD', () => {
-    expect(toDateString(new Date(2026, 0, 5, 23, 30))).toBe('2026-01-05');
-  });
-
   it('rejects dates that do not exist', () => {
     expect(isCalendarDate('2026-02-29')).toBe(false);
     expect(isCalendarDate('2028-02-29')).toBe(true);
