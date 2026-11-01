@@ -5,7 +5,8 @@
 // rrule only expands *dates* here. It runs on UTC-midnight "floating" dates, so its
 // time zone handling never comes into play; time-zone.ts adds the wall-clock time.
 
-import { RRule, type Options, type Weekday as RRuleWeekday } from 'rrule';
+import * as rruleModule from 'rrule';
+import type { Options, Weekday as RRuleWeekday } from 'rrule';
 
 import {
   addDays,
@@ -16,6 +17,11 @@ import {
   utcMidnightToDate,
   type LocalDate,
 } from './dates.ts';
+
+// Deno loads rrule's CommonJS build, where the exports sit on `default`.
+const { RRule } = (
+  'RRule' in rruleModule ? rruleModule : (rruleModule as { default: typeof rruleModule }).default
+) as typeof rruleModule;
 
 export const WEEKDAY_CODES = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'] as const;
 export type WeekdayCode = (typeof WEEKDAY_CODES)[number];

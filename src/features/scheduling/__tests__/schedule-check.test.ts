@@ -92,7 +92,9 @@ describe('checkBookingForSitter', () => {
     expect(result.check.ok).toBe(false);
     const problems = summarizeProblems(result.check, NY);
     expect(problems[0]).toMatchObject({ local_date: '2027-03-02', blocking: true });
-    expect(problems[0].reasons[0]).toBe('Overlaps Walk at Lee home (Tue, Mar 2, 12:15 PM–12:45 PM)');
+    expect(problems[0].reasons[0]).toBe(
+      'Overlaps Walk at Lee home (Tue, Mar 2, 12:15 PM–12:45 PM)',
+    );
     // Only the first 60 days are stored.
     expect(result.plan.every((v) => v.local_date <= '2026-12-31')).toBe(true);
   });
@@ -123,6 +125,28 @@ describe('checkBookingForSitter', () => {
       bookings: [booking()],
     };
     expect(checkBookingForSitter(booking(), sitter, org, now).check.ok).toBe(true);
+  });
+
+  it('ignores the booking a split replaces', () => {
+    const sitter: SitterSchedule = {
+      ...free,
+      visits: [
+        {
+          id: 'old-visit',
+          booking_id: 'original',
+          household_id: 'h-new',
+          scheduled_start: at('2026-11-17', '12:00'),
+          scheduled_end: at('2026-11-17', '12:30'),
+          status: 'scheduled',
+        },
+      ],
+      bookings: [booking({ id: 'original' })],
+    };
+    const next = booking({ id: 'next', start_date: '2026-11-17', window_start: '12:15' });
+    expect(checkBookingForSitter(next, sitter, org, now).check.ok).toBe(false);
+    expect(
+      checkBookingForSitter(next, sitter, org, now, { ignoreBookingIds: ['original'] }).check.ok,
+    ).toBe(true);
   });
 
   it('checks only from a date on, for this-and-future changes', () => {

@@ -1,3 +1,4 @@
+import { scheduleAction } from '@/features/scheduling/api';
 import { addLocalDays, startOfLocalDay } from '@/features/visits/time';
 import { supabase } from '@/lib/supabase';
 
@@ -64,14 +65,13 @@ export async function fetchSitters() {
   return data;
 }
 
-/** Assigns the sitter, confirms, and generates visits. Returns how many were created. */
+/**
+ * Assigns the sitter, confirms, and stores the planned visits. Throws a
+ * SchedulingError listing each visit the sitter can't take. Returns how many were created.
+ */
 export async function confirmBooking(bookingId: string, sitterId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('confirm_booking', {
-    p_booking_id: bookingId,
-    p_sitter_id: sitterId,
-  });
-  if (error) throw error;
-  return data;
+  const result = await scheduleAction('confirm', { booking_id: bookingId, sitter_id: sitterId });
+  return result.created ?? 0;
 }
 
 export async function declineBooking(bookingId: string): Promise<void> {

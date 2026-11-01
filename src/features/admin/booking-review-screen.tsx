@@ -14,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BigButton, MIN_TAP_TARGET } from '@/components/big-button';
 
 import { describeSchedule } from '@/features/bookings/booking-text';
+import { schedulingErrorText } from '@/features/scheduling/api';
+
 import { useBooking, useConfirmBooking, useDeclineBooking, useSitters } from './hooks';
 
 const SERVICE_LABELS = {
@@ -24,7 +26,7 @@ const SERVICE_LABELS = {
 } as const;
 
 function errorAlert(title: string) {
-  return (error: Error) => Alert.alert(title, error.message || 'Please try again.');
+  return (error: Error) => Alert.alert(title, schedulingErrorText(error));
 }
 
 /** Lets an admin pick a sitter and confirm (generating visits), or decline. */

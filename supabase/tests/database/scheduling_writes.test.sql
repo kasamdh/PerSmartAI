@@ -8,7 +8,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(47);
+select plan(50);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
@@ -482,6 +482,18 @@ select results_eq(
   'owners set care times when requesting a multi-day stay'
 );
 
+select is(
+  (select series_id from public.bookings where id = (select id from stay)),
+  (select id from stay),
+  'a new booking starts its own series'
+);
+
+select lives_ok(
+  $$ insert into public.bookings (household_id, service_type, start_date, series_id)
+     values ('f5000000-0000-4000-8000-0000000000d1', 'walk', current_date + 9, 'f5000000-0000-4000-8000-0000000000f1') $$,
+  'owners may send a series id…'
+);
+
 select throws_ok(
   $$ select public.request_booking('walk', array['f5000000-0000-4000-8000-0000000000e1']::uuid[], current_date + 10,
        null, '09:00', null, 30, null, null, '[{"care_time": "08:00", "label": "Feed"}]') $$,
@@ -490,6 +502,11 @@ select throws_ok(
 );
 
 reset role;
+
+select is_empty(
+  $$ select 1 from public.bookings where start_date = current_date + 9 and series_id <> id $$,
+  '…but it is replaced with the booking''s own'
+);
 
 select pg_temp.sign_in('f5000000-0000-4000-8000-0000000000c2');
 set local role authenticated;

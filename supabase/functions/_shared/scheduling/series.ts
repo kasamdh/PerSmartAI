@@ -7,7 +7,7 @@
 //   cancel series     handled by the database (cancel_visits_on_booking_cancel):
 //                     only visits that haven't started are cancelled
 
-import { addDays, MINUTE_MS, type LocalDate, type LocalTime } from './dates.ts';
+import { addDays, MINUTE_MS, parseLocalTime, type LocalDate, type LocalTime } from './dates.ts';
 import {
   buildRecurrenceRule,
   nextOccurrenceOnOrAfter,
@@ -81,6 +81,13 @@ export function splitSeries<B extends SeriesBooking>(
       : 0;
 
   const merged = { ...booking, ...changes };
+  if (merged.window_start && merged.window_end) {
+    const start = parseLocalTime(merged.window_start);
+    const end = parseLocalTime(merged.window_end);
+    if (start === null || end === null || end <= start) {
+      return { kind: 'error', error: 'Latest arrival must be after the earliest' };
+    }
+  }
   if (before === 0) {
     return hasVisits(merged)
       ? { kind: 'update', booking: merged }
@@ -134,6 +141,8 @@ export function visitsToReplace(
     .map((v) => v.id);
 }
 
+export type CarriedVisit = { visit_id: string; slot_start: string; care_time_id: string | null };
+
 /**
  * Cancelled visits after a split move to the new booking, taking the new slot for
  * the same day (and care time), so the new series doesn't bring them back.
@@ -147,14 +156,20 @@ export function carryOverCancellations(
   }[],
   plan: readonly PlannedVisit[],
   timeZone: string,
-): { visit_id: string; slot_start: string }[] {
-  const moves: { visit_id: string; slot_start: string }[] = [];
+): CarriedVisit[] {
+  const moves: CarriedVisit[] = [];
   for (const visit of cancelled) {
     const date = utcToLocal(Date.parse(visit.slot_start ?? visit.scheduled_start), timeZone).date;
     const slot = plan.find(
       (p) => p.local_date === date && (p.care_time_id ?? null) === (visit.care_time_id ?? null),
     );
-    if (slot) moves.push({ visit_id: visit.id, slot_start: slot.slot_start });
+    if (slot) {
+      moves.push({
+        visit_id: visit.id,
+        slot_start: slot.slot_start,
+        care_time_id: slot.care_time_id,
+      });
+    }
   }
   return moves;
 }

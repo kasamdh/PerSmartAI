@@ -88,15 +88,25 @@ export function seriesLastDate(booking: PlanBooking): LocalDate | null {
 }
 
 const toCandidates = (plan: PlannedVisit[], householdId: string): PlannedCandidate[] =>
-  plan.map((v) => ({ ...v, start: v.scheduled_start, end: v.scheduled_end, household_id: householdId }));
+  plan.map((v) => ({
+    ...v,
+    start: v.scheduled_start,
+    end: v.scheduled_end,
+    household_id: householdId,
+  }));
 
 export function checkBookingForSitter(
   booking: ScheduledBooking,
   sitter: SitterSchedule,
   org: OrgSchedulingSettings,
   now: Date,
-  options: { fromDate?: LocalDate } = {},
+  options: {
+    fromDate?: LocalDate;
+    /** Bookings being replaced, e.g. the original of a split series. */
+    ignoreBookingIds?: readonly string[];
+  } = {},
 ): BookingCheck {
+  const ignore = [booking.id, ...(options.ignoreBookingIds ?? [])];
   const today = localToday(now, org.timeZone);
   const from = maxDate(today, options.fromDate ?? today);
   const windowEnd = addDays(today, SCHEDULE_HORIZON_DAYS);
@@ -111,7 +121,7 @@ export function checkBookingForSitter(
 
   // Stored visits cover the window; projections cover the rest.
   const projected: ExistingVisit[] = sitter.bookings
-    .filter((b) => b.id !== booking.id)
+    .filter((b) => !ignore.includes(b.id))
     .flatMap((other) =>
       planVisits(other, {
         timeZone: org.timeZone,
@@ -134,7 +144,7 @@ export function checkBookingForSitter(
     visits: [...sitter.visits, ...projected],
     availability: sitter.availability,
     timeOff: sitter.timeOff,
-    ignoreBookingIds: [booking.id],
+    ignoreBookingIds: ignore,
   });
 
   return { plan, check };

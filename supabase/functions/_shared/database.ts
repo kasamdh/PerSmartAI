@@ -3,6 +3,55 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      booking_care_times: {
+        Row: {
+          booking_id: string;
+          care_time: string;
+          created_at: string;
+          duration_minutes: number;
+          id: string;
+          label: string;
+          organization_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          care_time: string;
+          created_at?: string;
+          duration_minutes?: number;
+          id?: string;
+          label: string;
+          organization_id?: string;
+          updated_at?: string;
+        };
+        Update: {
+          booking_id?: string;
+          care_time?: string;
+          created_at?: string;
+          duration_minutes?: number;
+          id?: string;
+          label?: string;
+          organization_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'booking_care_times_booking_id_organization_id_fkey';
+            columns: ['booking_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'bookings';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'booking_care_times_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       booking_pets: {
         Row: {
           booking_id: string;
@@ -55,14 +104,17 @@ export type Database = {
       };
       bookings: {
         Row: {
+          cancelled_at: string | null;
           created_at: string;
           duration_minutes: number | null;
           end_date: string | null;
           household_id: string;
           id: string;
+          late_cancellation: boolean;
           notes: string | null;
           organization_id: string;
           recurrence_rule: string | null;
+          series_id: string;
           service_type: Database['public']['Enums']['service_type'];
           sitter_id: string | null;
           start_date: string;
@@ -73,14 +125,17 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          cancelled_at?: string | null;
           created_at?: string;
           duration_minutes?: number | null;
           end_date?: string | null;
           household_id: string;
           id?: string;
+          late_cancellation?: boolean;
           notes?: string | null;
           organization_id?: string;
           recurrence_rule?: string | null;
+          series_id?: string;
           service_type: Database['public']['Enums']['service_type'];
           sitter_id?: string | null;
           start_date: string;
@@ -90,14 +145,17 @@ export type Database = {
           window_start?: string | null;
         };
         Update: {
+          cancelled_at?: string | null;
           created_at?: string;
           duration_minutes?: number | null;
           end_date?: string | null;
           household_id?: string;
           id?: string;
+          late_cancellation?: boolean;
           notes?: string | null;
           organization_id?: string;
           recurrence_rule?: string | null;
+          series_id?: string;
           service_type?: Database['public']['Enums']['service_type'];
           sitter_id?: string | null;
           start_date?: string;
@@ -695,28 +753,34 @@ export type Database = {
       };
       organizations: {
         Row: {
+          cancellation_cutoff_hours: number;
           created_at: string;
           id: string;
           logo_url: string | null;
           name: string;
           timezone: string;
+          travel_buffer_minutes: number;
           updated_at: string;
         };
         ComputedFields: never;
         Insert: {
+          cancellation_cutoff_hours?: number;
           created_at?: string;
           id?: string;
           logo_url?: string | null;
           name: string;
           timezone?: string;
+          travel_buffer_minutes?: number;
           updated_at?: string;
         };
         Update: {
+          cancellation_cutoff_hours?: number;
           created_at?: string;
           id?: string;
           logo_url?: string | null;
           name?: string;
           timezone?: string;
+          travel_buffer_minutes?: number;
           updated_at?: string;
         };
         Relationships: [];
@@ -989,6 +1053,80 @@ export type Database = {
           },
         ];
       };
+      schedule_change_requests: {
+        Row: {
+          booking_id: string;
+          changes: NonNullable<Json>;
+          created_at: string;
+          decided_at: string | null;
+          decline_reason: string | null;
+          from_date: string | null;
+          id: string;
+          note: string | null;
+          organization_id: string;
+          requested_by: string | null;
+          scope: string;
+          status: Database['public']['Enums']['change_request_status'];
+          updated_at: string;
+          visit_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          changes: NonNullable<Json>;
+          created_at?: string;
+          decided_at?: string | null;
+          decline_reason?: string | null;
+          from_date?: string | null;
+          id?: string;
+          note?: string | null;
+          organization_id?: string;
+          requested_by?: string | null;
+          scope: string;
+          status?: Database['public']['Enums']['change_request_status'];
+          updated_at?: string;
+          visit_id?: string | null;
+        };
+        Update: {
+          booking_id?: string;
+          changes?: NonNullable<Json>;
+          created_at?: string;
+          decided_at?: string | null;
+          decline_reason?: string | null;
+          from_date?: string | null;
+          id?: string;
+          note?: string | null;
+          organization_id?: string;
+          requested_by?: string | null;
+          scope?: string;
+          status?: Database['public']['Enums']['change_request_status'];
+          updated_at?: string;
+          visit_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'schedule_change_requests_booking_id_organization_id_fkey';
+            columns: ['booking_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'bookings';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'schedule_change_requests_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'schedule_change_requests_visit_id_organization_id_fkey';
+            columns: ['visit_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'visits';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
       sitter_availability: {
         Row: {
           created_at: string;
@@ -1045,8 +1183,10 @@ export type Database = {
           id: string;
           organization_id: string;
           reason: string | null;
+          reviewed_at: string | null;
           sitter_id: string;
           start_at: string;
+          status: Database['public']['Enums']['time_off_status'];
           updated_at: string;
         };
         ComputedFields: never;
@@ -1056,8 +1196,10 @@ export type Database = {
           id?: string;
           organization_id?: string;
           reason?: string | null;
+          reviewed_at?: string | null;
           sitter_id: string;
           start_at: string;
+          status?: Database['public']['Enums']['time_off_status'];
           updated_at?: string;
         };
         Update: {
@@ -1066,8 +1208,10 @@ export type Database = {
           id?: string;
           organization_id?: string;
           reason?: string | null;
+          reviewed_at?: string | null;
           sitter_id?: string;
           start_at?: string;
+          status?: Database['public']['Enums']['time_off_status'];
           updated_at?: string;
         };
         Relationships: [
@@ -1090,6 +1234,8 @@ export type Database = {
       visits: {
         Row: {
           booking_id: string;
+          cancelled_at: string | null;
+          care_time_id: string | null;
           check_in_at: string | null;
           check_in_lat: number | null;
           check_in_lng: number | null;
@@ -1098,10 +1244,12 @@ export type Database = {
           check_out_lng: number | null;
           created_at: string;
           id: string;
+          late_cancellation: boolean;
           organization_id: string;
           scheduled_end: string;
           scheduled_start: string;
           sitter_id: string | null;
+          slot_start: string;
           status: Database['public']['Enums']['visit_status'];
           summary_note: string | null;
           updated_at: string;
@@ -1109,6 +1257,8 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           booking_id: string;
+          cancelled_at?: string | null;
+          care_time_id?: string | null;
           check_in_at?: string | null;
           check_in_lat?: number | null;
           check_in_lng?: number | null;
@@ -1117,16 +1267,20 @@ export type Database = {
           check_out_lng?: number | null;
           created_at?: string;
           id?: string;
+          late_cancellation?: boolean;
           organization_id?: string;
           scheduled_end: string;
           scheduled_start: string;
           sitter_id?: string | null;
+          slot_start: string;
           status?: Database['public']['Enums']['visit_status'];
           summary_note?: string | null;
           updated_at?: string;
         };
         Update: {
           booking_id?: string;
+          cancelled_at?: string | null;
+          care_time_id?: string | null;
           check_in_at?: string | null;
           check_in_lat?: number | null;
           check_in_lng?: number | null;
@@ -1135,10 +1289,12 @@ export type Database = {
           check_out_lng?: number | null;
           created_at?: string;
           id?: string;
+          late_cancellation?: boolean;
           organization_id?: string;
           scheduled_end?: string;
           scheduled_start?: string;
           sitter_id?: string | null;
+          slot_start?: string;
           status?: Database['public']['Enums']['visit_status'];
           summary_note?: string | null;
           updated_at?: string;
@@ -1150,6 +1306,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'bookings';
             referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'visits_care_time_fkey';
+            columns: ['care_time_id', 'booking_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'booking_care_times';
+            referencedColumns: ['id', 'booking_id', 'organization_id'];
           },
           {
             foreignKeyName: 'visits_organization_id_fkey';
@@ -1172,6 +1335,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      apply_booking_plan: {
+        Args: { p_booking_id: string; p_end_date?: string; p_sitter_id: string; p_visits: Json };
+        Returns: number;
+      };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -1180,9 +1347,9 @@ export type Database = {
           role: Database['public']['Enums']['app_role'];
         }[];
       };
-      confirm_booking: { Args: { p_booking_id: string; p_sitter_id: string }; Returns: number };
       request_booking: {
         Args: {
+          p_care_times?: Json;
           p_duration_minutes?: number;
           p_end_date?: string;
           p_notes?: string;
@@ -1195,7 +1362,24 @@ export type Database = {
         };
         Returns: string;
       };
+      reschedule_booking: {
+        Args: {
+          p_booking_id: string;
+          p_care_times: Json;
+          p_carry?: Json;
+          p_from_date: string;
+          p_schedule: Json;
+          p_split: boolean;
+          p_visits: Json;
+        };
+        Returns: string;
+      };
       set_primary_emergency_contact: { Args: { p_contact_id: string }; Returns: undefined };
+      store_generated_visits: { Args: { p_booking_id: string; p_visits: Json }; Returns: Json };
+      update_visit_schedule: {
+        Args: { p_end?: string; p_sitter_id?: string; p_start?: string; p_visit_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       allergy_severity: 'mild' | 'moderate' | 'severe';
@@ -1203,12 +1387,14 @@ export type Database = {
       booking_status: 'requested' | 'confirmed' | 'declined' | 'cancelled' | 'completed';
       care_event_type:
         'fed' | 'water' | 'pee' | 'poop' | 'walk' | 'meds_given' | 'play' | 'vomit' | 'note';
+      change_request_status: 'requested' | 'approved' | 'declined' | 'withdrawn';
       incident_severity: 'minor' | 'moderate' | 'severe' | 'emergency';
       media_type: 'photo' | 'video';
       pet_sex: 'male' | 'female' | 'unknown';
       pet_species: 'dog' | 'cat';
       push_platform: 'ios' | 'android' | 'web';
       service_type: 'drop_in' | 'walk' | 'overnight' | 'multi_day';
+      time_off_status: 'requested' | 'approved' | 'declined';
       visit_status:
         | 'scheduled'
         | 'on_the_way'
@@ -1342,12 +1528,14 @@ export const Constants = {
         'vomit',
         'note',
       ],
+      change_request_status: ['requested', 'approved', 'declined', 'withdrawn'],
       incident_severity: ['minor', 'moderate', 'severe', 'emergency'],
       media_type: ['photo', 'video'],
       pet_sex: ['male', 'female', 'unknown'],
       pet_species: ['dog', 'cat'],
       push_platform: ['ios', 'android', 'web'],
       service_type: ['drop_in', 'walk', 'overnight', 'multi_day'],
+      time_off_status: ['requested', 'approved', 'declined'],
       visit_status: [
         'scheduled',
         'on_the_way',

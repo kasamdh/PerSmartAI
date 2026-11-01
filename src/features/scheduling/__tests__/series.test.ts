@@ -112,6 +112,17 @@ describe('splitSeries', () => {
     });
   });
 
+  it('keeps the arrival window in order', () => {
+    const windowed = series({ window_start: '11:00', window_end: '13:00' });
+    expect(splitSeries(windowed, '2026-11-16', { window_start: '13:00' }, TODAY)).toEqual({
+      kind: 'error',
+      error: 'Latest arrival must be after the earliest',
+    });
+    expect(
+      splitSeries(windowed, '2026-11-16', { window_start: '13:00', window_end: null }, TODAY),
+    ).toMatchObject({ kind: 'split', next: { window_start: '13:00', window_end: null } });
+  });
+
   it('updates overnight stays as a whole', () => {
     const stay = series({
       service_type: 'overnight',
@@ -156,7 +167,7 @@ describe('carryOverCancellations', () => {
       { id: 'c2', scheduled_start: at('2026-11-17', '12:00'), care_time_id: null }, // not a visit day any more
     ];
     expect(carryOverCancellations(cancelled, plan, NY)).toEqual([
-      { visit_id: 'c1', slot_start: at('2026-11-18', '15:00') },
+      { visit_id: 'c1', slot_start: at('2026-11-18', '15:00'), care_time_id: null },
     ]);
   });
 
@@ -180,7 +191,7 @@ describe('carryOverCancellations', () => {
         multi,
         NY,
       ),
-    ).toEqual([{ visit_id: 'c', slot_start: at('2026-11-17', '18:00') }]);
+    ).toEqual([{ visit_id: 'c', slot_start: at('2026-11-17', '18:00'), care_time_id: 'pm' }]);
   });
 });
 
