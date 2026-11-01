@@ -21,31 +21,63 @@ Roles:
 - `@react-native-community/datetimepicker` for date and time fields (via `DateTimeField`; native module, so dev builds must be rebuilt after it changes)
 - Jest (`jest-expo` preset) + React Native Testing Library for tests
 - ESLint (`eslint-config-expo`) + Prettier
+- Monorepo: npm workspaces + Turborepo (`apps/*`, `packages/*`; one hoisted React 19.3.0)
+- Admin web: Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind CSS 4 + `@supabase/ssr`, TanStack Query
 
-Installed so far: Expo/Router, `@supabase/supabase-js` (+ `@react-native-async-storage/async-storage`, `react-native-url-polyfill`), `rrule` (date expansion only, see Scheduling), and the lint/test tooling. The remaining stack libraries are approved but not yet installed. Add them with `npx expo install <pkg>` when a feature needs them.
+Installed so far: Expo/Router, `@supabase/supabase-js` (+ `@react-native-async-storage/async-storage`, `react-native-url-polyfill`), `rrule` (date expansion only, see Scheduling), and the lint/test tooling. The remaining stack libraries are approved but not yet installed. Add them with `npx expo install <pkg>` (run in `apps/mobile`) when a feature needs them.
 
 ## Folder structure
 
 ```
-app/                    Expo Router routes only (every file is a screen)
-  _layout.tsx           Root stack
-  index.tsx             Home / landing
-  (auth)/               Sign in, sign up
-  (owner)/              Owner screens
-  (sitter)/             Sitter screens
-  (admin)/              Admin (organization) screens
-src/
-  components/           Shared UI (e.g. BigButton)
-  features/<feature>/   Feature modules: api (queries/mutations), hooks, schemas, components, tests
-  lib/                  supabase client, env, utils
-  types/                Shared types (incl. generated Supabase DB types)
+apps/
+  mobile/                 Expo app (owners, sitters, admins on the go)
+    app/                  Expo Router routes only (every file is a screen)
+      (auth)/ (owner)/ (sitter)/ (admin)/ (account)/ ...
+    src/
+      components/         Shared UI (e.g. BigButton)
+      features/<feature>/ Feature modules: api (queries/mutations), hooks, schemas, components, tests
+      lib/                supabase client, env, utils
+      types/              Re-exports of the shared DB types and models
+  admin-web/              Next.js admin site (admins only)
+    src/app/              Routes: sign-in, (admin)/ dashboard, schedule, requests, clients, sitters, settings
+    src/features/<area>/  api.ts (Supabase calls) + client components per area
+    src/lib/              Supabase browser/server clients, env, live queries, formatting
+    src/proxy.ts          Session refresh + redirect to /sign-in (Next 16's name for middleware)
+packages/
+  shared/                 @petsitter/shared: DB types, Zod schemas, scheduling and other pure logic (Jest)
+scripts/                  sync-shared.mjs, gen-types.mjs
 supabase/
-  config.toml           Local Supabase config
-  migrations/           SQL migrations (schema + RLS policies)
-  functions/            Edge Functions (Deno)
+  config.toml             Local Supabase config
+  migrations/             SQL migrations (schema + RLS policies)
+  functions/              Edge Functions (Deno)
 ```
 
-Keep non-route code out of `app/`. Route groups don't add a URL segment, so screens in different groups must not share a path (e.g. use `(owner)/owner.tsx`, not `(owner)/index.tsx`).
+In `apps/mobile`, keep non-route code out of `app/`. Route groups don't add a URL segment, so screens in different groups must not share a path (e.g. use `(owner)/owner.tsx`, not `(owner)/index.tsx`).
+
+## Monorepo and shared code
+
+- `packages/shared` is the single source for logic more than one app uses: DB types (`database.ts`), models, Zod schemas, the scheduler (`scheduling/`), live board, report card, payroll, week board, client search, branding colors, and the schedule-booking client (`schedule-actions.ts`). Import as `@petsitter/shared/<file>` (`@petsitter/shared/scheduling` for the scheduler). It's TypeScript source, not built: Metro and Next (`transpilePackages`) compile it.
+- Imports inside `packages/shared` are relative with `.ts` extensions, because Edge Functions (Deno) use some of it.
+- Deno only sees `supabase/functions`, so `scripts/sync-shared.mjs` copies `database.ts`, `alerts.ts`, `chat-alerts.ts`, `push-messages.ts` and `scheduling/*` into `supabase/functions/_shared/` with a GENERATED header. Never edit those copies; change the source and run `npm run shared:sync` (`npm run check` fails if they're stale). Files in `_shared/` without the header (`cors.ts`, `expo-push.ts`, `scheduling-data.ts`, ...) belong to the functions only.
+- Old mobile paths (`src/features/scheduling`, `src/types/database.ts`, `pets/logic.ts`, ...) re-export from the shared package so existing imports keep working.
+- Put new pure business logic in `packages/shared/src` with tests in `src/__tests__`, so both apps can use it.
+
+## Admin web
+
+- Admins only: `app/(admin)/layout.tsx` loads the profile on the server and shows a "for business admins" page to anyone else. That's UX; RLS is the boundary. `proxy.ts` refreshes the Supabase session cookie and sends signed-out visitors to `/sign-in` (password sign-in).
+- Env: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `apps/admin-web/.env.local` (see `.env.example`), read as literals in `src/lib/env.ts`. Anon key only.
+- Times are shown in `organizations.timezone`, wherever the admin is (`src/lib/format.ts`). Weeks run Monday to Sunday in that zone (`weekRange`).
+- Data is read in client components with TanStack Query and the browser client; `useLiveQueries` (`src/lib/live.ts`) refetches on Realtime changes like the mobile app. The layout passes the business to client code through `useOrg()`; after changing settings, `router.refresh()` reloads it.
+- Schedule: drag a visit to another sitter or day (`dropChange`), or click it to edit (`editChange`). Every change is previewed with schedule-booking `update_visit` + `preview` and saved the same way, so the server's conflict checks apply. Only `scheduled` visits move, and visits can't be unassigned by dragging.
+- Booking requests: `check_sitters` for every sitter, ranked by `rankSitterOptions`, then `confirm`. Reschedule requests use `decide_request`.
+- Payroll (`payroll.ts`): per sitter per week, scheduled visits and hours (not cancelled or missed), completed and missed visits, and worked hours (check-in to check-out of completed visits). CSV fields are quoted and guarded against spreadsheet formulas.
+- Incidents stay open until an admin resolves them (`resolved_at`, `resolved_by`, `resolution_note`; `guard_incident_resolution` stops anyone else changing those).
+- schedule-booking answers CORS preflights (`_shared/cors.ts`; a wildcard origin is fine because callers send a bearer token, not cookies). Any other function the web calls needs the same.
+
+## Branding (white-label)
+
+- `organizations.primary_color` / `accent_color` (`#RRGGBB` or null) and `logo_path` (`{org}/branding/logo-{timestamp}.{png|jpg|webp}` in `pet-media`; every member reads, admins write). Edited on the web Settings page. A new logo gets a new name so phones don't show a cached one, and the old file is removed.
+- `brandPalette` (`packages/shared/src/branding.ts`) turns them into colors with readable text (WCAG contrast; pale colors are darkened for text on white). Mobile: `BrandProvider` (root layout) plus `useBrand()` / `useBrandedHeader()` from `src/features/branding/brand-context.ts`. BigButton, stack headers and sitter tabs use them, and `BrandMark` shows the logo and name on the home screens. Shared components import `brand-context.ts`, which has no Supabase import. The web shell sets `--brand` CSS variables (`bg-brand`, `text-on-brand`, `text-brand-ink`).
 
 ## Rules
 
@@ -59,7 +91,7 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 ## Implementation notes
 
 - The `service_role` key only ever lives in Edge Function secrets, never in `.env` or app code.
-- Read env vars as literal `process.env.EXPO_PUBLIC_*` accesses (Expo inlines them at build time). Pass them through `requireEnv` in `src/lib/env.ts`.
+- Read env vars as literal `process.env.EXPO_PUBLIC_*` accesses (Expo inlines them at build time). Pass them through `requireEnv` in `apps/mobile/src/lib/env.ts`.
 - RLS is the security boundary. Client-side role checks are UX only.
 - Times: instants (visits, check-ins, care events, time off, created_at) are `timestamptz`. Recurring wall-clock times (sitter availability, feeding/medication times, booking windows) are `time` and are interpreted in `organizations.timezone`. Storing those as instants would shift by an hour across DST changes.
 
@@ -71,9 +103,9 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - RLS helpers (`current_org_id`, `current_app_role`, `is_admin`, `owns_*`, `sitter_can_access_*`) live in the `private` schema, which is not exposed via the API. They are `security definer` with `search_path = ''`. Call them as `(select private.fn())` when they don't depend on the row.
 - Column-level rules RLS can't express (sitters only changing visit status and check-in, owners only cancelling bookings, no self-promotion) are enforced by `guard_*` triggers.
 - Sitters see `household_access` (entry codes, alarm, wifi) only from 24h before a visit starts until 24h after it ends.
-- Storage bucket `pet-media` (private) uses the paths `{org_id}/{visit_id}/{file}` and `{org_id}/pets/{pet_id}/{file}`.
+- Storage bucket `pet-media` (private) uses the paths `{org_id}/{visit_id}/{file}`, `{org_id}/pets/{pet_id}/{file}`, `{org_id}/chat/{household_id}/{file}` and `{org_id}/branding/{file}`.
 - Every new table needs RLS policies plus cases in `supabase/tests/database/` proving cross-owner, cross-sitter, and cross-org isolation.
-- After any schema change, regenerate types with `npm run db:types` (also copies them to `supabase/functions/_shared/` for Edge Functions).
+- After any schema change, regenerate types with `npm run db:types` (writes `packages/shared/src/database.ts`, then syncs the copy in `supabase/functions/_shared/`).
 
 - Owners create bookings only through `public.request_booking(...)` (security invoker, so RLS applies), which inserts the booking, its `booking_pets` and (multi-day) `booking_care_times` atomically and rejects past dates and rules the scheduler can't expand (`private.is_supported_rrule`). Overnight windows are arrival on the start date and departure on the end date, so `window_end < window_start` is allowed for them.
 - Setting a booking to `cancelled` cancels its `scheduled` visits that haven't ended (trigger `cancel_visits_on_booking_cancel`); visits already under way are left for the sitter. The trigger sets the transaction-local flag `app.booking_cancel_cascade`, which `guard_visit_update` honors. `stamp_booking_cancellation` records `cancelled_at` and `late_cancellation` (a visit starts within `organizations.cancellation_cutoff_hours`) on the booking and each visit.
@@ -81,7 +113,7 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 
 ## Scheduling
 
-- The scheduler is pure TypeScript in `supabase/functions/_shared/scheduling/` (Jest-tested via `src/features/scheduling`, which re-exports it; Edge Functions import it directly). Callers pass `now`; nothing reads the clock. Relative imports there use `.ts` extensions (Deno); `rrule` is mapped to `npm:rrule` in each function's `deno.json` and is loaded through its CommonJS default export under Deno.
+- The scheduler is pure TypeScript in `packages/shared/src/scheduling/` (Jest-tested there; the mobile app's `src/features/scheduling` re-exports it; Edge Functions import the synced copy in `_shared/scheduling/`). Callers pass `now`; nothing reads the clock. Relative imports there use `.ts` extensions (Deno); `rrule` is mapped to `npm:rrule` in each function's `deno.json` and is loaded through its CommonJS default export under Deno.
 - Recurrence: RRULE subset FREQ=DAILY|WEEKLY, INTERVAL, BYDAY, UNTIL or COUNT (`recurrence.ts`). `rrule` only expands dates (floating UTC-midnight); `time-zone.ts` converts wall-clock times in the org timezone, so a 12:00 walk stays 12:00 across DST. Times skipped by spring-forward move past the gap; repeated fall-back times use the first one. `private.is_supported_rrule` mirrors the parser in SQL.
 - Visit plans (`visit-plan.ts`): drop-in/walk one visit per occurrence; overnight one visit from arrival to departure; multi-day one visit per care time per day. Generated 60 days ahead (`SCHEDULE_HORIZON_DAYS`). Each visit has `slot_start` (unique per booking) identifying its occurrence; moving a visit keeps the slot, so regeneration never recreates moved or cancelled visits.
 - Conflicts (`conflicts.ts`, `schedule-check.ts`): overlap, travel buffer (`organizations.travel_buffer_minutes`, none between visits at the same home), approved time off, and sitter availability (wall-clock, adjacent blocks join) block; requested time off and no availability set are warnings. Whole bookings are checked up to a year ahead by projecting the sitter's other confirmed bookings past the stored window. Every conflict has a readable reason (`describeConflict`).
@@ -138,23 +170,29 @@ Keep non-route code out of `app/`. Route groups don't add a URL segment, so scre
 - Event pushes: database triggers call `private.send_push_event` (pg_net) → `notify-owner`. Visit status (on the way, arrived, completed with report card), incidents (owner and admins, always immediate), bookings (requested → admins; confirmed/declined → owner; cancelled → sitters, admins, owner except whoever cancelled), sitter schedule changes (booking assigned/unassigned/changed; one visit reassigned, moved or cancelled by an admin; not system jobs), and "not eating" (two refused meals in a row by `occurred_at`, alerting owner and admins once).
 - Timed alerts: pg_cron calls `alert-checks` every minute (`{job:'photos'}`: one "Max: 4 new photos" alert per visit at most every 5 minutes, after a 30 s settle) and every 5 minutes (`{job:'checks'}`: sitter reminders 30 minutes before, late check-ins 15 minutes after the start to owner and admins, medication due during overnight/multi-day stays). Decisions are pure in `_shared/alerts.ts` (Jest-tested); `notification_log` (service_role only) makes each alert go out once.
 - Alert kinds and their settings labels live in `_shared/alerts.ts`. Users mute kinds in `notification_settings.muted` (own row only); `incident` can't be muted. Wording is in `_shared/push-messages.ts`. The payload's `data` carries `visitId` or `bookingId` plus `type`; `src/features/notifications/push-routes.ts` maps it to a screen per role.
-- Run functions locally with `npx supabase functions serve`. Edge Function code is Deno and is excluded from `tsc` and ESLint.
+- Run functions locally with `npx supabase functions serve`. Edge Function code is Deno and isn't part of any workspace's `tsc` or ESLint.
 - Use `BigButton` (min 56pt height) or an equivalent for primary actions. Put primary actions in the lower half of the screen.
 - Expo changes between SDKs. Check the versioned docs (https://docs.expo.dev/versions/v58.0.0/) rather than memory.
 - Expo Go only bundles its built-in native modules. A library with custom native code needs a development build.
 
 ## Commands
 
+Run from the repo root unless noted.
+
 ```bash
-npx expo start          # dev server (scan QR with Expo Go)
-npm run lint            # ESLint
+npm run mobile          # Expo dev server for apps/mobile (scan QR with Expo Go)
+npm run web             # admin web dev server on http://localhost:3001
+npm run web:build       # next build for apps/admin-web
+npm run lint            # ESLint in every workspace (turbo)
 npm run format          # Prettier write (format:check to verify)
-npm run typecheck       # tsc --noEmit
-npm test                # Jest
-npm run check           # lint + format:check + typecheck + test (run before "done")
-npx expo install <pkg>  # always use this to add packages (SDK-compatible versions)
+npm run typecheck       # tsc --noEmit in every workspace (turbo)
+npm test                # Jest in every workspace (turbo)
+npm run check           # shared:check + lint + format:check + typecheck + test (run before "done")
+npm run shared:sync     # copy shared logic into supabase/functions/_shared
+cd apps/mobile && npx expo install <pkg>   # add mobile packages (SDK-compatible versions)
+npm install <pkg> -w @petsitter/admin-web  # add web packages
 npm run db:reset        # re-apply migrations + seed (needs Docker running)
 npm run db:test         # pgTAP RLS tests
-npm run db:types        # regenerate src/types/database.ts
+npm run db:types        # regenerate packages/shared/src/database.ts (and sync it)
 npx supabase <cmd>      # Supabase CLI (pinned dev dependency); `start` needs Docker
 ```
