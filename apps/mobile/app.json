@@ -79,7 +79,9 @@
           "savePhotosPermission": "Pet Sitter saves visit photos and videos to your library when you ask.",
           "isAccessMediaLocationEnabled": false
         }
-      ]
+      ],
+      "@sentry/react-native",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

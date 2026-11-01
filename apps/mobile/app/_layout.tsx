@@ -9,12 +9,14 @@ import { BrandProvider } from '@/features/branding/brand';
 import { routeGuards } from '@/features/auth/routing';
 import { useRoutingState } from '@/features/auth/use-routing-state';
 import { usePushNotifications } from '@/features/notifications/use-push-notifications';
+import { initMonitoring, setMonitoringUser, wrapRoot } from '@/lib/monitoring';
 import { queryClient } from '@/lib/query-client';
 import type { AppRole } from '@/types/models';
 
+initMonitoring();
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -27,14 +29,21 @@ export default function RootLayout() {
   );
 }
 
+export default wrapRoot(RootLayout);
+
 // Route groups only exist while their guard is true (see routeGuards). When one
 // flips (sign in/out, onboarding done, password reset) Expo Router falls back to
 // `index`, which redirects via resolveDestination.
 function RootNavigator() {
-  const { isRestoring } = useAuth();
+  const { isRestoring, session } = useAuth();
   const routing = useRoutingState();
   const guards = routeGuards(routing);
   usePushNotifications(guards.account ? (routing.role as AppRole) : undefined);
+
+  const userId = session?.user.id;
+  useEffect(() => {
+    setMonitoringUser(userId && routing.role ? { id: userId, role: routing.role } : null);
+  }, [userId, routing.role]);
 
   useEffect(() => {
     if (!isRestoring) {
