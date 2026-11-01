@@ -2,8 +2,9 @@
 // web app; the mobile app uses them for buttons, headers and tabs. These helpers
 // keep text readable whatever colors are chosen (WCAG contrast).
 
-export const DEFAULT_PRIMARY = '#1565C0';
-export const DEFAULT_ACCENT = '#0B5CAD';
+// The design system's Calm Teal (apps/mobile/src/theme) with its apricot accent.
+export const DEFAULT_PRIMARY = '#0F766E';
+export const DEFAULT_ACCENT = '#E8913A';
 
 const DARK_TEXT = '#111111';
 const LIGHT_TEXT = '#FFFFFF';
@@ -50,6 +51,24 @@ export function textColorOn(background: string): string {
 /** Mixes `hex` toward black by `amount` (0..1). */
 export function darken(hex: string, amount: number): string {
   return toHex(channels(hex).map((c) => c * (1 - amount)) as [number, number, number]);
+}
+
+/** Mixes `hex` toward white by `amount` (0..1). */
+export function lighten(hex: string, amount: number): string {
+  return toHex(channels(hex).map((c) => c + (255 - c) * amount) as [number, number, number]);
+}
+
+/**
+ * `hex` moved toward white (on dark backgrounds) or black (on light ones) just
+ * enough to reach `min` contrast on `background`.
+ */
+export function readableOn(hex: string, background: string, min = MIN_TEXT_CONTRAST): string {
+  const toLight = relativeLuminance(background) < 0.2;
+  let color = hex;
+  for (let step = 1; contrastRatio(color, background) < min && step <= 20; step++) {
+    color = toLight ? lighten(hex, step * 0.05) : darken(hex, step * 0.05);
+  }
+  return color;
 }
 
 /** `hex` darkened just enough to reach `min` contrast on white (for text and tints). */

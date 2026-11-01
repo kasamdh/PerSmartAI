@@ -18,7 +18,9 @@ describe('white-label BigButton', () => {
   it("uses the business's color with readable text", async () => {
     const colors = brandPalette({ primaryColor: '#FFD84D', accentColor: '#0E7C66' });
     await render(
-      <BrandContext.Provider value={{ colors, name: 'Happy Paws', logoUrl: null }}>
+      <BrandContext.Provider
+        value={{ colors, name: 'Happy Paws', logoUrl: null, customPrimary: '#FFD84D' }}
+      >
         <BigButton label="Check in" />
         <BigButton label="Details" variant="secondary" />
       </BrandContext.Provider>,

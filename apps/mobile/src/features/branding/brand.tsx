@@ -1,4 +1,4 @@
-import { brandPalette } from '@petsitter/shared/branding';
+import { brandPalette, isHexColor } from '@petsitter/shared/branding';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, type ReactNode } from 'react';
 
@@ -28,6 +28,7 @@ export function BrandProvider({ children }: { children: ReactNode }) {
       colors: brandPalette({ primaryColor, accentColor }),
       name: org?.name ?? null,
       logoUrl: logoPath ? (logo.data ?? null) : null,
+      customPrimary: isHexColor(primaryColor) ? primaryColor : null,
     }),
     [primaryColor, accentColor, org?.name, logoPath, logo.data],
   );

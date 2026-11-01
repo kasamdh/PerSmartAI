@@ -7,6 +7,7 @@ import {
   contrastRatio,
   isHexColor,
   logoPath,
+  readableOn,
   readableOnWhite,
   textColorOn,
 } from '../branding.ts';
@@ -60,4 +61,20 @@ describe('brandPalette', () => {
 
 it('puts logos in the business branding folder', () => {
   expect(logoPath('org-1', 'png', 42)).toBe('org-1/branding/logo-42.png');
+});
+
+describe('readableOn', () => {
+  it('lightens a brand color until it reads on a dark surface', () => {
+    const dark = '#1B2220';
+    const color = readableOn('#0F766E', dark);
+    expect(contrastRatio(color, dark)).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
+    expect(color).not.toBe('#0F766E');
+  });
+
+  it('darkens on light surfaces and leaves readable colors alone', () => {
+    expect(contrastRatio(readableOn('#FFD84D', '#FFFFFF'), '#FFFFFF')).toBeGreaterThanOrEqual(
+      MIN_TEXT_CONTRAST,
+    );
+    expect(readableOn('#0F766E', '#FFFFFF')).toBe('#0F766E');
+  });
 });

@@ -9,9 +9,16 @@ export type Brand = {
   name: string | null;
   /** Signed URL of the logo (1 hour), or null. */
   logoUrl: string | null;
+  /** The business's own primary color, if it set one (the theme adapts it per mode). */
+  customPrimary: string | null;
 };
 
-export const DEFAULT_BRAND: Brand = { colors: brandPalette({}), name: null, logoUrl: null };
+export const DEFAULT_BRAND: Brand = {
+  colors: brandPalette({}),
+  name: null,
+  logoUrl: null,
+  customPrimary: null,
+};
 
 /** Provided by BrandProvider; tests can provide a value directly. */
 export const BrandContext = createContext<Brand>(DEFAULT_BRAND);
