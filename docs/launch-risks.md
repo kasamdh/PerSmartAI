@@ -28,10 +28,11 @@ each one should block launch. "Verified" means it was run, not just written.
 6. **Admins have no second factor.** The admin web shows every client's address, entry
    codes and messages. Require Supabase MFA (TOTP) for the admin role, and add an idle
    timeout to the admin web.
-7. **Legal and store requirements:** privacy policy and terms, data processing
-   agreements with Supabase, Sentry and PostHog, App Store privacy labels and Play data
-   safety form, location and camera permission justifications, and a data export path
-   for privacy requests (deletion exists; export doesn't).
+7. **Legal review:** the privacy policy, terms, account-deletion and support pages
+   (`docs/legal/`) and the store privacy answers (`docs/store/privacy-labels.md`) are
+   drafts. A lawyer must fill the [brackets] and approve them. Also needed: data
+   processing agreements with Supabase, Sentry and PostHog, and a data export path for
+   privacy requests (deletion exists; export doesn't).
 8. **Backups:** turn on Point-in-Time Recovery for production and do one restore
    drill before launch.
 
@@ -69,6 +70,12 @@ each one should block launch. "Verified" means it was run, not just written.
   position when new messages arrive, loading older pages).
 
 ## Medium
+
+- **The app icon is a simple generated paw.** It's original and meets the store rules
+  (1024 px, no transparency), but a designer should refine it, and make screenshots and
+  the Play feature graphic.
+- **The admin site is light-only, and so is the app now** (`userInterfaceStyle: light`).
+  Dark mode isn't supported.
 
 - **White-label is partial:** buttons, headers, tabs and the logo use the business's
   colors, but many screens still use a fixed blue (`#1565C0`).

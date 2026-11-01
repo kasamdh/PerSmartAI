@@ -25,7 +25,11 @@
     "functions:check": "node scripts/check-functions.mjs",
     "secrets:check": "node scripts/check-bundle-secrets.mjs",
     "a11y:check": "node scripts/check-a11y.mjs",
-    "e2e": "maestro test -e APP_ID=com.kasamdh.petsitter.preview apps/mobile/.maestro"
+    "e2e": "maestro test -e APP_ID=com.kasamdh.petsitter.preview apps/mobile/.maestro",
+    "release:build": "cd apps/mobile && npx --yes eas-cli@latest build --profile production --platform all",
+    "release:submit:ios": "cd apps/mobile && npx --yes eas-cli@latest submit --profile production --platform ios --latest",
+    "release:submit:android": "cd apps/mobile && npx --yes eas-cli@latest submit --profile production --platform android --latest",
+    "demo:create": "node scripts/create-demo-account.mjs"
   },
   "devDependencies": {
     "prettier": "^3.9.10",

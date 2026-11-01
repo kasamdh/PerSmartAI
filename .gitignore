@@ -54,3 +54,10 @@ fcm-service-account*.json
 .turbo/
 .next/
 next-env.d.ts
+
+# Store credentials (Google Play service account, Apple keys); never commit
+secrets/
+*.p8
+*.p12
+*.jks
+*.keystore

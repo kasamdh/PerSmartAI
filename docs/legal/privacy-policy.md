@@ -127,7 +127,7 @@ We may disclose data if required by law, or to protect someone's safety.
 
 ## Deleting your data
 
-- **In the app:** Profile, then **Delete account**.
+- **In the app:** **My profile**, then **Delete my account**.
   - **Pet owners:** deleting your account deletes your home, pets, bookings, visits, care logs, photos and messages.
   - **Sitters:** deleting your account removes your profile and sign-in. The visits you did stay in the business's records without your name, because the business needs them, for example for payroll and its records about the pets in its care.
   - **The last admin of a business:** you must first remove or hand over its members.

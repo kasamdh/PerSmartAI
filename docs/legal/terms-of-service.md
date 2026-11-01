@@ -57,7 +57,7 @@ We work to keep Pet Sitter available and secure, but it is provided "as is" and 
 
 ## 8. Ending your use
 
-- You can delete your account at any time in the app (Profile, then Delete account).
+- You can delete your account at any time in the app (My profile, then Delete my account).
 - We may suspend or close accounts that break these terms or put others at risk.
 - A business can remove its clients and sitters.
 

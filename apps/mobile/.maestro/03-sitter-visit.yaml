@@ -13,6 +13,11 @@ tags: [sitter]
       EMAIL: 'monikapokhrel55@gmail.com'
       PASSWORD: 'password123'
 - assertVisible: "Rudra's home"
+# Scheduled -> on the way -> checked in (the database refuses skipped steps).
+- tapOn: 'Start trip'
+- extendedWaitUntil:
+    visible: 'Check in'
+    timeout: 10000
 - tapOn: 'Check in'
 # Location: allow once, then the far-from-home warning (simulators are elsewhere).
 - runFlow:

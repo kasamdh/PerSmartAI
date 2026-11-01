@@ -48,6 +48,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // The legal pages are public (the app stores link to them) and need no session.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|privacy|terms|account-deletion|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|privacy|terms|account-deletion|support|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

@@ -7,8 +7,8 @@ You can delete your Pet Sitter account, made by [COMPANY LEGAL NAME], at any tim
 ## In the app
 
 1. Open Pet Sitter and sign in.
-2. Go to **Profile**.
-3. Tap **Delete account** and confirm.
+2. Tap **My profile** (at the bottom of your home screen).
+3. Tap **Delete my account** and confirm.
 
 ## Without the app
 

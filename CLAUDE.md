@@ -192,6 +192,14 @@ In `apps/mobile`, keep non-route code out of `app/`. Route groups don't add a UR
 - Accessibility: `npm run a11y:check` (in `npm run check`) requires a role on every touchable, a label on every input and switch, and a label or `accessible={false}` on every image. Text colors must reach 4.5:1 on their background (the default brand blue is `#1565C0`; muted text `#666666`).
 - Remote images use `cachedImageSource(url)` (`src/lib/image-cache.ts`) with `cachePolicy="memory-disk"`, so re-signed URLs reuse the cached file. Unbounded lists use FlashList.
 
+## Store release
+
+- Store config lives in `apps/mobile/app.json` (base) + `app.config.ts` (per variant). `src/__tests__/app-config.test.ts` guards ids, plain-language permission texts and **no background location**: location is a one-shot foreground read at check-in/out (`src/lib/location.ts`). Don't add background modes, "Always" location, or Android `READ_MEDIA_*` (the photo picker needs none; saving is write-only) without updating the privacy labels.
+- Notifications: `push-explainer.ts` shows a plain explanation per role before the one-time system prompt; "Not now" waits a week.
+- Legal pages are Markdown in `docs/legal/` (privacy, terms, account deletion, support; drafts for a lawyer), served publicly by the admin site at `/privacy`, `/terms`, `/account-deletion`, `/support` (excluded from the proxy). The app links to them via `EXPO_PUBLIC_LEGAL_URL`. Keep them true to what the app stores.
+- Store answers: `docs/store/privacy-labels.md` (Apple labels, Google Data Safety), `app-review-notes.md`, `release-checklist.md`. App Review demo: `npm run demo:create` (own business, resets its data, always a visit today).
+- Owner account deletion removes their visit, pet and chat files from storage (`delete-account`).
+
 ## Commands
 
 Run from the repo root unless noted.

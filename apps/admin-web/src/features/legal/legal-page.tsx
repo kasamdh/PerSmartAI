@@ -4,11 +4,11 @@ import path from 'node:path';
 import { parseMarkdown, type Block, type Inline } from '@petsitter/shared/simple-markdown';
 import Link from 'next/link';
 
-// Public legal pages (privacy, terms, account deletion). The text lives in
+// Public pages (privacy, terms, account deletion, support). The text lives in
 // docs/legal/*.md so it can be reviewed and edited as plain documents; pages are
 // built at build time (force-static), so the files are read once.
 
-export type LegalDoc = 'privacy-policy' | 'terms-of-service' | 'account-deletion';
+export type LegalDoc = 'privacy-policy' | 'terms-of-service' | 'account-deletion' | 'support';
 
 export function readLegalDoc(doc: LegalDoc): Block[] {
   const file = path.join(process.cwd(), '..', '..', 'docs', 'legal', `${doc}.md`);
