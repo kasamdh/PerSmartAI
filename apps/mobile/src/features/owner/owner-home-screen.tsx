@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BigButton } from '@/components/big-button';
 import { MessagesButton } from '@/features/chat/messages-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
+import { BrandMark } from '@/features/branding/brand-mark';
 import { useProfile } from '@/features/auth/use-profile';
 import { usePets } from '@/features/pets/hooks';
 import { PetCard } from '@/features/pets/pet-card';
@@ -62,6 +63,7 @@ export function OwnerHomeScreen() {
           />
         }
       >
+        <BrandMark />
         <Text style={styles.greeting} accessibilityRole="header">
           {firstName ? `Hi, ${firstName}` : 'Welcome'}
         </Text>

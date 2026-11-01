@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
+import { BrandMark } from '@/features/branding/brand-mark';
 import { useOrgTimeZone } from '@/features/scheduling/hooks';
 
 import type { SitterVisit } from './api';
@@ -64,6 +65,7 @@ export function SitterTodayScreen() {
         keyExtractor={(visit) => visit.id}
         contentContainerStyle={styles.list}
         stickySectionHeadersEnabled={false}
+        ListHeaderComponent={<BrandMark />}
         refreshControl={
           <RefreshControl
             refreshing={visits.isRefetching}

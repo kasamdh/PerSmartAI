@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/features/auth/auth-provider';
+import { BrandProvider } from '@/features/branding/brand';
 import { routeGuards } from '@/features/auth/routing';
 import { useRoutingState } from '@/features/auth/use-routing-state';
 import { usePushNotifications } from '@/features/notifications/use-push-notifications';
@@ -17,8 +18,10 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <StatusBar style="auto" />
-        <RootNavigator />
+        <BrandProvider>
+          <StatusBar style="auto" />
+          <RootNavigator />
+        </BrandProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

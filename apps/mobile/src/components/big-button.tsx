@@ -1,5 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
 
+import { useBrand } from '@/features/branding/brand-context';
+
 // 56pt min height: comfortably above the 44pt/48dp platform minimums, for one-handed use.
 export const MIN_TAP_TARGET = 56;
 
@@ -20,6 +22,12 @@ export function BigButton({
 }: BigButtonProps) {
   const isDisabled = !!disabled || loading;
   const isPrimary = variant === 'primary';
+  // White-label: the business's primary color (readable text is picked for it).
+  const { colors } = useBrand();
+  const tone = isPrimary
+    ? { backgroundColor: colors.primary }
+    : { backgroundColor: '#FFFFFF', borderColor: colors.primaryOnWhite };
+  const labelColor = isPrimary ? colors.onPrimary : colors.primaryOnWhite;
 
   return (
     <Pressable
@@ -30,7 +38,8 @@ export function BigButton({
       hitSlop={8}
       style={(state) => [
         styles.button,
-        isPrimary ? styles.primary : styles.secondary,
+        !isPrimary && styles.secondary,
+        tone,
         state.pressed && styles.pressed,
         isDisabled && styles.disabled,
         typeof style === 'function' ? style(state) : style,
@@ -38,9 +47,9 @@ export function BigButton({
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? '#FFFFFF' : '#208AEF'} />
+        <ActivityIndicator color={labelColor} />
       ) : (
-        <Text style={[styles.label, !isPrimary && styles.secondaryLabel]}>{label}</Text>
+        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
       )}
     </Pressable>
   );
@@ -54,13 +63,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  primary: {
-    backgroundColor: '#208AEF',
-  },
   secondary: {
-    backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#208AEF',
   },
   pressed: {
     opacity: 0.8,
@@ -71,9 +75,5 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  secondaryLabel: {
-    color: '#208AEF',
   },
 });

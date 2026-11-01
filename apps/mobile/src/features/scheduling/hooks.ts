@@ -12,6 +12,11 @@ export type OrgSettings = {
   cancellationCutoffHours: number;
   /** Visit media older than this is deleted nightly; null keeps it. */
   mediaRetentionMonths: number | null;
+  /** White-label branding, set in the admin web app (#RRGGBB or null). */
+  primaryColor: string | null;
+  accentColor: string | null;
+  /** pet-media path of the logo (`{org}/branding/...`). */
+  logoPath: string | null;
 };
 
 export const orgKeys = { settings: ['org-settings'] as const };
@@ -21,7 +26,7 @@ async function fetchOrgSettings(): Promise<OrgSettings | null> {
   const { data, error } = await supabase
     .from('organizations')
     .select(
-      'id, name, timezone, travel_buffer_minutes, cancellation_cutoff_hours, media_retention_months',
+      'id, name, timezone, travel_buffer_minutes, cancellation_cutoff_hours, media_retention_months, primary_color, accent_color, logo_path',
     )
     .maybeSingle();
   if (error) throw error;
@@ -33,6 +38,9 @@ async function fetchOrgSettings(): Promise<OrgSettings | null> {
         travelBufferMinutes: data.travel_buffer_minutes,
         cancellationCutoffHours: data.cancellation_cutoff_hours,
         mediaRetentionMonths: data.media_retention_months,
+        primaryColor: data.primary_color,
+        accentColor: data.accent_color,
+        logoPath: data.logo_path,
       }
     : null;
 }

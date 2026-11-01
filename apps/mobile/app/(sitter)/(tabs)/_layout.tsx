@@ -1,17 +1,21 @@
 import { Tabs } from 'expo-router/js-tabs';
 
+import { useBrand, useBrandedHeader } from '@/features/branding/brand';
 import { useUnreadCount } from '@/features/chat/hooks';
 
 // Big labels and a tall bar: sitters tap these one-handed.
 export default function SitterTabsLayout() {
   const unread = useUnreadCount().data ?? 0;
+  const header = useBrandedHeader();
+  const { colors } = useBrand();
   return (
     <Tabs
       screenOptions={{
+        ...header,
         tabBarStyle: { height: 72, paddingBottom: 10, paddingTop: 6 },
         tabBarLabelStyle: { fontSize: 15, fontWeight: '600' },
         tabBarIconStyle: { display: 'none' },
-        tabBarActiveTintColor: '#0B5CAD',
+        tabBarActiveTintColor: colors.accentOnWhite,
         tabBarInactiveTintColor: '#555555',
       }}
     >

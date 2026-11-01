@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BigButton } from '@/components/big-button';
 import { MessagesButton } from '@/features/chat/messages-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
+import { BrandMark } from '@/features/branding/brand-mark';
 import { useProfile } from '@/features/auth/use-profile';
 import { formatTimeRange } from '@/features/visits/time';
 import { statusLabel } from '@/features/visits/visit-actions';
@@ -48,6 +49,7 @@ export function AdminHomeScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
+        <BrandMark />
         <Text style={styles.greeting} accessibilityRole="header">
           {firstName ? `Hi, ${firstName}` : 'Dashboard'}
         </Text>
