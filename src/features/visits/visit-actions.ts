@@ -9,7 +9,7 @@ export type VisitAction = {
   label: string;
 };
 
-const ON_THE_WAY: VisitAction = { kind: 'on_the_way', label: 'On my way' };
+const START_TRIP: VisitAction = { kind: 'on_the_way', label: 'Start trip' };
 const CHECK_IN: VisitAction = { kind: 'check_in', label: 'Check in' };
 const CHECK_OUT: VisitAction = { kind: 'check_out', label: 'Check out' };
 
@@ -17,6 +17,7 @@ const CHECK_OUT: VisitAction = { kind: 'check_out', label: 'Check out' };
 export function primaryActionFor(status: VisitStatus): VisitAction | null {
   switch (status) {
     case 'scheduled':
+      return START_TRIP;
     case 'on_the_way':
       return CHECK_IN;
     case 'arrived':
@@ -27,9 +28,9 @@ export function primaryActionFor(status: VisitStatus): VisitAction | null {
   }
 }
 
-/** Optional smaller action shown next to the primary one. */
+/** Optional smaller action shown next to the primary one (already there: check in). */
 export function secondaryActionFor(status: VisitStatus): VisitAction | null {
-  return status === 'scheduled' ? ON_THE_WAY : null;
+  return status === 'scheduled' ? CHECK_IN : null;
 }
 
 /**

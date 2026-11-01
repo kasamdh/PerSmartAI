@@ -3,20 +3,31 @@ import type { TablesUpdate } from '@/types/database';
 
 const SITTER_VISIT_SELECT = `
   id, status, scheduled_start, scheduled_end, check_in_at, check_out_at,
+  care_time:booking_care_times ( label ),
   booking:bookings (
-    id, service_type, notes,
+    id, service_type, notes, window_start, window_end,
     household:households ( id, name, address_line1, address_line2, city, lat, lng ),
-    booking_pets ( pet:pets ( id, name, species ) )
+    booking_pets (
+      pet:pets (
+        id, name, species, photo_url,
+        pet_allergies ( allergen, severity ),
+        feeding_plans ( times ),
+        pet_medications ( schedule_times )
+      )
+    )
   )
 ` as const;
 
-/** A sitter's non-cancelled visits starting in [from, to), earliest first. RLS limits rows to their own. */
+/**
+ * A sitter's non-cancelled visits that overlap [from, to) (so an overnight stay
+ * that began yesterday still shows today), earliest first. RLS limits rows to their own.
+ */
 export async function fetchSitterVisits(sitterId: string, range: { from: Date; to: Date }) {
   const { data, error } = await supabase
     .from('visits')
     .select(SITTER_VISIT_SELECT)
     .eq('sitter_id', sitterId)
-    .gte('scheduled_start', range.from.toISOString())
+    .gt('scheduled_end', range.from.toISOString())
     .lt('scheduled_start', range.to.toISOString())
     .neq('status', 'cancelled')
     .order('scheduled_start');

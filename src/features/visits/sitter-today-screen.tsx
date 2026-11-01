@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BigButton } from '@/components/big-button';
 import { AccountButtons } from '@/features/auth/account-buttons';
+import { useOrgTimeZone } from '@/features/scheduling/hooks';
 
 import { CheckOutSheet } from './check-out-sheet';
 import type { SitterVisit } from './api';
@@ -26,6 +27,7 @@ export function SitterTodayScreen() {
   const visits = useSitterVisits();
   const { run, pendingFor, checkOutSheet } = useVisitActionRunner();
   const router = useRouter();
+  const timeZone = useOrgTimeZone();
   const sections = useMemo(() => groupByDay(visits.data ?? [], new Date()), [visits.data]);
 
   if (visits.isPending) {
@@ -71,6 +73,7 @@ export function SitterTodayScreen() {
           <VisitCard
             visit={item}
             pendingAction={pendingFor(item.id)}
+            timeZone={timeZone}
             onAction={(action) => run({ id: item.id, placeName: placeName(item) }, action)}
             onOpen={() => router.push({ pathname: '/visit/[id]', params: { id: item.id } })}
           />
@@ -78,8 +81,8 @@ export function SitterTodayScreen() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No visits today or tomorrow</Text>
-            <Text style={styles.emptyBody}>Pull down to refresh.</Text>
+            <Text style={styles.emptyTitle}>No visits today</Text>
+            <Text style={styles.emptyBody}>Your week is on the Week tab.</Text>
           </View>
         }
         ListFooterComponent={

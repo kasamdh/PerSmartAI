@@ -9,7 +9,7 @@ import {
 
 describe('visit actions by status', () => {
   it.each([
-    ['scheduled', 'check_in', 'on_the_way'],
+    ['scheduled', 'on_the_way', 'check_in'],
     ['on_the_way', 'check_in', null],
     ['arrived', 'check_out', null],
     ['in_progress', 'check_out', null],
@@ -19,6 +19,11 @@ describe('visit actions by status', () => {
   ] as const)('%s → primary %s, secondary %s', (status, primary, secondary) => {
     expect(primaryActionFor(status)?.kind ?? null).toBe(primary);
     expect(secondaryActionFor(status)?.kind ?? null).toBe(secondary);
+  });
+
+  it('starts the day with a big Start trip button', () => {
+    expect(primaryActionFor('scheduled')?.label).toBe('Start trip');
+    expect(secondaryActionFor('scheduled')?.label).toBe('Check in');
   });
 
   it('has a label for every status', () => {

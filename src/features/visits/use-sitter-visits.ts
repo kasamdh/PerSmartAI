@@ -4,23 +4,33 @@ import { Alert } from 'react-native';
 
 import { useAuth } from '@/features/auth/auth-provider';
 import { getCurrentCoords } from '@/lib/location';
+import { useLiveQueries } from '@/lib/realtime';
 
 import { fetchSitterVisits, updateVisit } from './api';
-import { sitterScheduleRange, startOfLocalDay } from './time';
+import { addLocalDays, startOfLocalDay } from './time';
 import { buildVisitUpdate, type VisitActionKind } from './visit-actions';
 
 const SITTER_VISITS_KEY = 'sitter-visits';
 
-export function useSitterVisits() {
+/**
+ * The sitter's visits overlapping `range` (default: today), live: Realtime refetches
+ * when a visit or booking changes, so reassignments and cancellations appear at once.
+ */
+export function useSitterVisits(range?: { from: Date; to: Date }) {
   const { session } = useAuth();
   const sitterId = session?.user.id;
-  // Recompute the range only when the local day changes.
+  // Recompute the default range only when the local day changes.
   const dayStart = startOfLocalDay(new Date()).getTime();
-  const range = useMemo(() => sitterScheduleRange(new Date(dayStart)), [dayStart]);
+  const today = useMemo(
+    () => ({ from: new Date(dayStart), to: addLocalDays(new Date(dayStart), 1) }),
+    [dayStart],
+  );
+  const { from, to } = range ?? today;
+  useLiveQueries(['visits', 'bookings'], [[SITTER_VISITS_KEY]], !!sitterId);
 
   return useQuery({
-    queryKey: [SITTER_VISITS_KEY, sitterId, range.from.toISOString()],
-    queryFn: () => fetchSitterVisits(sitterId!, range),
+    queryKey: [SITTER_VISITS_KEY, sitterId, from.toISOString(), to.toISOString()],
+    queryFn: () => fetchSitterVisits(sitterId!, { from, to }),
     enabled: !!sitterId,
   });
 }
