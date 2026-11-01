@@ -7,6 +7,7 @@ import { BigButton } from '@/components/big-button';
 import { FormField } from '@/components/form-field';
 import { FormScreen, TextButton } from '@/components/form-screen';
 import { checkInvite, signUpWithInvite, type InvitePreview } from '@/features/auth/api';
+import { inviteLookupErrorMessage } from '@/features/auth/errors';
 import { formatInviteCode, normalizeInviteCode } from '@/features/auth/invite-code';
 import {
   inviteCodeSchema,
@@ -43,8 +44,8 @@ export default function AcceptInviteScreen() {
         return;
       }
       setInvite({ code: normalizeInviteCode(code), preview });
-    } catch {
-      setFormError("Can't check the code right now. Check your connection and try again.");
+    } catch (error) {
+      setFormError(inviteLookupErrorMessage(error as { code?: string; status?: number }));
     }
   });
 

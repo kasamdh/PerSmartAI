@@ -6,6 +6,7 @@
 // booking doesn't have yet, so moved and cancelled visits stay as they are, and a
 // new visit the sitter can no longer take is stored unassigned for an admin.
 
+import { isServiceRole } from '../_shared/service-auth.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 import type { Database } from '../_shared/database.ts';
@@ -19,18 +20,6 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
-}
-
-function isServiceRole(req: Request): boolean {
-  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') ?? '';
-  const payload = token.split('.')[1];
-  if (!payload) return false;
-  try {
-    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    return claims.role === 'service_role';
-  } catch {
-    return false;
-  }
 }
 
 Deno.serve(async (req) => {

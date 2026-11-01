@@ -1,4 +1,9 @@
-import { otpErrorMessage, signInErrorMessage, signUpErrorMessage } from '../errors';
+import {
+  inviteLookupErrorMessage,
+  otpErrorMessage,
+  signInErrorMessage,
+  signUpErrorMessage,
+} from '../errors';
 
 describe('signInErrorMessage', () => {
   it('explains wrong credentials without revealing which field was wrong', () => {
@@ -40,5 +45,14 @@ describe('otpErrorMessage', () => {
     expect(otpErrorMessage({ message: 'Token has expired or is invalid' })).toMatch(
       /Request a new one/,
     );
+  });
+});
+
+describe('inviteLookupErrorMessage', () => {
+  it('asks to wait when the invite lookup is rate limited', () => {
+    expect(inviteLookupErrorMessage({ code: 'PT429', message: 'Too many attempts.' })).toMatch(
+      /Wait 10 minutes/,
+    );
+    expect(inviteLookupErrorMessage({ message: 'Failed to fetch' })).toMatch(/connection/);
   });
 });

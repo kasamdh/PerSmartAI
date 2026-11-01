@@ -64,3 +64,11 @@ export function otpErrorMessage(error: MaybeAuthError): string {
   }
   return 'Something went wrong. Please try again.';
 }
+
+/** Failures looking up an invite code (check_invite is limited to 10 tries per 10 minutes). */
+export function inviteLookupErrorMessage(error: MaybeAuthError): string {
+  if (error?.code === 'PT429' || error?.status === 429) {
+    return 'Too many tries. Wait 10 minutes, then check the code with the person who invited you.';
+  }
+  return "Can't check the code right now. Check your connection and try again.";
+}

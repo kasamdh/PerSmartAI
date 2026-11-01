@@ -23,9 +23,11 @@ export function SignInForm() {
     if (authError) {
       setPending(false);
       setError(
-        authError.message === 'Invalid login credentials'
-          ? 'That email and password don’t match.'
-          : authError.message,
+        authError.status === 429
+          ? 'Too many sign-in attempts. Wait a few minutes and try again.'
+          : authError.message === 'Invalid login credentials'
+            ? 'That email and password don’t match.'
+            : authError.message,
       );
       return;
     }

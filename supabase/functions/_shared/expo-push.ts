@@ -77,17 +77,7 @@ export async function sendPush(
   return { sent: tokens.length, skipped: unique.length - recipients.length, removed: stale.length };
 }
 
-export function isServiceRole(req: Request): boolean {
-  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') ?? '';
-  const payload = token.split('.')[1];
-  if (!payload) return false;
-  try {
-    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    return claims.role === 'service_role';
-  } catch {
-    return false;
-  }
-}
+export { isServiceRole } from './service-auth.ts';
 
 export function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
