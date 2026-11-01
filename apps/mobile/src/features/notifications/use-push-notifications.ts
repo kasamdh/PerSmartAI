@@ -27,7 +27,7 @@ export function usePushNotifications(role: AppRole | undefined) {
 
   useEffect(() => {
     if (!role) return;
-    registerForPushNotifications().catch((error: unknown) => {
+    registerForPushNotifications(role).catch((error: unknown) => {
       if (__DEV__) console.warn('[push] registration failed', error);
     });
   }, [role]);

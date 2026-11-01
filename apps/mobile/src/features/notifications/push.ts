@@ -1,11 +1,15 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import { isRunningInExpoGo } from 'expo';
 import * as Notifications from 'expo-notifications';
 import { AndroidImportance } from 'expo-notifications';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
+import type { AppRole } from '@/types/models';
+
+import { pushExplanation, shouldExplainPush } from './push-explainer';
 
 type PushEnvironment = {
   isDevice: boolean;
@@ -42,6 +46,18 @@ function currentEnvironment(): PushEnvironment {
   };
 }
 
+const EXPLAINER_KEY = 'push-explainer-declined-at';
+
+function askToExplain(role: AppRole): Promise<boolean> {
+  const { title, body } = pushExplanation(role);
+  return new Promise((resolve) =>
+    Alert.alert(title, body, [
+      { text: 'Not now', style: 'cancel', onPress: () => resolve(false) },
+      { text: 'Turn on', onPress: () => resolve(true) },
+    ]),
+  );
+}
+
 // The token registered for this device in this session, so sign-out can remove it.
 let registeredToken: string | null = null;
 
@@ -49,7 +65,7 @@ let registeredToken: string | null = null;
  * Asks for permission (once), gets this device's Expo push token, and stores it
  * for the signed-in user. Returns the token, or null if push isn't available.
  */
-export async function registerForPushNotifications(): Promise<string | null> {
+export async function registerForPushNotifications(role: AppRole): Promise<string | null> {
   const support = pushSupport(currentEnvironment());
   if (!support.supported) {
     if (__DEV__) console.info(`[push] not registering: ${support.reason}`);
@@ -64,7 +80,23 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   const existing = await Notifications.getPermissionsAsync();
-  const permission = existing.granted ? existing : await Notifications.requestPermissionsAsync();
+  let permission = existing;
+  if (!existing.granted) {
+    // Say what notifications are for before the one-time system prompt.
+    const declinedAt = Number(await AsyncStorage.getItem(EXPLAINER_KEY)) || null;
+    const explain = shouldExplainPush({
+      status: existing.status,
+      canAskAgain: existing.canAskAgain,
+      declinedAt,
+      now: Date.now(),
+    });
+    if (!explain) return null;
+    if (!(await askToExplain(role))) {
+      await AsyncStorage.setItem(EXPLAINER_KEY, String(Date.now()));
+      return null;
+    }
+    permission = await Notifications.requestPermissionsAsync();
+  }
   if (!permission.granted) {
     return null;
   }

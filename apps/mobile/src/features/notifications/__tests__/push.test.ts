@@ -2,6 +2,9 @@ import { pushSupport } from '../push';
 import { pushRouteFor, visitRouteFor } from '../push-routes';
 
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
 
 describe('pushSupport', () => {
   const device = { isDevice: true, inExpoGo: false, platform: 'android', projectId: 'proj-1' };
