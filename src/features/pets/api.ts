@@ -31,7 +31,9 @@ const nullIfEmpty = (v: string) => (v.trim() === '' ? null : v.trim());
 export async function fetchPets() {
   const { data, error } = await supabase
     .from('pets')
-    .select('id, name, species, breed, birth_date, photo_url, pet_allergies ( severity )')
+    .select(
+      'id, name, species, breed, birth_date, photo_url, pet_allergies ( severity ), feeding_plans ( times ), pet_medications ( schedule_times )',
+    )
     .order('name');
   if (error) throw error;
   return data;

@@ -1,6 +1,7 @@
 import {
   addDays,
   bookingRequestSchema,
+  defaultCareTimes,
   defaultTimesFor,
   emptyBookingRequest,
   isCalendarDate,
@@ -175,5 +176,100 @@ describe('toRequestBookingArgs', () => {
 
   it('throws on invalid values', () => {
     expect(() => toRequestBookingArgs(valid({ petIds: [] }), TODAY)).toThrow();
+  });
+});
+
+describe('repeat options', () => {
+  it('maps weekdays, every other week, and a visit count', () => {
+    expect(toRequestBookingArgs(valid({ repeat: 'weekdays' }), TODAY)).toMatchObject({
+      p_recurrence_rule: 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
+    });
+    expect(
+      toRequestBookingArgs(valid({ repeat: 'weekly', days: ['TU'], everyWeeks: '2' }), TODAY),
+    ).toMatchObject({ p_recurrence_rule: 'FREQ=WEEKLY;INTERVAL=2;BYDAY=TU' });
+    expect(toRequestBookingArgs(valid({ repeat: 'daily', count: '10' }), TODAY)).toMatchObject({
+      p_recurrence_rule: 'FREQ=DAILY;COUNT=10',
+      p_end_date: undefined,
+    });
+  });
+
+  it('takes an end date or a number of visits, not both', () => {
+    expect(errorsFor(valid({ repeat: 'daily', count: '5', endDate: '2026-11-20' })).count).toBe(
+      'Choose an end date or a number of visits, not both',
+    );
+    expect(errorsFor(valid({ repeat: 'daily', count: '0' })).count).toMatch(/between 1 and/);
+    expect(errorsFor(valid({ repeat: 'once', count: '5' }))).toEqual({});
+  });
+});
+
+describe('multi-day stays', () => {
+  const stay = (o: Partial<BookingRequestValues> = {}) =>
+    valid({
+      service: 'multi_day',
+      endDate: '2026-11-05',
+      careTimes: [
+        { time: '18:00', label: 'Feed and walk', durationMinutes: '45' },
+        { time: '08:00', label: 'Feed', durationMinutes: '15' },
+      ],
+      ...o,
+    });
+
+  it('sends care times in time order and no repeat rule or window', () => {
+    expect(toRequestBookingArgs(stay({ repeat: 'daily' }), TODAY)).toEqual({
+      p_service_type: 'multi_day',
+      p_pet_ids: ['p1'],
+      p_start_date: '2026-11-02',
+      p_end_date: '2026-11-05',
+      p_care_times: [
+        { care_time: '08:00', duration_minutes: 15, label: 'Feed' },
+        { care_time: '18:00', duration_minutes: 45, label: 'Feed and walk' },
+      ],
+      p_notes: undefined,
+    });
+  });
+
+  it('needs an end date, care times, labels, and different times', () => {
+    expect(errorsFor(stay({ endDate: '' })).endDate).toBe('When does the stay end?');
+    expect(errorsFor(stay({ endDate: '2027-02-15' })).endDate).toMatch(/90 days/);
+    expect(errorsFor(stay({ careTimes: [] })).careTimes).toBe('Add at least one care time');
+    expect(
+      errorsFor(stay({ careTimes: [{ time: '08:00', label: ' ', durationMinutes: '30' }] }))
+        .careTimes,
+    ).toBe('Give each care time a name');
+    expect(
+      errorsFor(
+        stay({
+          careTimes: [
+            { time: '08:00', label: 'Feed', durationMinutes: '30' },
+            { time: '08:00', label: 'Meds', durationMinutes: '30' },
+          ],
+        }),
+      ).careTimes,
+    ).toBe('Two care times can’t be at the same time');
+  });
+});
+
+describe('defaultCareTimes', () => {
+  it('suggests one care time per feeding or medication time', () => {
+    expect(
+      defaultCareTimes([
+        {
+          feeding_plans: [{ times: ['08:00:00', '18:00:00'] }],
+          pet_medications: [{ schedule_times: ['08:00:00'] }],
+        },
+        { feeding_plans: [{ times: ['12:30:00'] }], pet_medications: [] },
+      ]),
+    ).toEqual([
+      { time: '08:00', label: 'Feed + meds', durationMinutes: '30' },
+      { time: '12:30', label: 'Feed', durationMinutes: '30' },
+      { time: '18:00', label: 'Feed', durationMinutes: '30' },
+    ]);
+  });
+
+  it('falls back to morning and evening care', () => {
+    expect(defaultCareTimes([{ feeding_plans: [], pet_medications: [] }])).toEqual([
+      { time: '08:00', label: 'Morning care', durationMinutes: '30' },
+      { time: '18:00', label: 'Evening care', durationMinutes: '30' },
+    ]);
   });
 });

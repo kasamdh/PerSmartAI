@@ -2,7 +2,9 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 import { Alert } from 'react-native';
 
 import * as petHooks from '@/features/pets/hooks';
+import * as schedulingHooks from '@/features/scheduling/hooks';
 
+import * as api from '../api';
 import { BookingRequestScreen } from '../booking-request-screen';
 import * as hooks from '../hooks';
 import { OwnerBookingsScreen } from '../owner-bookings-screen';
@@ -19,6 +21,8 @@ jest.mock(
 jest.mock('@/lib/supabase', () => ({ supabase: {} }));
 jest.mock('../hooks');
 jest.mock('@/features/pets/hooks');
+jest.mock('@/features/scheduling/hooks');
+jest.mock('../api');
 jest.mock('@react-native-community/datetimepicker', () => ({
   __esModule: true,
   default: () => null,
@@ -26,6 +30,8 @@ jest.mock('@react-native-community/datetimepicker', () => ({
 
 const mockedHooks = jest.mocked(hooks);
 const mockedPetHooks = jest.mocked(petHooks);
+const mockedSchedulingHooks = jest.mocked(schedulingHooks);
+const mockedApi = jest.mocked(api);
 const requestMutate = jest.fn();
 const cancelMutate = jest.fn();
 
@@ -43,6 +49,7 @@ const booking = (overrides: Record<string, unknown> = {}) => ({
   created_at: '2026-10-30T00:00:00Z',
   sitter: { full_name: 'Monika' },
   booking_pets: [{ pet: { id: 'p1', name: 'Pip' } }, { pet: { id: 'p2', name: 'Mo' } }],
+  schedule_change_requests: [],
   ...overrides,
 });
 
@@ -53,6 +60,14 @@ beforeEach(() => {
     isPending: false,
   } as never);
   mockedHooks.useCancelBooking.mockReturnValue({ mutate: cancelMutate, isPending: false } as never);
+  mockedHooks.useWithdrawScheduleChange.mockReturnValue({
+    mutate: jest.fn(),
+    isPending: false,
+  } as never);
+  mockedHooks.useOwnerCalendarVisits.mockReturnValue({ data: [], refetch: jest.fn() } as never);
+  mockedSchedulingHooks.useOrgSettings.mockReturnValue({
+    data: { cancellationCutoffHours: 24, timeZone: 'America/New_York' },
+  } as never);
   mockedPetHooks.useOwnHousehold.mockReturnValue({
     isPending: false,
     isError: false,
@@ -97,14 +112,69 @@ describe('OwnerBookingsScreen', () => {
 
   it('confirms before cancelling and warns that visits will be cancelled', async () => {
     withBookings([booking()]);
+    const inDays = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString();
+    mockedApi.fetchUpcomingBookingVisits.mockResolvedValue([
+      { id: 'v1', scheduled_start: inDays(3), scheduled_end: inDays(3.1), status: 'scheduled' },
+    ]);
     const alert = jest.spyOn(Alert, 'alert');
     await render(<OwnerBookingsScreen />);
     await fireEvent.press(screen.getByRole('button', { name: 'Cancel booking' }));
 
+    await waitFor(() => expect(alert).toHaveBeenCalled());
     const [, message, buttons] = alert.mock.calls[0];
-    expect(message).toMatch(/Upcoming visits will be cancelled/);
+    expect(message).toBe(
+      '1 upcoming visit will be cancelled; a visit already under way will still finish.',
+    );
     buttons!.find((b) => b.text === 'Cancel booking')!.onPress!();
     expect(cancelMutate).toHaveBeenCalledWith('b1', expect.anything());
+  });
+
+  it('warns when the cancellation is late', async () => {
+    withBookings([booking()]);
+    const inHours = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString();
+    mockedApi.fetchUpcomingBookingVisits.mockResolvedValue([
+      { id: 'v1', scheduled_start: inHours(3), scheduled_end: inHours(4), status: 'scheduled' },
+    ]);
+    const alert = jest.spyOn(Alert, 'alert');
+    await render(<OwnerBookingsScreen />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Cancel booking' }));
+
+    await waitFor(() => expect(alert).toHaveBeenCalled());
+    expect(alert.mock.calls[0][1]).toMatch(
+      /^This is a late cancellation: a visit starts within 24 hours/,
+    );
+  });
+
+  it('shows a pending reschedule request with a way to withdraw it', async () => {
+    withBookings([
+      booking({
+        schedule_change_requests: [
+          {
+            id: 'r1',
+            scope: 'this_and_future',
+            status: 'requested',
+            from_date: '2026-11-16',
+            visit_id: null,
+            created_at: '',
+          },
+        ],
+      }),
+    ]);
+    await render(<OwnerBookingsScreen />);
+    expect(
+      screen.getByText('You asked to change times from Nov 16. Waiting for the business.'),
+    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Withdraw request' })).toBeTruthy();
+  });
+
+  it('offers to change times for confirmed repeating bookings', async () => {
+    withBookings([booking()]);
+    await render(<OwnerBookingsScreen />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Change times from a date' }));
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: '/my-bookings/reschedule',
+      params: { bookingId: 'b1' },
+    });
   });
 
   it('offers no cancel for declined bookings', async () => {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { normalizeTime } from '@/features/pets/logic';
+import { buildRecurrenceRule, MAX_COUNT } from '@/features/scheduling';
 import type { Database } from '@/types/database';
 
 // Booking dates and times are wall-clock values in the business's time zone
@@ -18,6 +19,16 @@ export const WEEKDAYS = [
 export type Weekday = (typeof WEEKDAYS)[number]['value'];
 
 export const DURATIONS = ['15', '30', '45', '60'] as const;
+export const EVERY_WEEKS = ['1', '2', '3', '4'] as const;
+export const MAX_STAY_DAYS = 90;
+export const MAX_CARE_TIMES = 8;
+
+const careTimeSchema = z.object({
+  time: z.string().trim(),
+  label: z.string(),
+  durationMinutes: z.enum(DURATIONS),
+});
+export type CareTimeValues = z.input<typeof careTimeSchema>;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -53,9 +64,12 @@ export function bookingRequestSchema(today: string) {
   return z
     .object({
       petIds: z.array(z.string()).min(1, 'Choose at least one pet'),
-      service: z.enum(['drop_in', 'walk', 'overnight']),
-      repeat: z.enum(['once', 'daily', 'weekly']),
+      service: z.enum(['drop_in', 'walk', 'overnight', 'multi_day']),
+      repeat: z.enum(['once', 'daily', 'weekdays', 'weekly']),
       days: z.array(z.enum(WEEKDAYS.map((d) => d.value) as [Weekday, ...Weekday[]])),
+      everyWeeks: z.enum(EVERY_WEEKS),
+      count: z.string().trim(),
+      careTimes: z.array(careTimeSchema),
       startDate: z
         .string()
         .trim()
@@ -76,13 +90,30 @@ export function bookingRequestSchema(today: string) {
     })
     .superRefine((v, ctx) => {
       const overnight = v.service === 'overnight';
-      if (!overnight && v.repeat === 'weekly' && v.days.length === 0) {
+      const stay = v.service === 'multi_day';
+      const repeats = !overnight && !stay && v.repeat !== 'once';
+      if (repeats && v.repeat === 'weekly' && v.days.length === 0) {
         ctx.addIssue({ code: 'custom', path: ['days'], message: 'Choose at least one day' });
       }
       if (overnight && v.endDate === '') {
         ctx.addIssue({ code: 'custom', path: ['endDate'], message: 'When will you be back?' });
       }
-      const usesEndDate = overnight || v.repeat !== 'once';
+      if (stay && v.endDate === '') {
+        ctx.addIssue({ code: 'custom', path: ['endDate'], message: 'When does the stay end?' });
+      }
+      if (
+        stay &&
+        isCalendarDate(v.endDate) &&
+        isCalendarDate(v.startDate) &&
+        v.endDate > addDays(v.startDate, MAX_STAY_DAYS)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['endDate'],
+          message: `Stays can be at most ${MAX_STAY_DAYS} days`,
+        });
+      }
+      const usesEndDate = overnight || stay || repeats;
       if (usesEndDate && isCalendarDate(v.endDate) && isCalendarDate(v.startDate)) {
         if (overnight && v.endDate <= v.startDate) {
           ctx.addIssue({
@@ -98,6 +129,38 @@ export function bookingRequestSchema(today: string) {
           });
         }
       }
+      if (repeats && v.count !== '') {
+        const n = Number(v.count);
+        if (!Number.isInteger(n) || n < 1 || n > MAX_COUNT) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['count'],
+            message: `Use a number between 1 and ${MAX_COUNT}`,
+          });
+        } else if (v.endDate !== '') {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['count'],
+            message: 'Choose an end date or a number of visits, not both',
+          });
+        }
+      }
+      if (stay) {
+        const times = v.careTimes.map((c) => normalizeTime(c.time));
+        const message =
+          v.careTimes.length === 0
+            ? 'Add at least one care time'
+            : v.careTimes.length > MAX_CARE_TIMES
+              ? `Up to ${MAX_CARE_TIMES} care times a day`
+              : times.some((t) => t === null)
+                ? 'Use a 24-hour time like 08:00'
+                : v.careTimes.some((c) => c.label.trim() === '')
+                  ? 'Give each care time a name'
+                  : new Set(times).size !== times.length
+                    ? 'Two care times can’t be at the same time'
+                    : null;
+        if (message) ctx.addIssue({ code: 'custom', path: ['careTimes'], message });
+      }
       if (overnight && v.arrivalEnd === '') {
         ctx.addIssue({
           code: 'custom',
@@ -105,7 +168,7 @@ export function bookingRequestSchema(today: string) {
           message: 'When should the sitter leave?',
         });
       }
-      if (!overnight && v.arrivalEnd !== '' && v.arrivalEnd <= v.arrivalStart) {
+      if (!overnight && !stay && v.arrivalEnd !== '' && v.arrivalEnd <= v.arrivalStart) {
         ctx.addIssue({
           code: 'custom',
           path: ['arrivalEnd'],
@@ -123,6 +186,9 @@ export function emptyBookingRequest(today: string): BookingRequestValues {
     service: 'drop_in',
     repeat: 'once',
     days: [],
+    everyWeeks: '1',
+    count: '',
+    careTimes: [],
     startDate: addDays(today, 1),
     endDate: '',
     arrivalStart: '09:00',
@@ -161,13 +227,39 @@ export function toRequestBookingArgs(
     };
   }
 
-  const days = WEEKDAYS.map((d) => d.value).filter((d) => v.days.includes(d));
+  if (v.service === 'multi_day') {
+    return {
+      p_service_type: 'multi_day',
+      p_pet_ids: v.petIds,
+      p_start_date: v.startDate,
+      p_end_date: v.endDate,
+      p_care_times: v.careTimes
+        .map((c) => ({
+          care_time: normalizeTime(c.time)!,
+          duration_minutes: Number(c.durationMinutes),
+          label: c.label.trim(),
+        }))
+        .sort((a, b) => a.care_time.localeCompare(b.care_time)),
+      p_notes: notes,
+    };
+  }
+
+  const count = v.repeat !== 'once' && v.count !== '' ? Number(v.count) : null;
   const rule =
-    v.repeat === 'daily'
-      ? 'FREQ=DAILY'
-      : v.repeat === 'weekly'
-        ? `FREQ=WEEKLY;BYDAY=${days.join(',')}`
-        : undefined;
+    v.repeat === 'once'
+      ? undefined
+      : buildRecurrenceRule({
+          freq: v.repeat === 'daily' ? 'DAILY' : 'WEEKLY',
+          interval: v.repeat === 'weekly' ? Number(v.everyWeeks) : 1,
+          byDay:
+            v.repeat === 'weekdays'
+              ? ['MO', 'TU', 'WE', 'TH', 'FR']
+              : v.repeat === 'weekly'
+                ? v.days
+                : [],
+          until: null,
+          count,
+        });
 
   return {
     p_service_type: v.service,
@@ -180,4 +272,44 @@ export function toRequestBookingArgs(
     p_recurrence_rule: rule,
     p_notes: notes,
   };
+}
+
+type PetCareTimes = {
+  feeding_plans: readonly { times: readonly string[] }[];
+  pet_medications: readonly { schedule_times: readonly string[] }[];
+};
+
+/**
+ * Suggested care times for a multi-day stay: one per feeding or medication time of
+ * the chosen pets (wall-clock), or morning and evening care when they have none.
+ */
+export function defaultCareTimes(pets: readonly PetCareTimes[]): CareTimeValues[] {
+  const tasks = new Map<string, Set<string>>();
+  const add = (time: string, task: string) => {
+    const t = normalizeTime(time.slice(0, 5));
+    if (!t) return;
+    if (!tasks.has(t)) tasks.set(t, new Set());
+    tasks.get(t)!.add(task);
+  };
+  for (const pet of pets) {
+    for (const plan of pet.feeding_plans) plan.times.forEach((t) => add(t, 'Feed'));
+    for (const med of pet.pet_medications) med.schedule_times.forEach((t) => add(t, 'meds'));
+  }
+  if (tasks.size === 0) {
+    return [
+      { time: '08:00', label: 'Morning care', durationMinutes: '30' },
+      { time: '18:00', label: 'Evening care', durationMinutes: '30' },
+    ];
+  }
+  return [...tasks.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(0, MAX_CARE_TIMES)
+    .map(([time, set]) => {
+      const label = [...set].join(' + ');
+      return {
+        time,
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+        durationMinutes: '30',
+      };
+    });
 }
