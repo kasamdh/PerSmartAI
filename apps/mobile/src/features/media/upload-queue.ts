@@ -61,6 +61,10 @@ export type QueueDeps = {
   upload(item: QueueItem): Promise<void>;
   /** Deletes the item's local files. */
   cleanup(item: QueueItem): Promise<void>;
+  /** Called once when an item first arrives (not for retries that already had). */
+  onSent?(item: QueueItem): void;
+  /** Called when an item gives up (permanent error or too many tries). */
+  onFailed?(item: QueueItem): void;
   now(): Date;
 };
 
@@ -269,7 +273,7 @@ export class UploadQueue {
             ? error.message
             : String((error as { message?: unknown })?.message ?? error);
         if (kind === 'duplicate') {
-          await this.succeed(current);
+          await this.succeed(current, { duplicate: true });
         } else if (kind === 'offline') {
           this.replace(current.id, current, { status: 'waiting' });
           await this.markWaiting();
@@ -284,12 +288,14 @@ export class UploadQueue {
             nextAttemptAt: failed ? null : new Date(now + backoffMs(attempts)).toISOString(),
           });
           await this.persist();
+          if (failed)
+            this.deps.onFailed?.({ ...current, attempts, lastError: message, status: 'failed' });
         }
       }
     }
   }
 
-  private async succeed(item: QueueItem) {
+  private async succeed(item: QueueItem, { duplicate = false } = {}) {
     this.replace(item.id, item, {
       status: 'sent',
       attempts: item.attempts + 1,
@@ -297,6 +303,7 @@ export class UploadQueue {
       lastError: null,
     });
     await this.persist();
+    if (!duplicate) this.deps.onSent?.(item);
     await this.deps.cleanup(item);
   }
 

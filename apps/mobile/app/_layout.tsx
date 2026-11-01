@@ -9,6 +9,7 @@ import { BrandProvider } from '@/features/branding/brand';
 import { routeGuards } from '@/features/auth/routing';
 import { useRoutingState } from '@/features/auth/use-routing-state';
 import { usePushNotifications } from '@/features/notifications/use-push-notifications';
+import { setAnalyticsRole } from '@/lib/analytics';
 import { initMonitoring, setMonitoringUser, wrapRoot } from '@/lib/monitoring';
 import { queryClient } from '@/lib/query-client';
 import type { AppRole } from '@/types/models';
@@ -43,6 +44,7 @@ function RootNavigator() {
   const userId = session?.user.id;
   useEffect(() => {
     setMonitoringUser(userId && routing.role ? { id: userId, role: routing.role } : null);
+    setAnalyticsRole(userId ? (routing.role ?? null) : null);
   }, [userId, routing.role]);
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { visitMinutes } from '@petsitter/shared/analytics-events';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -31,6 +32,7 @@ import { CheckOutSheet } from '@/features/visits/check-out-sheet';
 import { formatTime, formatTimeRange } from '@/features/visits/time';
 import { useVisitActionRunner } from '@/features/visits/use-sitter-visits';
 import { primaryActionFor, statusLabel } from '@/features/visits/visit-actions';
+import { track } from '@/lib/analytics';
 
 import type { VisitPet } from './api';
 import {
@@ -327,6 +329,12 @@ export function VisitDetailScreen({ visitId }: { visitId: string }) {
         onConfirm={(summary) => {
           setCheckingOut(false);
           void checkOut(visit.id, summary, () => {
+            track('visit_completed', {
+              service_type: visit.booking.service_type,
+              duration_minutes: visitMinutes(visit.check_in_at, new Date()),
+              photo_count: (photos.data?.length ?? 0) + pendingMedia.length,
+              care_event_count: eventList.length,
+            });
             Alert.alert('Checked out', 'The report card is on its way to the owner.');
             router.back();
           });

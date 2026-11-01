@@ -352,3 +352,27 @@ describe('backoffMs', () => {
     ]);
   });
 });
+
+describe('UploadQueue: hooks for analytics and error reports', () => {
+  it('calls onSent once per item that arrives, but not for duplicates already on the server', async () => {
+    const t = setup();
+    const sent: string[] = [];
+    t.deps.onSent = (item) => sent.push(item.id);
+    await t.queue.init();
+    await t.queue.enqueue(photo('p1'));
+    t.failWith(Object.assign(new Error('duplicate key value'), { code: '23505' }));
+    await t.queue.enqueue(photo('p2'));
+    await t.queue.process();
+    expect(sent).toEqual(['p1']);
+  });
+
+  it('calls onFailed when an item gives up, with the attempt count', async () => {
+    const t = setup();
+    const failed: { id: string; attempts: number }[] = [];
+    t.deps.onFailed = (item) => failed.push({ id: item.id, attempts: item.attempts });
+    await t.queue.init();
+    t.failWith(Object.assign(new Error('new row violates row-level security'), { code: '42501' }));
+    await t.queue.enqueue(photo('p1'));
+    expect(failed).toEqual([{ id: 'p1', attempts: 1 }]);
+  });
+});

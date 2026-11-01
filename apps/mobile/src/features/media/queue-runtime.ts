@@ -2,12 +2,15 @@
 // files (expo-file-system), connectivity (expo-network) and the actual uploads.
 // The queue logic itself is in upload-queue.ts and is tested without a device.
 
+import { delayBucket } from '@petsitter/shared/analytics-events';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { File } from 'expo-file-system';
 import * as Network from 'expo-network';
 import { AppState } from 'react-native';
 
+import { track } from '@/lib/analytics';
 import { PET_MEDIA_BUCKET } from '@/lib/images';
+import { reportError } from '@/lib/monitoring';
 import { supabase } from '@/lib/supabase';
 import type { Json } from '@/types/database';
 
@@ -136,6 +139,20 @@ export async function startUploadQueue(userId: string): Promise<UploadQueue> {
     isOnline,
     upload: uploadItem,
     cleanup: cleanupItem,
+    onSent: (item) => {
+      if (item.kind === 'media') {
+        track('photo_sent', {
+          media_type: item.mediaType,
+          delay_bucket: delayBucket(item.createdAt, new Date()),
+        });
+      }
+    },
+    onFailed: (item) =>
+      // The error text comes from Supabase (status and code), not from the item's content.
+      reportError(new Error(`Upload gave up: ${item.lastError ?? 'unknown error'}`), {
+        kind: item.kind,
+        attempts: item.attempts,
+      }),
     now: () => new Date(),
   });
 

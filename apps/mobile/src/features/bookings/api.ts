@@ -1,3 +1,4 @@
+import { track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 
 import type { RequestBookingArgs } from './schemas';
@@ -35,6 +36,11 @@ export type OwnerBooking = Awaited<ReturnType<typeof fetchOwnerBookings>>[number
 export async function requestBooking(args: RequestBookingArgs): Promise<string> {
   const { data, error } = await supabase.rpc('request_booking', args);
   if (error) throw error;
+  track('booking_created', {
+    service_type: args.p_service_type,
+    pet_count: args.p_pet_ids.length,
+    recurring: !!args.p_recurrence_rule,
+  });
   return data;
 }
 
