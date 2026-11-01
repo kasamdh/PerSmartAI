@@ -203,6 +203,7 @@ describe('alert settings', () => {
       'incident',
       'late_check_in',
       'food_refused',
+      'messages',
       'booking_updates',
     ]);
     expect(alertKindsFor('sitter').map((k) => k.kind)).toEqual([
@@ -210,6 +211,7 @@ describe('alert settings', () => {
       'visit_changed',
       'visit_reminder',
       'medication_due',
+      'messages',
       'booking_updates',
     ]);
     expect(alertKindsFor('admin').map((k) => k.kind)).toEqual([
@@ -217,6 +219,7 @@ describe('alert settings', () => {
       'late_check_in',
       'food_refused',
       'booking_request',
+      'messages',
       'booking_updates',
     ]);
     expect(ALERT_KINDS.incident.locked).toBe(true);

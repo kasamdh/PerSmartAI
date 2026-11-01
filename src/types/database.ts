@@ -257,6 +257,50 @@ export type Database = {
           },
         ];
       };
+      conversation_reads: {
+        Row: {
+          household_id: string;
+          organization_id: string;
+          read_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          household_id: string;
+          organization_id?: string;
+          read_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          household_id?: string;
+          organization_id?: string;
+          read_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'conversation_reads_household_id_organization_id_fkey';
+            columns: ['household_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'conversation_reads_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversation_reads_user_id_organization_id_fkey';
+            columns: ['user_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
       emergency_contacts: {
         Row: {
           created_at: string;
@@ -798,9 +842,11 @@ export type Database = {
           created_at: string;
           household_id: string;
           id: string;
-          media_id: string | null;
           organization_id: string;
-          read_at: string | null;
+          photo_height: number | null;
+          photo_path: string | null;
+          photo_thumb_path: string | null;
+          photo_width: number | null;
           sender_id: string | null;
           updated_at: string;
         };
@@ -810,9 +856,11 @@ export type Database = {
           created_at?: string;
           household_id: string;
           id?: string;
-          media_id?: string | null;
           organization_id?: string;
-          read_at?: string | null;
+          photo_height?: number | null;
+          photo_path?: string | null;
+          photo_thumb_path?: string | null;
+          photo_width?: number | null;
           sender_id?: string | null;
           updated_at?: string;
         };
@@ -821,9 +869,11 @@ export type Database = {
           created_at?: string;
           household_id?: string;
           id?: string;
-          media_id?: string | null;
           organization_id?: string;
-          read_at?: string | null;
+          photo_height?: number | null;
+          photo_path?: string | null;
+          photo_thumb_path?: string | null;
+          photo_width?: number | null;
           sender_id?: string | null;
           updated_at?: string;
         };
@@ -833,13 +883,6 @@ export type Database = {
             columns: ['household_id', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'households';
-            referencedColumns: ['id', 'organization_id'];
-          },
-          {
-            foreignKeyName: 'messages_media_id_organization_id_fkey';
-            columns: ['media_id', 'organization_id'];
-            isOneToOne: false;
-            referencedRelation: 'media';
             referencedColumns: ['id', 'organization_id'];
           },
           {
@@ -1600,6 +1643,19 @@ export type Database = {
           thumb_path: string;
         }[];
       };
+      my_conversations: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          household_id: string;
+          household_name: string;
+          last_message_at: string;
+          last_message_body: string;
+          last_message_has_photo: boolean;
+          last_sender_name: string;
+          owner_name: string;
+          unread: number;
+        }[];
+      };
       request_booking: {
         Args: {
           p_care_times?: Json;
@@ -1629,6 +1685,7 @@ export type Database = {
       };
       set_primary_emergency_contact: { Args: { p_contact_id: string }; Returns: undefined };
       store_generated_visits: { Args: { p_booking_id: string; p_visits: Json }; Returns: Json };
+      unread_message_count: { Args: Record<PropertyKey, never>; Returns: number };
       update_visit_schedule: {
         Args: { p_end?: string; p_sitter_id?: string; p_start?: string; p_visit_id: string };
         Returns: undefined;

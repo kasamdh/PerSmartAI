@@ -2,7 +2,8 @@
 // private.invoke_edge_function with the service_role JWT.
 //
 //   { job: 'photos' }  every minute: one "Max: 4 new photos" alert per visit, at
-//                      most every 5 minutes (decidePhotoAlert)
+//                      most every 5 minutes (decidePhotoAlert), and chat messages
+//                      that arrived within a minute of the last chat alert
 //   { job: 'checks' }  every 5 minutes: sitter reminders 30 minutes before visits,
 //                      late check-ins (owner and admins), medication due during stays
 //
@@ -12,6 +13,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 import { loadVisitPeople } from '../_shared/alert-context.ts';
+import { sendChatAlerts } from '../_shared/chat-delivery.ts';
 import {
   decidePhotoAlert,
   lateCheckIns,
@@ -131,6 +133,24 @@ async function photosJob(supabase: Client, now: Date) {
     alerts++;
   }
   return { visits: byVisit.size, alerts };
+}
+
+/** Conversations with messages in the last few minutes that no alert covered yet. */
+async function messagesJob(supabase: Client, now: Date) {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('household_id')
+    .gt('created_at', new Date(now.getTime() - 10 * 60_000).toISOString());
+  if (error) throw error;
+  let sent = 0;
+  for (const householdId of new Set(data.map((m) => m.household_id))) {
+    try {
+      sent += (await sendChatAlerts(supabase, householdId, now)).sent;
+    } catch (e) {
+      console.error(`alert-checks: messages for household ${householdId}`, e);
+    }
+  }
+  return { sent };
 }
 
 async function checksJob(supabase: Client, now: Date) {
@@ -303,7 +323,12 @@ Deno.serve(async (req) => {
   );
   const now = new Date();
   try {
-    if (body.job === 'photos') return json(await photosJob(supabase, now));
+    if (body.job === 'photos') {
+      return json({
+        photos: await photosJob(supabase, now),
+        messages: await messagesJob(supabase, now),
+      });
+    }
     if (body.job === 'checks') return json(await checksJob(supabase, now));
     return json({ error: 'Unknown job' }, 400);
   } catch (error) {

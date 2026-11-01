@@ -9,6 +9,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 import { adminIds, loadVisitPeople } from '../_shared/alert-context.ts';
+import { sendChatAlerts } from '../_shared/chat-delivery.ts';
 import type { Database } from '../_shared/database.ts';
 import {
   isServiceRole,
@@ -44,7 +45,7 @@ const VISIT_ALERT_EVENTS = [
   'food_refused',
 ];
 
-type Event = { type?: unknown; visit_id?: unknown; booking_id?: unknown };
+type Event = { type?: unknown; visit_id?: unknown; booking_id?: unknown; household_id?: unknown };
 
 async function visitDelivery(supabase: Client, event: PushEvent): Promise<Delivery> {
   const people = await loadVisitPeople(supabase, event.visit_id);
@@ -166,6 +167,16 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { persistSession: false } },
   );
+
+  // Chat: sent at once unless the conversation had an alert in the last minute
+  // (then alert-checks batches it).
+  if (event?.type === 'message' && typeof event.household_id === 'string') {
+    try {
+      return json(await sendChatAlerts(supabase, event.household_id, new Date()));
+    } catch (error) {
+      return json({ error: (error as Error).message }, 500);
+    }
+  }
 
   const pending = event ? route(supabase, event) : null;
   if (!pending) return json({ error: 'Invalid event' }, 400);

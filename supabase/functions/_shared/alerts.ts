@@ -71,6 +71,11 @@ export const ALERT_KINDS = {
     description: 'During overnight and multi-day stays.',
     roles: ['sitter'],
   },
+  messages: {
+    label: 'Messages',
+    description: 'New chat messages, batched when several arrive quickly.',
+    roles: ['owner', 'sitter', 'admin'],
+  },
   booking_updates: {
     label: 'Booking updates',
     description: 'Confirmed, declined or cancelled bookings.',
@@ -89,6 +94,7 @@ const ROLE_ORDER: Record<AlertRole, AlertKind[]> = {
     'incident',
     'late_check_in',
     'food_refused',
+    'messages',
     'booking_updates',
   ],
   sitter: [
@@ -96,9 +102,17 @@ const ROLE_ORDER: Record<AlertRole, AlertKind[]> = {
     'visit_changed',
     'visit_reminder',
     'medication_due',
+    'messages',
     'booking_updates',
   ],
-  admin: ['incident', 'late_check_in', 'food_refused', 'booking_request', 'booking_updates'],
+  admin: [
+    'incident',
+    'late_check_in',
+    'food_refused',
+    'booking_request',
+    'messages',
+    'booking_updates',
+  ],
 };
 
 export function alertKindsFor(role: AlertRole) {
