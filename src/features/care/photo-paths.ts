@@ -1,8 +1,8 @@
 export { base64ToArrayBuffer, targetWidth } from '@/lib/image-utils';
 
 export const PET_MEDIA_BUCKET = 'pet-media';
-export const PHOTO_MAX_WIDTH = 1600;
-export const THUMB_WIDTH = 400;
+// Same sizes as the sitter's photo queue (src/features/media/media-logic.ts).
+export { PHOTO_MAX_WIDTH, THUMB_WIDTH } from '@/features/media/media-logic';
 
 /**
  * Storage paths for a visit photo and its thumbnail. Must match the storage

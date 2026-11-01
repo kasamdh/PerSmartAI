@@ -203,7 +203,7 @@ export async function uploadVisitPhoto(input: {
 }): Promise<string> {
   const [full, thumb] = await Promise.all([
     renderJpeg(input.uri, input.width, PHOTO_MAX_WIDTH, 0.7),
-    renderJpeg(input.uri, input.width, THUMB_WIDTH, 0.6),
+    renderJpeg(input.uri, input.width, THUMB_WIDTH, 0.7),
   ]);
   const { storagePath, thumbPath } = buildPhotoPaths(input.organizationId, input.visitId);
   const bucket = supabase.storage.from(PET_MEDIA_BUCKET);
