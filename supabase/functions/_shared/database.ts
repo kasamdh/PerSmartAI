@@ -543,6 +543,9 @@ export type Database = {
           media_id: string | null;
           organization_id: string;
           pet_id: string | null;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
           severity: Database['public']['Enums']['incident_severity'];
           updated_at: string;
           visit_id: string;
@@ -557,6 +560,9 @@ export type Database = {
           media_id?: string | null;
           organization_id?: string;
           pet_id?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
           severity: Database['public']['Enums']['incident_severity'];
           updated_at?: string;
           visit_id: string;
@@ -570,6 +576,9 @@ export type Database = {
           media_id?: string | null;
           organization_id?: string;
           pet_id?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
           severity?: Database['public']['Enums']['incident_severity'];
           updated_at?: string;
           visit_id?: string;
@@ -601,6 +610,13 @@ export type Database = {
             columns: ['pet_id', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'pets';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'incidents_resolved_by_fkey';
+            columns: ['resolved_by', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id', 'organization_id'];
           },
           {
@@ -992,35 +1008,44 @@ export type Database = {
       };
       organizations: {
         Row: {
+          accent_color: string | null;
           cancellation_cutoff_hours: number;
           created_at: string;
           id: string;
+          logo_path: string | null;
           logo_url: string | null;
           media_retention_months: number | null;
           name: string;
+          primary_color: string | null;
           timezone: string;
           travel_buffer_minutes: number;
           updated_at: string;
         };
         ComputedFields: never;
         Insert: {
+          accent_color?: string | null;
           cancellation_cutoff_hours?: number;
           created_at?: string;
           id?: string;
+          logo_path?: string | null;
           logo_url?: string | null;
           media_retention_months?: number | null;
           name: string;
+          primary_color?: string | null;
           timezone?: string;
           travel_buffer_minutes?: number;
           updated_at?: string;
         };
         Update: {
+          accent_color?: string | null;
           cancellation_cutoff_hours?: number;
           created_at?: string;
           id?: string;
+          logo_path?: string | null;
           logo_url?: string | null;
           media_retention_months?: number | null;
           name?: string;
+          primary_color?: string | null;
           timezone?: string;
           travel_buffer_minutes?: number;
           updated_at?: string;
