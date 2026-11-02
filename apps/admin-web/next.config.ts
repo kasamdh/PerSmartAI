@@ -6,13 +6,17 @@ import type { NextConfig } from 'next';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:54321';
 const supabaseWs = supabaseUrl.replace(/^http/, 'ws');
 
+// React uses eval() in development only (to rebuild error call stacks); the
+// production build never does, so 'unsafe-eval' is allowed in `next dev` only.
+const isDev = process.env.NODE_ENV !== 'production';
+
 // Next needs inline scripts for hydration unless every page uses a nonce, so
 // script-src keeps 'unsafe-inline'; the rest is locked to this site, Supabase
 // and Sentry. frame-ancestors stops clickjacking of the admin site.
 const csp = [
   "default-src 'self'",
   // Cloudflare Turnstile (sign-in security check) loads a script and an iframe.
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com`,
   'frame-src https://challenges.cloudflare.com',
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabaseUrl}`,
