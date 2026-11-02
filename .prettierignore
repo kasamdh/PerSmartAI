@@ -5,3 +5,6 @@ android/
 ios/
 supabase/.temp/
 package-lock.json
+.turbo/
+.next/
+next-env.d.ts

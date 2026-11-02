@@ -162,7 +162,7 @@ site_url = "http://127.0.0.1:3000"
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 # App deep links (dev builds use petsitter://, Expo Go uses exp://). Add the same in the hosted dashboard.
-additional_redirect_urls = ["https://127.0.0.1:3000", "petsitter://**", "exp://**"]
+additional_redirect_urls = ["https://127.0.0.1:3000", "http://localhost:3001/**", "petsitter://**", "petsitter-development://**", "petsitter-preview://**", "exp://**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -181,7 +181,7 @@ enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-minimum_password_length = 6
+minimum_password_length = 8
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
 password_requirements = ""
@@ -206,17 +206,22 @@ anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
-sign_in_sign_ups = 30
+sign_in_sign_ups = 15
 # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
-token_verifications = 30
+token_verifications = 15
 # Number of Web3 logins that can be made in a 5 minute interval per IP address.
 web3 = 30
 
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-# [auth.captcha]
-# enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# Sign-in, sign-up, emailed codes and password reset need a Turnstile token when on.
+# Off locally so dev tools and tests can sign in; on in staging/production (dashboard).
+# To try it locally: enabled = true and secret = "1x0000000000000000000000000000000AA"
+# (Cloudflare's always-pass test secret; the apps then need the test site key
+# 1x00000000000000000000AA).
+[auth.captcha]
+enabled = false
+provider = "turnstile"
+secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
@@ -227,13 +232,13 @@ double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
-secure_password_change = false
+secure_password_change = true
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "1s"
 # Number of characters used in the email OTP.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
-otp_expiry = 3600
+otp_expiry = 900
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
@@ -247,11 +252,11 @@ otp_expiry = 3600
 
 # Uncomment to customize email template
 [auth.email.template.magic_link]
-subject = "Your Pet Sitter sign-in code"
+subject = "Your Petsitters sign-in code"
 content_path = "./supabase/templates/magic-link.html"
 
 [auth.email.template.recovery]
-subject = "Reset your Pet Sitter password"
+subject = "Reset your Petsitters password"
 content_path = "./supabase/templates/recovery.html"
 
 # [auth.email.template.invite]
@@ -311,8 +316,8 @@ max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]

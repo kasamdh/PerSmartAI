@@ -1,0 +1,22 @@
+# Owner requests a drop-in (defaults: tomorrow, 09:00, 30 min) and sees it waiting.
+appId: ${APP_ID}
+name: Create booking
+tags: [owner]
+---
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      EMAIL: 'rudradh@gmail.com'
+      PASSWORD: 'password123'
+- tapOn: 'Book a visit'
+- assertVisible: 'Which pets?'
+- tapOn: 'Biscuit'
+- tapOn: 'Drop-in'
+- tapOn: 'Just once'
+- scrollUntilVisible:
+    element: 'Send request'
+    direction: DOWN
+- tapOn: 'Send request'
+- extendedWaitUntil:
+    visible: 'Waiting for confirmation'
+    timeout: 15000

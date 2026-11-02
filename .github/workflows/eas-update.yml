@@ -1,0 +1,50 @@
+name: EAS Update
+
+# JS-only changes reach installed apps without a store release. Merges to main go
+# to the preview channel; production is published by hand from a tested commit.
+# Native changes (new libraries, app.config changes) change the fingerprint
+# runtime version, so old builds never receive an update they can't run.
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/mobile/**', 'packages/shared/**']
+  workflow_dispatch:
+    inputs:
+      channel:
+        type: choice
+        options: [preview, production]
+        default: preview
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.channel || 'preview' }}
+    env:
+      CHANNEL: ${{ inputs.channel || 'preview' }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: petsitter
+      SENTRY_PROJECT: petsitter-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Publish update
+        working-directory: apps/mobile
+        run: >
+          APP_VARIANT=$CHANNEL eas update --channel "$CHANNEL" --environment "$CHANNEL"
+          --message "${{ github.event.head_commit.message || 'Manual update' }}" --non-interactive
+      - name: Upload source maps to Sentry
+        working-directory: apps/mobile
+        run: npx sentry-expo-upload-sourcemaps dist

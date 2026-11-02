@@ -28,7 +28,7 @@ insert into public.pets (id, organization_id, household_id, name, species) value
   ('f1000000-0000-4000-8000-0000000000e1', 'f1000000-0000-4000-8000-000000000001', 'f1000000-0000-4000-8000-0000000000d1', 'Pip', 'dog');
 
 create function pg_temp.sign_in(p_user_id uuid) returns void language sql as $$
-  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated')::text, true);
+  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- Booking events queued so far, oldest first.
@@ -60,8 +60,8 @@ select results_eq(
 
 select pg_temp.sign_in('f1000000-0000-4000-8000-0000000000a1');
 set local role authenticated;
-select public.confirm_booking((select id from req), 'f1000000-0000-4000-8000-0000000000b1');
-select public.confirm_booking((select id from req), 'f1000000-0000-4000-8000-0000000000b1');
+select public.apply_booking_plan((select id from req), 'f1000000-0000-4000-8000-0000000000b1', '[]'::jsonb);
+select public.apply_booking_plan((select id from req), 'f1000000-0000-4000-8000-0000000000b1', '[]'::jsonb);
 update public.bookings set status = 'declined' where id = (select declined from req);
 reset role;
 
@@ -100,8 +100,8 @@ select is(
 
 select is(
   (select count(*)::int from pg_temp.booking_events()),
-  5,
-  'nothing else was queued (2 requests, confirm, decline, cancel)'
+  6,
+  'nothing else was queued (2 requests, confirm, the sitter''s assignment, decline, cancel)'
 );
 
 select * from finish();

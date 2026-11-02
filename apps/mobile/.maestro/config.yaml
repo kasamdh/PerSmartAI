@@ -1,0 +1,18 @@
+# Maestro end-to-end flows. They run against the seeded local Supabase (or a
+# freshly seeded staging copy) in this order; 04 depends on 03.
+#
+#   npm run db:reset                                   # fresh seed (visits relative to now)
+#   eas build --profile e2e --platform android         # or a local dev build
+#   maestro test -e APP_ID=com.kasamdh.petsitter.preview apps/mobile/.maestro
+#
+# The app must point at a backend the emulator can reach (Android emulator:
+# http://10.0.2.2:54321 for local Supabase).
+flows:
+  - '0*.yaml'
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - 01-login
+    - 02-create-booking
+    - 03-sitter-visit
+    - 04-owner-report-card

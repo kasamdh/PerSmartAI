@@ -1,8 +1,60 @@
+// GENERATED from packages/shared/src/database.ts by scripts/sync-shared.mjs. Do not edit;
+// change the source and run `npm run shared:sync`.
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   public: {
     Tables: {
+      booking_care_times: {
+        Row: {
+          booking_id: string;
+          care_time: string;
+          created_at: string;
+          duration_minutes: number;
+          id: string;
+          label: string;
+          organization_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          care_time: string;
+          created_at?: string;
+          duration_minutes?: number;
+          id?: string;
+          label: string;
+          organization_id?: string;
+          updated_at?: string;
+        };
+        Update: {
+          booking_id?: string;
+          care_time?: string;
+          created_at?: string;
+          duration_minutes?: number;
+          id?: string;
+          label?: string;
+          organization_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'booking_care_times_booking_id_organization_id_fkey';
+            columns: ['booking_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'bookings';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'booking_care_times_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       booking_pets: {
         Row: {
           booking_id: string;
@@ -55,14 +107,17 @@ export type Database = {
       };
       bookings: {
         Row: {
+          cancelled_at: string | null;
           created_at: string;
           duration_minutes: number | null;
           end_date: string | null;
           household_id: string;
           id: string;
+          late_cancellation: boolean;
           notes: string | null;
           organization_id: string;
           recurrence_rule: string | null;
+          series_id: string;
           service_type: Database['public']['Enums']['service_type'];
           sitter_id: string | null;
           start_date: string;
@@ -73,14 +128,17 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          cancelled_at?: string | null;
           created_at?: string;
           duration_minutes?: number | null;
           end_date?: string | null;
           household_id: string;
           id?: string;
+          late_cancellation?: boolean;
           notes?: string | null;
           organization_id?: string;
           recurrence_rule?: string | null;
+          series_id: string;
           service_type: Database['public']['Enums']['service_type'];
           sitter_id?: string | null;
           start_date: string;
@@ -90,14 +148,17 @@ export type Database = {
           window_start?: string | null;
         };
         Update: {
+          cancelled_at?: string | null;
           created_at?: string;
           duration_minutes?: number | null;
           end_date?: string | null;
           household_id?: string;
           id?: string;
+          late_cancellation?: boolean;
           notes?: string | null;
           organization_id?: string;
           recurrence_rule?: string | null;
+          series_id?: string;
           service_type?: Database['public']['Enums']['service_type'];
           sitter_id?: string | null;
           start_date?: string;
@@ -195,6 +256,50 @@ export type Database = {
             columns: ['visit_id', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'visits';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
+      conversation_reads: {
+        Row: {
+          household_id: string;
+          organization_id: string;
+          read_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          household_id: string;
+          organization_id?: string;
+          read_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          household_id?: string;
+          organization_id?: string;
+          read_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'conversation_reads_household_id_organization_id_fkey';
+            columns: ['household_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'households';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'conversation_reads_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'conversation_reads_user_id_organization_id_fkey';
+            columns: ['user_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id', 'organization_id'];
           },
         ];
@@ -435,8 +540,12 @@ export type Database = {
           created_by: string | null;
           description: string;
           id: string;
+          media_id: string | null;
           organization_id: string;
           pet_id: string | null;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
           severity: Database['public']['Enums']['incident_severity'];
           updated_at: string;
           visit_id: string;
@@ -448,8 +557,12 @@ export type Database = {
           created_by?: string | null;
           description: string;
           id?: string;
+          media_id?: string | null;
           organization_id?: string;
           pet_id?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
           severity: Database['public']['Enums']['incident_severity'];
           updated_at?: string;
           visit_id: string;
@@ -460,8 +573,12 @@ export type Database = {
           created_by?: string | null;
           description?: string;
           id?: string;
+          media_id?: string | null;
           organization_id?: string;
           pet_id?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
           severity?: Database['public']['Enums']['incident_severity'];
           updated_at?: string;
           visit_id?: string;
@@ -472,6 +589,13 @@ export type Database = {
             columns: ['created_by', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'incidents_media_fkey';
+            columns: ['media_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
             referencedColumns: ['id', 'organization_id'];
           },
           {
@@ -486,6 +610,13 @@ export type Database = {
             columns: ['pet_id', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'pets';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'incidents_resolved_by_fkey';
+            columns: ['resolved_by', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id', 'organization_id'];
           },
           {
@@ -560,6 +691,8 @@ export type Database = {
           caption: string | null;
           created_at: string;
           created_by: string | null;
+          duration_seconds: number | null;
+          height: number | null;
           id: string;
           organization_id: string;
           pet_id: string | null;
@@ -568,12 +701,15 @@ export type Database = {
           type: Database['public']['Enums']['media_type'];
           updated_at: string;
           visit_id: string;
+          width: number | null;
         };
         ComputedFields: never;
         Insert: {
           caption?: string | null;
           created_at?: string;
           created_by?: string | null;
+          duration_seconds?: number | null;
+          height?: number | null;
           id?: string;
           organization_id?: string;
           pet_id?: string | null;
@@ -582,11 +718,14 @@ export type Database = {
           type: Database['public']['Enums']['media_type'];
           updated_at?: string;
           visit_id: string;
+          width?: number | null;
         };
         Update: {
           caption?: string | null;
           created_at?: string;
           created_by?: string | null;
+          duration_seconds?: number | null;
+          height?: number | null;
           id?: string;
           organization_id?: string;
           pet_id?: string | null;
@@ -595,6 +734,7 @@ export type Database = {
           type?: Database['public']['Enums']['media_type'];
           updated_at?: string;
           visit_id?: string;
+          width?: number | null;
         };
         Relationships: [
           {
@@ -627,15 +767,105 @@ export type Database = {
           },
         ];
       };
+      media_pets: {
+        Row: {
+          created_at: string;
+          media_id: string;
+          organization_id: string;
+          pet_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          media_id: string;
+          organization_id?: string;
+          pet_id: string;
+        };
+        Update: {
+          created_at?: string;
+          media_id?: string;
+          organization_id?: string;
+          pet_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'media_pets_media_id_organization_id_fkey';
+            columns: ['media_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'media_pets_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'media_pets_pet_id_organization_id_fkey';
+            columns: ['pet_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'pets';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
+      media_reactions: {
+        Row: {
+          created_at: string;
+          media_id: string;
+          organization_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          media_id: string;
+          organization_id?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          media_id?: string;
+          organization_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'media_reactions_media_id_organization_id_fkey';
+            columns: ['media_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'media_reactions_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'media_reactions_user_id_organization_id_fkey';
+            columns: ['user_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
       messages: {
         Row: {
           body: string | null;
           created_at: string;
           household_id: string;
           id: string;
-          media_id: string | null;
           organization_id: string;
-          read_at: string | null;
+          photo_height: number | null;
+          photo_path: string | null;
+          photo_thumb_path: string | null;
+          photo_width: number | null;
           sender_id: string | null;
           updated_at: string;
         };
@@ -645,9 +875,11 @@ export type Database = {
           created_at?: string;
           household_id: string;
           id?: string;
-          media_id?: string | null;
           organization_id?: string;
-          read_at?: string | null;
+          photo_height?: number | null;
+          photo_path?: string | null;
+          photo_thumb_path?: string | null;
+          photo_width?: number | null;
           sender_id?: string | null;
           updated_at?: string;
         };
@@ -656,9 +888,11 @@ export type Database = {
           created_at?: string;
           household_id?: string;
           id?: string;
-          media_id?: string | null;
           organization_id?: string;
-          read_at?: string | null;
+          photo_height?: number | null;
+          photo_path?: string | null;
+          photo_thumb_path?: string | null;
+          photo_width?: number | null;
           sender_id?: string | null;
           updated_at?: string;
         };
@@ -668,13 +902,6 @@ export type Database = {
             columns: ['household_id', 'organization_id'];
             isOneToOne: false;
             referencedRelation: 'households';
-            referencedColumns: ['id', 'organization_id'];
-          },
-          {
-            foreignKeyName: 'messages_media_id_organization_id_fkey';
-            columns: ['media_id', 'organization_id'];
-            isOneToOne: false;
-            referencedRelation: 'media';
             referencedColumns: ['id', 'organization_id'];
           },
           {
@@ -693,30 +920,134 @@ export type Database = {
           },
         ];
       };
-      organizations: {
+      notification_log: {
+        Row: {
+          covered_until: string | null;
+          id: string;
+          key: string;
+          kind: string;
+          organization_id: string;
+          sent_at: string;
+          visit_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          covered_until?: string | null;
+          id?: string;
+          key: string;
+          kind: string;
+          organization_id: string;
+          sent_at?: string;
+          visit_id?: string | null;
+        };
+        Update: {
+          covered_until?: string | null;
+          id?: string;
+          key?: string;
+          kind?: string;
+          organization_id?: string;
+          sent_at?: string;
+          visit_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_log_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notification_log_visit_id_organization_id_fkey';
+            columns: ['visit_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'visits';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
+      notification_settings: {
         Row: {
           created_at: string;
-          id: string;
-          logo_url: string | null;
-          name: string;
-          timezone: string;
+          muted: string[];
+          organization_id: string;
           updated_at: string;
+          user_id: string;
         };
         ComputedFields: never;
         Insert: {
           created_at?: string;
-          id?: string;
-          logo_url?: string | null;
-          name: string;
-          timezone?: string;
+          muted?: string[];
+          organization_id?: string;
           updated_at?: string;
+          user_id: string;
         };
         Update: {
           created_at?: string;
+          muted?: string[];
+          organization_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_settings_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notification_settings_user_id_organization_id_fkey';
+            columns: ['user_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
+      organizations: {
+        Row: {
+          accent_color: string | null;
+          cancellation_cutoff_hours: number;
+          created_at: string;
+          id: string;
+          logo_path: string | null;
+          logo_url: string | null;
+          media_retention_months: number | null;
+          name: string;
+          primary_color: string | null;
+          timezone: string;
+          travel_buffer_minutes: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          accent_color?: string | null;
+          cancellation_cutoff_hours?: number;
+          created_at?: string;
           id?: string;
+          logo_path?: string | null;
           logo_url?: string | null;
-          name?: string;
+          media_retention_months?: number | null;
+          name: string;
+          primary_color?: string | null;
           timezone?: string;
+          travel_buffer_minutes?: number;
+          updated_at?: string;
+        };
+        Update: {
+          accent_color?: string | null;
+          cancellation_cutoff_hours?: number;
+          created_at?: string;
+          id?: string;
+          logo_path?: string | null;
+          logo_url?: string | null;
+          media_retention_months?: number | null;
+          name?: string;
+          primary_color?: string | null;
+          timezone?: string;
+          travel_buffer_minutes?: number;
           updated_at?: string;
         };
         Relationships: [];
@@ -989,6 +1320,80 @@ export type Database = {
           },
         ];
       };
+      schedule_change_requests: {
+        Row: {
+          booking_id: string;
+          changes: NonNullable<Json>;
+          created_at: string;
+          decided_at: string | null;
+          decline_reason: string | null;
+          from_date: string | null;
+          id: string;
+          note: string | null;
+          organization_id: string;
+          requested_by: string | null;
+          scope: string;
+          status: Database['public']['Enums']['change_request_status'];
+          updated_at: string;
+          visit_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          changes: NonNullable<Json>;
+          created_at?: string;
+          decided_at?: string | null;
+          decline_reason?: string | null;
+          from_date?: string | null;
+          id?: string;
+          note?: string | null;
+          organization_id?: string;
+          requested_by?: string | null;
+          scope: string;
+          status?: Database['public']['Enums']['change_request_status'];
+          updated_at?: string;
+          visit_id?: string | null;
+        };
+        Update: {
+          booking_id?: string;
+          changes?: NonNullable<Json>;
+          created_at?: string;
+          decided_at?: string | null;
+          decline_reason?: string | null;
+          from_date?: string | null;
+          id?: string;
+          note?: string | null;
+          organization_id?: string;
+          requested_by?: string | null;
+          scope?: string;
+          status?: Database['public']['Enums']['change_request_status'];
+          updated_at?: string;
+          visit_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'schedule_change_requests_booking_id_organization_id_fkey';
+            columns: ['booking_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'bookings';
+            referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'schedule_change_requests_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'schedule_change_requests_visit_id_organization_id_fkey';
+            columns: ['visit_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'visits';
+            referencedColumns: ['id', 'organization_id'];
+          },
+        ];
+      };
       sitter_availability: {
         Row: {
           created_at: string;
@@ -1045,8 +1450,10 @@ export type Database = {
           id: string;
           organization_id: string;
           reason: string | null;
+          reviewed_at: string | null;
           sitter_id: string;
           start_at: string;
+          status: Database['public']['Enums']['time_off_status'];
           updated_at: string;
         };
         ComputedFields: never;
@@ -1056,8 +1463,10 @@ export type Database = {
           id?: string;
           organization_id?: string;
           reason?: string | null;
+          reviewed_at?: string | null;
           sitter_id: string;
           start_at: string;
+          status?: Database['public']['Enums']['time_off_status'];
           updated_at?: string;
         };
         Update: {
@@ -1066,8 +1475,10 @@ export type Database = {
           id?: string;
           organization_id?: string;
           reason?: string | null;
+          reviewed_at?: string | null;
           sitter_id?: string;
           start_at?: string;
+          status?: Database['public']['Enums']['time_off_status'];
           updated_at?: string;
         };
         Relationships: [
@@ -1090,6 +1501,8 @@ export type Database = {
       visits: {
         Row: {
           booking_id: string;
+          cancelled_at: string | null;
+          care_time_id: string | null;
           check_in_at: string | null;
           check_in_lat: number | null;
           check_in_lng: number | null;
@@ -1098,17 +1511,24 @@ export type Database = {
           check_out_lng: number | null;
           created_at: string;
           id: string;
+          late_cancellation: boolean;
+          on_the_way_at: string | null;
           organization_id: string;
           scheduled_end: string;
           scheduled_start: string;
           sitter_id: string | null;
+          slot_start: string;
+          started_at: string | null;
           status: Database['public']['Enums']['visit_status'];
+          status_line: string | null;
           summary_note: string | null;
           updated_at: string;
         };
         ComputedFields: never;
         Insert: {
           booking_id: string;
+          cancelled_at?: string | null;
+          care_time_id?: string | null;
           check_in_at?: string | null;
           check_in_lat?: number | null;
           check_in_lng?: number | null;
@@ -1117,16 +1537,23 @@ export type Database = {
           check_out_lng?: number | null;
           created_at?: string;
           id?: string;
+          late_cancellation?: boolean;
+          on_the_way_at?: string | null;
           organization_id?: string;
           scheduled_end: string;
           scheduled_start: string;
           sitter_id?: string | null;
+          slot_start: string;
+          started_at?: string | null;
           status?: Database['public']['Enums']['visit_status'];
+          status_line?: string | null;
           summary_note?: string | null;
           updated_at?: string;
         };
         Update: {
           booking_id?: string;
+          cancelled_at?: string | null;
+          care_time_id?: string | null;
           check_in_at?: string | null;
           check_in_lat?: number | null;
           check_in_lng?: number | null;
@@ -1135,11 +1562,16 @@ export type Database = {
           check_out_lng?: number | null;
           created_at?: string;
           id?: string;
+          late_cancellation?: boolean;
+          on_the_way_at?: string | null;
           organization_id?: string;
           scheduled_end?: string;
           scheduled_start?: string;
           sitter_id?: string | null;
+          slot_start?: string;
+          started_at?: string | null;
           status?: Database['public']['Enums']['visit_status'];
+          status_line?: string | null;
           summary_note?: string | null;
           updated_at?: string;
         };
@@ -1150,6 +1582,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'bookings';
             referencedColumns: ['id', 'organization_id'];
+          },
+          {
+            foreignKeyName: 'visits_care_time_fkey';
+            columns: ['care_time_id', 'booking_id', 'organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'booking_care_times';
+            referencedColumns: ['id', 'booking_id', 'organization_id'];
           },
           {
             foreignKeyName: 'visits_organization_id_fkey';
@@ -1172,6 +1611,50 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      advance_visit: {
+        Args: {
+          p_lat?: number;
+          p_lng?: number;
+          p_status: Database['public']['Enums']['visit_status'];
+          p_summary?: string;
+          p_visit_id: string;
+        };
+        Returns: {
+          booking_id: string;
+          cancelled_at: string | null;
+          care_time_id: string | null;
+          check_in_at: string | null;
+          check_in_lat: number | null;
+          check_in_lng: number | null;
+          check_out_at: string | null;
+          check_out_lat: number | null;
+          check_out_lng: number | null;
+          created_at: string;
+          id: string;
+          late_cancellation: boolean;
+          on_the_way_at: string | null;
+          organization_id: string;
+          scheduled_end: string;
+          scheduled_start: string;
+          sitter_id: string | null;
+          slot_start: string;
+          started_at: string | null;
+          status: Database['public']['Enums']['visit_status'];
+          status_line: string | null;
+          summary_note: string | null;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'visits';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      apply_booking_plan: {
+        Args: { p_booking_id: string; p_end_date?: string; p_sitter_id: string; p_visits: Json };
+        Returns: number;
+      };
       check_invite: {
         Args: { p_code: string };
         Returns: {
@@ -1180,9 +1663,30 @@ export type Database = {
           role: Database['public']['Enums']['app_role'];
         }[];
       };
-      confirm_booking: { Args: { p_booking_id: string; p_sitter_id: string }; Returns: number };
+      list_expired_media: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          storage_path: string;
+          thumb_path: string;
+        }[];
+      };
+      my_conversations: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          household_id: string;
+          household_name: string;
+          last_message_at: string;
+          last_message_body: string;
+          last_message_has_photo: boolean;
+          last_sender_name: string;
+          owner_name: string;
+          unread: number;
+        }[];
+      };
       request_booking: {
         Args: {
+          p_care_times?: Json;
           p_duration_minutes?: number;
           p_end_date?: string;
           p_notes?: string;
@@ -1195,7 +1699,25 @@ export type Database = {
         };
         Returns: string;
       };
+      reschedule_booking: {
+        Args: {
+          p_booking_id: string;
+          p_care_times: Json;
+          p_carry?: Json;
+          p_from_date: string;
+          p_schedule: Json;
+          p_split: boolean;
+          p_visits: Json;
+        };
+        Returns: string;
+      };
       set_primary_emergency_contact: { Args: { p_contact_id: string }; Returns: undefined };
+      store_generated_visits: { Args: { p_booking_id: string; p_visits: Json }; Returns: Json };
+      unread_message_count: { Args: Record<PropertyKey, never>; Returns: number };
+      update_visit_schedule: {
+        Args: { p_end?: string; p_sitter_id?: string; p_start?: string; p_visit_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       allergy_severity: 'mild' | 'moderate' | 'severe';
@@ -1203,12 +1725,14 @@ export type Database = {
       booking_status: 'requested' | 'confirmed' | 'declined' | 'cancelled' | 'completed';
       care_event_type:
         'fed' | 'water' | 'pee' | 'poop' | 'walk' | 'meds_given' | 'play' | 'vomit' | 'note';
+      change_request_status: 'requested' | 'approved' | 'declined' | 'withdrawn';
       incident_severity: 'minor' | 'moderate' | 'severe' | 'emergency';
       media_type: 'photo' | 'video';
       pet_sex: 'male' | 'female' | 'unknown';
       pet_species: 'dog' | 'cat';
       push_platform: 'ios' | 'android' | 'web';
       service_type: 'drop_in' | 'walk' | 'overnight' | 'multi_day';
+      time_off_status: 'requested' | 'approved' | 'declined';
       visit_status:
         | 'scheduled'
         | 'on_the_way'
@@ -1342,12 +1866,14 @@ export const Constants = {
         'vomit',
         'note',
       ],
+      change_request_status: ['requested', 'approved', 'declined', 'withdrawn'],
       incident_severity: ['minor', 'moderate', 'severe', 'emergency'],
       media_type: ['photo', 'video'],
       pet_sex: ['male', 'female', 'unknown'],
       pet_species: ['dog', 'cat'],
       push_platform: ['ios', 'android', 'web'],
       service_type: ['drop_in', 'walk', 'overnight', 'multi_day'],
+      time_off_status: ['requested', 'approved', 'declined'],
       visit_status: [
         'scheduled',
         'on_the_way',

@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, types, unit tests, builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Public placeholders so the web build can run; never real keys.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # shared:check + lint + format:check + typecheck + unit tests (all workspaces)
+      - run: npm run check
+      - name: Build admin web
+        run: npm run web:build
+      - name: Bundle mobile (JS, no bytecode, so it can be scanned)
+        working-directory: apps/mobile
+        run: npx expo export --platform android --no-bytecode --output-dir ../../dist-mobile
+      - name: No secrets in client bundles
+        run: node scripts/check-bundle-secrets.mjs apps/admin-web/.next/static dist-mobile
+
+  database:
+    name: Supabase migrations, RLS tests, types
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Applied migrations are never edited
+        if: github.event_name == 'pull_request'
+        run: |
+          changed=$(git diff --name-only --diff-filter=MDR "origin/${{ github.base_ref }}"...HEAD -- supabase/migrations)
+          if [ -n "$changed" ]; then
+            echo "::error::Existing migrations were changed. Add a new migration instead:"
+            echo "$changed"
+            exit 1
+          fi
+      - name: Start Supabase (applies every migration and the seed from scratch)
+        run: npx supabase start -x studio,imgproxy,mailpit,logflare,vector,supavisor
+      - name: Lint the schema
+        run: npx supabase db lint --level error
+      - name: pgTAP tests (RLS isolation, security audit, business rules)
+        run: npx supabase test db
+      - name: Generated types match the schema
+        run: |
+          node scripts/gen-types.mjs
+          git diff --exit-code packages/shared/src/database.ts supabase/functions/_shared/database.ts
+
+  functions:
+    name: Edge Functions type check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: node scripts/check-functions.mjs
+
+  secrets:
+    name: Secret scan (git history)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        run: >
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.24.3
+          git /repo --config /repo/.gitleaks.toml --redact --verbose

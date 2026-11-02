@@ -43,7 +43,7 @@ insert into storage.objects (bucket_id, name, owner_id) values
   ('pet-media', 'e0000000-0000-4000-8000-000000000001/pets/e0000000-0000-4000-8000-0000000000e1/existing.jpg', 'e0000000-0000-4000-8000-0000000000c1');
 
 create function pg_temp.sign_in(p_user_id uuid) returns void language sql as $$
-  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated')::text, true);
+  select set_config('request.jwt.claims', json_build_object('sub', p_user_id, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 $$;
 
 -- Owner A ---------------------------------------------------------------------

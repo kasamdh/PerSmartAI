@@ -1,0 +1,21 @@
+# Owner opens the visit the sitter just finished (03-sitter-visit) and sees the
+# report card with the food logged and the sitter's note.
+appId: ${APP_ID}
+name: Owner sees report card
+tags: [owner]
+---
+- runFlow:
+    file: subflows/login.yaml
+    env:
+      EMAIL: 'rudradh@gmail.com'
+      PASSWORD: 'password123'
+- scrollUntilVisible:
+    element: '.*Maestro check-out.*'
+    direction: DOWN
+- tapOn: '.*Maestro check-out.*'
+- assertVisible: 'Report card'
+- assertVisible: 'Biscuit'
+- assertVisible: '.*Maestro check-out: Biscuit ate everything.*'
+- scrollUntilVisible:
+    element: "Biscuit's photos"
+    direction: DOWN

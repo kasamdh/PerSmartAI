@@ -2,7 +2,7 @@
 //
 // The caller is identified from their own JWT. Rules (see migration 20261031000006):
 //   owner  → auth user deleted; households, pets, bookings, visits, care logs cascade.
-//            Their visit photos and pet photos are removed from storage first.
+//            Their visit, pet and chat photos are removed from storage first.
 //   sitter → auth user deleted; visit history stays with the business, detached.
 //   admin  → refused while other members remain and no other admin exists.
 //            A solo admin's whole business (and its files) is deleted.
@@ -117,6 +117,8 @@ Deno.serve(async (req) => {
       for (const pet of h.pets) {
         paths.push(...(await listAll(admin, `${profile.organization_id}/pets/${pet.id}`)));
       }
+      // Photos sent in the household's chat (the message rows go with the household).
+      paths.push(...(await listAll(admin, `${profile.organization_id}/chat/${h.id}`)));
     }
     await removeFiles(admin, paths);
   }

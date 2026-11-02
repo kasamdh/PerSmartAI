@@ -1,0 +1,74 @@
+{
+  "cli": {
+    "version": ">= 27.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "node": "24.18.0",
+      "env": {
+        "SENTRY_ORG": "petsitter",
+        "SENTRY_MOBILE_PROJECT": "petsitter-mobile"
+      }
+    },
+    "development": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "environment": "development",
+      "env": {
+        "APP_VARIANT": "development",
+        "EXPO_PUBLIC_APP_ENV": "development"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "channel": "preview",
+      "environment": "preview",
+      "env": {
+        "APP_VARIANT": "preview",
+        "EXPO_PUBLIC_APP_ENV": "preview"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "e2e": {
+      "extends": "preview",
+      "channel": "e2e",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "production": {
+      "extends": "base",
+      "channel": "production",
+      "environment": "production",
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "production",
+        "EXPO_PUBLIC_APP_ENV": "production"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "SET_APP_STORE_CONNECT_APP_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./secrets/google-play-service-account.json",
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
+  }
+}

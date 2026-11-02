@@ -1,4 +1,4 @@
-# Pet Sitter App
+# Petsitters App
 
 Multi-tenant pet sitting app (Expo + Supabase). See [CLAUDE.md](CLAUDE.md) for product, stack, structure, and rules.
 

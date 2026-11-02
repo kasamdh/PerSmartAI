@@ -1,0 +1,15 @@
+# gitleaks (CI secret scan). Uses the default rules plus these allowances.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public local-development values"
+paths = [
+  # The local Supabase demo keys (identical on every machine, only valid against
+  # `supabase start`). Production keys live in Vault and EAS/GitHub secrets.
+  '''supabase/seed\.sql''',
+  '''(^|/)\.env\.example$''',
+  # Firebase client config: the API key is public by design (restricted in Google Cloud).
+  '''(^|/)google-services\.json$''',
+  '''package-lock\.json''',
+]

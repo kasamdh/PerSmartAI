@@ -1,109 +1,80 @@
-// notify-owner: sends Expo push notifications for visit and booking events.
+// notify-owner: sends Expo push notifications for visit, booking and sitter
+// schedule events. (The name predates sitter and admin alerts.)
 //
-// Called only by database triggers (private.send_push_event) with the service_role
-// JWT. The gateway verifies the JWT signature (verify_jwt = true); this function
-// additionally requires role = service_role so signed-in users can't trigger pushes.
+// Called only by database triggers (private.send_push_event, via pg_net) with the
+// service_role JWT. The gateway verifies the JWT signature (verify_jwt = true); this
+// function additionally requires role = service_role so users can't trigger pushes.
+// Each recipient's notification settings are honored by sendPush.
 
-import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
+import { adminIds, loadVisitPeople } from '../_shared/alert-context.ts';
+import { sendChatAlerts } from '../_shared/chat-delivery.ts';
 import type { Database } from '../_shared/database.ts';
+import {
+  isServiceRole,
+  json,
+  sendPush,
+  type Client,
+  type OutgoingPush,
+} from '../_shared/expo-push.ts';
 import {
   bookingRecipients,
   buildBookingPushMessage,
   buildPushMessage,
+  buildSitterBookingAlert,
+  buildVisitAlert,
+  pushKind,
   type BookingPushEvent,
   type PushEvent,
-  type PushMessage,
+  type SitterBookingEvent,
+  type VisitAlertEvent,
 } from '../_shared/push-messages.ts';
 
-const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+/** Messages and who gets each, or why nothing is sent. */
+type Delivery = { push: OutgoingPush; recipients: string[] }[] | { reason: string };
 
-type ExpoTicket = {
-  status: 'ok' | 'error';
-  id?: string;
-  message?: string;
-  details?: { error?: string };
-};
+const VISIT_EVENTS = ['visit_status', 'visit_photo', 'incident'];
+const BOOKING_EVENTS = ['booking_requested', 'booking_status', 'booking_cancelled'];
+const SITTER_BOOKING_EVENTS = ['booking_assigned', 'booking_unassigned', 'booking_changed'];
+const VISIT_ALERT_EVENTS = [
+  'visit_assigned',
+  'visit_unassigned',
+  'visit_changed',
+  'visit_cancelled',
+  'food_refused',
+];
 
-type Client = SupabaseClient<Database>;
-
-/** A message and who gets it, or why nothing is sent. */
-type Delivery = { message: PushMessage; recipients: string[] } | { reason: string };
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
-function isServiceRole(req: Request): boolean {
-  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') ?? '';
-  const payload = token.split('.')[1];
-  if (!payload) return false;
-  try {
-    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
-    return claims.role === 'service_role';
-  } catch {
-    return false;
-  }
-}
-
-function isPushEvent(value: unknown): value is PushEvent {
-  const v = value as Record<string, unknown> | null;
-  return (
-    !!v &&
-    typeof v.visit_id === 'string' &&
-    (v.type === 'visit_status' || v.type === 'visit_photo' || v.type === 'incident')
-  );
-}
-
-function isBookingPushEvent(value: unknown): value is BookingPushEvent {
-  const v = value as Record<string, unknown> | null;
-  return (
-    !!v &&
-    typeof v.booking_id === 'string' &&
-    (v.type === 'booking_requested' ||
-      (v.type === 'booking_status' && (v.status === 'confirmed' || v.status === 'declined')) ||
-      v.type === 'booking_cancelled')
-  );
-}
-
-async function adminIds(supabase: Client, organizationId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('organization_id', organizationId)
-    .eq('role', 'admin');
-  if (error) throw error;
-  return data.map((a) => a.id);
-}
+type Event = { type?: unknown; visit_id?: unknown; booking_id?: unknown; household_id?: unknown };
 
 async function visitDelivery(supabase: Client, event: PushEvent): Promise<Delivery> {
-  const { data: visit, error } = await supabase
-    .from('visits')
-    .select(
-      `organization_id,
-       sitter:profiles ( full_name ),
-       booking:bookings ( household:households ( owner_id ), booking_pets ( pet:pets ( name ) ) )`,
-    )
-    .eq('id', event.visit_id)
-    .maybeSingle();
-  if (error) throw error;
-  if (!visit) return { reason: 'visit not found' };
+  const people = await loadVisitPeople(supabase, event.visit_id);
+  if (!people) return { reason: 'visit not found' };
+  const message = buildPushMessage(event, people.context);
+  const kind = pushKind(event);
+  if (!message || !kind) return { reason: 'no message for this event' };
 
-  const message = buildPushMessage(event, {
-    sitterName: visit.sitter?.full_name ?? null,
-    petNames: visit.booking.booking_pets.flatMap((bp) => (bp.pet ? [bp.pet.name] : [])),
-  });
-  if (!message) return { reason: 'no message for this event' };
+  // Owners hear about everything; admins also hear about incidents, at once.
+  const recipients = [people.ownerId, ...(event.type === 'incident' ? people.adminIds : [])];
+  return [{ push: { ...message, kind }, recipients }];
+}
 
-  // Owners hear about everything; admins also hear about incidents.
-  const recipients = new Set([visit.booking.household.owner_id]);
-  if (event.type === 'incident') {
-    (await adminIds(supabase, visit.organization_id)).forEach((id) => recipients.add(id));
-  }
-  return { message, recipients: [...recipients] };
+async function visitAlertDelivery(supabase: Client, event: VisitAlertEvent): Promise<Delivery> {
+  const people = await loadVisitPeople(supabase, event.visit_id);
+  if (!people) return { reason: 'visit not found' };
+
+  const sitterId =
+    'sitter_id' in event && typeof event.sitter_id === 'string' ? event.sitter_id : people.sitterId;
+  const deliveries: { push: OutgoingPush; recipients: string[] }[] = [];
+  const add = (audience: 'owner' | 'sitter' | 'admin', recipients: (string | null)[]) => {
+    const message = buildVisitAlert(event, people.context, audience);
+    const ids = recipients.filter((id): id is string => !!id);
+    if (message && ids.length) deliveries.push({ push: message, recipients: ids });
+  };
+  add('owner', [people.ownerId]);
+  add('admin', people.adminIds);
+  add('sitter', [sitterId]);
+  return deliveries.length ? deliveries : { reason: 'no message for this event' };
 }
 
 async function bookingDelivery(supabase: Client, event: BookingPushEvent): Promise<Delivery> {
@@ -147,69 +118,76 @@ async function bookingDelivery(supabase: Client, event: BookingPushEvent): Promi
     startDate: booking.start_date,
     cancelledByOwner: event.type === 'booking_cancelled' && event.actor_id === ownerId,
   });
-  return { message, recipients };
+  return [{ push: { ...message, kind: pushKind(event)! }, recipients }];
+}
+
+async function sitterBookingDelivery(
+  supabase: Client,
+  event: SitterBookingEvent,
+): Promise<Delivery> {
+  const { data: booking, error } = await supabase
+    .from('bookings')
+    .select('service_type, start_date, booking_pets ( pet:pets ( name ) )')
+    .eq('id', event.booking_id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!booking) return { reason: 'booking not found' };
+  const push = buildSitterBookingAlert(event, {
+    petNames: booking.booking_pets.flatMap((bp) => (bp.pet ? [bp.pet.name] : [])),
+    serviceType: booking.service_type,
+    startDate: booking.start_date,
+  });
+  return [{ push, recipients: [event.sitter_id] }];
+}
+
+function route(supabase: Client, event: Event): Promise<Delivery> | null {
+  const type = typeof event.type === 'string' ? event.type : '';
+  if (VISIT_EVENTS.includes(type) && typeof event.visit_id === 'string') {
+    return visitDelivery(supabase, event as PushEvent);
+  }
+  if (VISIT_ALERT_EVENTS.includes(type) && typeof event.visit_id === 'string') {
+    return visitAlertDelivery(supabase, event as VisitAlertEvent);
+  }
+  if (BOOKING_EVENTS.includes(type) && typeof event.booking_id === 'string') {
+    return bookingDelivery(supabase, event as BookingPushEvent);
+  }
+  if (SITTER_BOOKING_EVENTS.includes(type) && typeof event.booking_id === 'string') {
+    return sitterBookingDelivery(supabase, event as SitterBookingEvent);
+  }
+  return null;
 }
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
   if (!isServiceRole(req)) return json({ error: 'Forbidden' }, 403);
 
-  const event: unknown = await req.json().catch(() => null);
+  const event = (await req.json().catch(() => null)) as Event | null;
   const supabase = createClient<Database>(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     { auth: { persistSession: false } },
   );
 
-  let delivery: Delivery;
+  // Chat: sent at once unless the conversation had an alert in the last minute
+  // (then alert-checks batches it).
+  if (event?.type === 'message' && typeof event.household_id === 'string') {
+    try {
+      return json(await sendChatAlerts(supabase, event.household_id, new Date()));
+    } catch (error) {
+      return json({ error: (error as Error).message }, 500);
+    }
+  }
+
+  const pending = event ? route(supabase, event) : null;
+  if (!pending) return json({ error: 'Invalid event' }, 400);
+
   try {
-    if (isPushEvent(event)) delivery = await visitDelivery(supabase, event);
-    else if (isBookingPushEvent(event)) delivery = await bookingDelivery(supabase, event);
-    else return json({ error: 'Invalid event' }, 400);
+    const delivery = await pending;
+    if ('reason' in delivery) return json({ sent: 0, reason: delivery.reason });
+    const results = [];
+    for (const d of delivery) results.push(await sendPush(supabase, d.push, d.recipients));
+    return json({ results });
   } catch (error) {
     return json({ error: (error as Error).message }, 500);
   }
-  if ('reason' in delivery) return json({ sent: 0, reason: delivery.reason });
-  if (delivery.recipients.length === 0) return json({ sent: 0, reason: 'no recipients' });
-
-  const { data: tokens, error: tokenError } = await supabase
-    .from('push_tokens')
-    .select('token')
-    .in('profile_id', delivery.recipients);
-  if (tokenError) return json({ error: tokenError.message }, 500);
-  if (!tokens?.length) return json({ sent: 0, reason: 'no devices registered' });
-
-  const response = await fetch(EXPO_PUSH_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(
-      tokens.map((t) => ({
-        to: t.token,
-        sound: 'default',
-        channelId: 'default',
-        ...delivery.message,
-      })),
-    ),
-  });
-  const result = (await response.json().catch(() => ({}))) as {
-    data?: ExpoTicket[];
-    errors?: unknown[];
-  };
-
-  // Forget devices Expo says are gone (app uninstalled, token rotated).
-  const stale = (result.data ?? []).flatMap((ticket, i) =>
-    ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered'
-      ? [tokens[i].token]
-      : [],
-  );
-  if (stale.length) {
-    await supabase.from('push_tokens').delete().in('token', stale);
-  }
-
-  return json({
-    sent: tokens.length,
-    removed: stale.length,
-    tickets: result.data,
-    errors: result.errors,
-  });
 });

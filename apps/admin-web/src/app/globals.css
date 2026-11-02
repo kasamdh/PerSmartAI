@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+/* --brand / --on-brand are set per business from organizations.primary_color. */
+@theme inline {
+  --color-brand: var(--brand, #1565c0);
+  --color-on-brand: var(--on-brand, #ffffff);
+  --color-brand-ink: var(--brand-ink, #0b5cad);
+}
+
+body {
+  background: #f2f4f7;
+  color: #111827;
+}

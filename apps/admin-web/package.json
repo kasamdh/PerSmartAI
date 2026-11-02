@@ -1,0 +1,33 @@
+{
+  "name": "@petsitter/admin-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@petsitter/shared": "*",
+    "@sentry/nextjs": "^11.10.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
+    "@tanstack/react-query": "^5.105.0",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.19.2",
+    "@types/react": "~19.3.0",
+    "@types/react-dom": "~19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.3",
+    "eslint-config-prettier": "^10.1.8",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3"
+  }
+}
