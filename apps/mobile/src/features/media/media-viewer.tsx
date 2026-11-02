@@ -50,7 +50,7 @@ export function MediaViewer({
         ok ? 'Saved' : 'Can’t save',
         ok
           ? `The ${item.type} is in your photos.`
-          : 'Allow Pet Sitter to add to your photos in Settings.',
+          : 'Allow Petsitters to add to your photos in Settings.',
       );
     } catch {
       Alert.alert('Couldn’t save', 'Check your connection and try again.');

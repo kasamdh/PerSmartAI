@@ -5,7 +5,7 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'Pet Sitter Admin',
+  title: 'Petsitters Admin',
   description: 'Run your pet-sitting business: schedule, requests, clients, sitters.',
 };
 

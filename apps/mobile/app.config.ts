@@ -20,8 +20,8 @@ const id =
   variant === 'production' ? BASE_ID : `${BASE_ID}.${variant === 'preview' ? 'preview' : 'dev'}`;
 const name =
   variant === 'production'
-    ? 'Pet Sitter'
-    : `Pet Sitter ${variant === 'preview' ? 'Preview' : 'Dev'}`;
+    ? 'Petsitters'
+    : `Petsitters ${variant === 'preview' ? 'Preview' : 'Dev'}`;
 
 // The dev client's local-network prompt text ships in every build; store builds
 // never use it, and App Review asks about local-network access, so drop it there.

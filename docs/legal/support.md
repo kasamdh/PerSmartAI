@@ -1,4 +1,4 @@
-# Pet Sitter support
+# Petsitters support
 
 > Replace the [bracketed] contact details before publishing.
 

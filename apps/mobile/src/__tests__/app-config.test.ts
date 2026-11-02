@@ -31,7 +31,7 @@ const pluginOptions = (config: ExpoConfig, name: string) => {
 describe('store app config', () => {
   it('uses the store name and ids for production, separate ones for test builds', () => {
     const production = resolve('production');
-    expect(production.name).toBe('Pet Sitter');
+    expect(production.name).toBe('Petsitters');
     expect(production.ios?.bundleIdentifier).toBe('com.kasamdh.petsitter');
     expect(production.android?.package).toBe('com.kasamdh.petsitter');
     expect(production.version).toMatch(/^\d+\.\d+\.\d+$/);
@@ -72,7 +72,7 @@ describe('store app config', () => {
     ];
     for (const text of texts) {
       expect(typeof text).toBe('string');
-      expect(text).toMatch(/^Pet Sitter /);
+      expect(text).toMatch(/^Petsitters /);
       expect(text).not.toMatch(/\$\(PRODUCT_NAME\)/);
     }
     expect(pluginOptions(config, 'expo-location')?.locationWhenInUsePermission).toMatch(

@@ -175,7 +175,7 @@ export function SettingsForm() {
 
         <Card title="Branding">
           <p className="mb-4 text-sm text-gray-600">
-            Your logo and colors appear in the Pet Sitter app for your clients and sitters, and on
+            Your logo and colors appear in the Petsitters app for your clients and sitters, and on
             this site.
           </p>
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">

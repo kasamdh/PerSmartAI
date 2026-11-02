@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Pet Sitter",
+    "name": "Petsitters",
     "slug": "PetSitter",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -61,7 +61,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Pet Sitter checks your location only when you check in or out of a visit, to confirm you are at the pet’s home. It never tracks you in the background.",
+          "locationWhenInUsePermission": "Petsitters checks your location only when you check in or out of a visit, to confirm you are at the pet’s home. It never tracks you in the background.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "locationFullAccuracyPermission": false,
@@ -74,9 +74,9 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Pet Sitter uses your camera so you can take photos and videos of pets during a visit and send them to their owners.",
-          "photosPermission": "Pet Sitter lets you choose photos and videos of pets from your library to send to their owners or add to a pet’s profile.",
-          "microphonePermission": "Pet Sitter records sound only when you take a video of a pet during a visit."
+          "cameraPermission": "Petsitters uses your camera so you can take photos and videos of pets during a visit and send them to their owners.",
+          "photosPermission": "Petsitters lets you choose photos and videos of pets from your library to send to their owners or add to a pet’s profile.",
+          "microphonePermission": "Petsitters records sound only when you take a video of a pet during a visit."
         }
       ],
       [
@@ -97,16 +97,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Pet Sitter uses your camera so you can take photos and videos of pets during a visit and send them to their owners.",
-          "microphonePermission": "Pet Sitter records sound only when you take a video of a pet during a visit.",
+          "cameraPermission": "Petsitters uses your camera so you can take photos and videos of pets during a visit and send them to their owners.",
+          "microphonePermission": "Petsitters records sound only when you take a video of a pet during a visit.",
           "recordAudioAndroid": true
         }
       ],
       [
         "expo-media-library",
         {
-          "photosPermission": "Pet Sitter lets you choose photos and videos of pets from your library to send to their owners.",
-          "savePhotosPermission": "Pet Sitter saves a pet’s photos and videos to your library only when you tap Save.",
+          "photosPermission": "Petsitters lets you choose photos and videos of pets from your library to send to their owners.",
+          "savePhotosPermission": "Petsitters saves a pet’s photos and videos to your library only when you tap Save.",
           "isAccessMediaLocationEnabled": false,
           "granularPermissions": []
         }

@@ -48,8 +48,8 @@ export function inviteShareMessage(input: {
 }): string {
   const as = input.role === 'sitter' ? 'as a sitter' : 'to manage your pets’ visits';
   return [
-    `You're invited to join ${input.businessName} on Pet Sitter ${as}.`,
-    `Open the Pet Sitter app, tap "I have an invite code" and enter: ${formatInviteCode(input.code)}`,
+    `You're invited to join ${input.businessName} on Petsitters ${as}.`,
+    `Open the Petsitters app, tap "I have an invite code" and enter: ${formatInviteCode(input.code)}`,
     `Or open this link on your phone: ${input.link}`,
   ].join('\n\n');
 }

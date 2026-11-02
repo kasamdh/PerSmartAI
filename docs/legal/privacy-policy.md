@@ -1,15 +1,15 @@
-# Pet Sitter privacy policy
+# Petsitters privacy policy
 
 > **DRAFT for a lawyer to review. Not legal advice and not yet in force.** Text in [square brackets] must be filled in or confirmed. Check it against the laws where you operate (for example GDPR, UK GDPR, CCPA/CPRA and other US state laws, PIPEDA) before publishing.
 
 Effective date: [DATE]
 
-Pet Sitter is an app and website that pet-sitting businesses use to run their visits, and that their clients and sitters use to book, carry out and follow those visits. It is provided by [COMPANY LEGAL NAME], [ADDRESS] ("we", "us").
+Petsitters is an app and website that pet-sitting businesses use to run their visits, and that their clients and sitters use to book, carry out and follow those visits. It is provided by [COMPANY LEGAL NAME], [ADDRESS] ("we", "us").
 
 ## Who is responsible for your data
 
-- **If you are a client or a sitter of a pet-sitting business**, that business decides what it uses Pet Sitter for and is responsible for your data (in GDPR terms, the "controller"). We store and process it for them (the "processor"). For most questions, contact the business first; we will help them answer.
-- **If you run a business on Pet Sitter**, we are responsible for your account data and for the data we need to run and secure the service.
+- **If you are a client or a sitter of a pet-sitting business**, that business decides what it uses Petsitters for and is responsible for your data (in GDPR terms, the "controller"). We store and process it for them (the "processor"). For most questions, contact the business first; we will help them answer.
+- **If you run a business on Petsitters**, we are responsible for your account data and for the data we need to run and secure the service.
 
 ## What we collect
 
@@ -79,7 +79,7 @@ Pet owners add these so that sitters can do the visit:
 - Our hosting provider receives your IP address with each request.
 - We keep short-lived records to limit repeated sign-in and invite-code attempts (deleted within a day).
 
-We do not collect payment details. Payments, if any, are between you and the pet-sitting business, outside Pet Sitter.
+We do not collect payment details. Payments, if any, are between you and the pet-sitting business, outside Petsitters.
 
 ## How we use it
 
@@ -102,7 +102,7 @@ We do **not** sell your data, use it for advertising, or track you across other 
 
 **Service providers**
 
-We use these providers to run Pet Sitter. They process data only on our instructions:
+We use these providers to run Petsitters. They process data only on our instructions:
 
 - [Supabase Inc.] – database, file storage, sign-in and hosting ([REGION]).
 - [Expo / 650 Industries] – sends push notifications. Notification text can include a pet's name and visit status.
@@ -157,7 +157,7 @@ To use these rights, contact the pet-sitting business, or us at [privacy@EXAMPLE
 
 ## Children
 
-Pet Sitter is not meant for children under [16]. We do not knowingly collect data from children.
+Petsitters is not meant for children under [16]. We do not knowingly collect data from children.
 
 ## International transfers
 

@@ -1,12 +1,12 @@
-# Delete your Pet Sitter account
+# Delete your Petsitters account
 
 > **DRAFT for a lawyer to review.** Text in [square brackets] must be filled in.
 
-You can delete your Pet Sitter account, made by [COMPANY LEGAL NAME], at any time.
+You can delete your Petsitters account, made by [COMPANY LEGAL NAME], at any time.
 
 ## In the app
 
-1. Open Pet Sitter and sign in.
+1. Open Petsitters and sign in.
 2. Tap **My profile** (at the bottom of your home screen).
 3. Tap **Delete my account** and confirm.
 

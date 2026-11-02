@@ -348,8 +348,8 @@ function InviteSection() {
 
   const message = (code: string, inviteRole: string) =>
     [
-      `You're invited to join ${org.name} on Pet Sitter ${inviteRole === 'sitter' ? 'as a sitter' : 'to manage your pets’ visits'}.`,
-      `Open the Pet Sitter app, tap "I have an invite code" and enter: ${formatInviteCode(code)}`,
+      `You're invited to join ${org.name} on Petsitters ${inviteRole === 'sitter' ? 'as a sitter' : 'to manage your pets’ visits'}.`,
+      `Open the Petsitters app, tap "I have an invite code" and enter: ${formatInviteCode(code)}`,
     ].join('\n\n');
 
   const onSubmit = (e: FormEvent) => {

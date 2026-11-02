@@ -9,7 +9,7 @@ Run `npm run demo:create` against **production** right before each submission. I
 
 ---
 
-Pet Sitter is a business app for pet-sitting companies. Clients and sitters join a business by invitation, so we have set up a demo business for you. Location is used only at check-in and check-out; it is never collected in the background.
+Petsitters is a business app for pet-sitting companies. Clients and sitters join a business by invitation, so we have set up a demo business for you. Location is used only at check-in and check-out; it is never collected in the background.
 
 **Sitter account (main flow)**
 

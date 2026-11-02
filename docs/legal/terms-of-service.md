@@ -1,14 +1,14 @@
-# Pet Sitter terms of service
+# Petsitters terms of service
 
 > **DRAFT for a lawyer to review. Not legal advice and not yet in force.** Text in [square brackets] must be filled in or confirmed. Businesses may also need a separate business agreement (including a data processing agreement); see the notes at the end.
 
 Effective date: [DATE]
 
-These terms are between you and [COMPANY LEGAL NAME] ("we", "us"), and cover your use of the Pet Sitter app and website.
+These terms are between you and [COMPANY LEGAL NAME] ("we", "us"), and cover your use of the Petsitters app and website.
 
-## 1. What Pet Sitter is
+## 1. What Petsitters is
 
-Pet Sitter is software that pet-sitting businesses use to schedule visits, and that their clients (pet owners) and sitters use to book visits, record care, and share photos and messages.
+Petsitters is software that pet-sitting businesses use to schedule visits, and that their clients (pet owners) and sitters use to book visits, record care, and share photos and messages.
 
 **We do not provide pet care.** The pet-sitting business, and its sitters, provide the care and are responsible for it, including:
 
@@ -22,19 +22,19 @@ Pet Sitter is software that pet-sitting businesses use to schedule visits, and t
 - You must give accurate information and keep your password safe.
 - You are responsible for what happens under your account.
 - Sitters and clients join a business by invitation. The business can remove them.
-- You must be at least [16] (or the age of majority where you live, if higher) to use Pet Sitter.
+- You must be at least [16] (or the age of majority where you live, if higher) to use Petsitters.
 
 ## 3. Your content
 
 - You keep ownership of what you add: pet details, photos, videos, messages and notes.
-- You give us permission to store, process and display it only to run Pet Sitter for you and your business, as described in our [privacy policy](/privacy).
+- You give us permission to store, process and display it only to run Petsitters for you and your business, as described in our [privacy policy](/privacy).
 - Only add information you have the right to share. That includes emergency contacts who agree to be listed, and photos of people only with their permission.
 
 ## 4. Acceptable use
 
 Do not:
 
-- use Pet Sitter for anything illegal;
+- use Petsitters for anything illegal;
 - harass anyone or post abusive content;
 - try to access another business's data or another person's account;
 - probe, scan or overload the service, or try to get around its security or rate limits;
@@ -53,7 +53,7 @@ Do not:
 
 ## 7. Availability and changes
 
-We work to keep Pet Sitter available and secure, but it is provided "as is" and "as available". We may change or discontinue features, and will give reasonable notice of material changes.
+We work to keep Petsitters available and secure, but it is provided "as is" and "as available". We may change or discontinue features, and will give reasonable notice of material changes.
 
 ## 8. Ending your use
 
@@ -91,7 +91,7 @@ If you downloaded the app from the App Store or Google Play:
 
 **Notes for the lawyer (delete before publishing)**
 
-- Businesses using Pet Sitter should sign a business agreement that covers:
+- Businesses using Petsitters should sign a business agreement that covers:
   - fees;
   - a data processing agreement (we process client and sitter data for them);
   - their duty to have a lawful basis and to give notice to their clients and sitters;

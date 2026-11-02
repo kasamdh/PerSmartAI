@@ -27,7 +27,7 @@ Work top to bottom. [Bracketed] items are things only you can provide. Steps mar
 1. **You:** in Certificates, Identifiers & Profiles, check that the App ID `com.kasamdh.petsitter` exists with **Push Notifications** turned on. EAS creates it on the first build if you let it.
 2. **You:** in App Store Connect, go to My Apps > + > New App:
    - Platform: iOS
-   - Name: **Pet Sitter**. If the name is taken, pick another and change `name` in `apps/mobile/app.config.ts`.
+   - Name: **Petsitters**. If the name is taken, pick another and change `name` in `apps/mobile/app.config.ts`.
    - Primary language: English (U.S.)
    - Bundle ID: `com.kasamdh.petsitter`
    - SKU: `petsitter-ios`
@@ -53,7 +53,7 @@ Work top to bottom. [Bracketed] items are things only you can provide. Steps mar
 ## 2. Google Play Console (Android)
 
 1. **You:** Create app:
-   - Name: Pet Sitter
+   - Name: Petsitters
    - Default language: English (US)
    - App, Free
    - Accept the declarations.

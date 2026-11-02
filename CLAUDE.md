@@ -1,4 +1,4 @@
-# Pet Sitter App
+# Petsitters App
 
 ## Product
 

@@ -252,11 +252,11 @@ otp_expiry = 900
 
 # Uncomment to customize email template
 [auth.email.template.magic_link]
-subject = "Your Pet Sitter sign-in code"
+subject = "Your Petsitters sign-in code"
 content_path = "./supabase/templates/magic-link.html"
 
 [auth.email.template.recovery]
-subject = "Reset your Pet Sitter password"
+subject = "Reset your Petsitters password"
 content_path = "./supabase/templates/recovery.html"
 
 # [auth.email.template.invite]

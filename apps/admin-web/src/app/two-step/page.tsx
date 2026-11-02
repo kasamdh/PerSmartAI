@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { TwoStepForm } from './two-step-form';
 
-export const metadata: Metadata = { title: 'Two-step sign-in · Pet Sitter Admin' };
+export const metadata: Metadata = { title: 'Two-step sign-in · Petsitters Admin' };
 
 export default function TwoStepPage() {
   return (

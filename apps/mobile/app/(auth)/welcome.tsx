@@ -8,7 +8,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
   return (
     <FormScreen
-      title="Pet Sitter App"
+      title="Petsitters App"
       subtitle="Live updates and photos for dogs and cats, from the people who care for them."
     >
       <BigButton label="Log in" onPress={() => router.push('/sign-in')} />
