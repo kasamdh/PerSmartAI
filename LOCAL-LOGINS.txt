@@ -1,0 +1,62 @@
+PETSITTERS - LOCAL TEST LOGINS
+==============================
+
+For your own computer only (local Supabase after `npm run db:reset`).
+These are the seed accounts from supabase/seed.sql. They do NOT exist on
+staging or production, and must never be used there.
+
+
+PASSWORD (every account)
+------------------------
+password123
+
+
+ACCOUNTS
+--------
+Role             Email                         What it has
+---------------  ----------------------------  -----------------------------------------
+Pet owner        rudradh@gmail.com             Biscuit (dog) and Mochi (cat)
+Pet owner        oscar@example.test            Rex (dog)
+Sitter           monikapokhrel55@gmail.com     A visit at Rudra's home today
+Sitter           sky@happypaws.test            Rex's walk tomorrow
+Business admin   admin@happypaws.test          Everything in the business (needs code)
+Business admin   kasamdhakal55@gmail.com       Same business (needs code)
+
+
+ADMIN 6-DIGIT CODE (two-step sign-in)
+-------------------------------------
+Admins need a code after the password. The code changes every 30 seconds.
+
+  Option 1 - print a code in a terminal (run from the project folder):
+      node scripts/totp.mjs JBSWY3DPEHPK3PXP
+
+  Option 2 - add this key once to an authenticator app
+  (Google Authenticator, Microsoft Authenticator, 1Password...):
+      JBSWY3DPEHPK3PXP
+
+
+WHERE TO OPEN THINGS
+--------------------
+Mobile app (Expo Go)     exp://192.168.4.119:8082   (Expo Go > Enter URL manually)
+Admin website            http://localhost:3001
+Supabase Studio (data)   http://127.0.0.1:54323
+Emails sent locally      http://127.0.0.1:54324     (magic links, sign-in codes)
+
+If your PC's Wi-Fi address changes, update the IP above and in apps/mobile/.env
+(find it with: ipconfig, "IPv4 Address").
+
+
+START EVERYTHING
+----------------
+1. Start Docker Desktop and wait until it says it's running.
+2. In the project folder (C:\Users\kasam\Projects\PetSitter):
+      npx supabase start          (backend)
+      npm run db:reset            (fresh test data; visits are relative to now)
+      npm run mobile              (app; or: cd apps/mobile, npx expo start --go --lan --port 8082)
+      npm run web                 (admin website, in a second terminal)
+
+
+STOP EVERYTHING
+---------------
+Press Ctrl+C in the app and website terminals, then:
+      npx supabase stop
