@@ -84,6 +84,8 @@ export type OwnerHomeViewProps = {
   onProfile: () => void;
   onHousehold: () => void;
   onNotifications: () => void;
+  /** Asks, then signs out (OwnerHomeScreen uses confirmSignOut). */
+  onSignOut: () => void;
 };
 
 export function OwnerHomeView(props: OwnerHomeViewProps) {
@@ -278,7 +280,7 @@ export function OwnerHomeView(props: OwnerHomeViewProps) {
       ) : null}
 
       {/* Less frequent places. */}
-      <SectionHeader title="Your home" />
+      <SectionHeader title="Home and account" />
       <Card padding="sm" elevation={1} style={styles.list}>
         <ListItem
           title="Home & emergency contacts"
@@ -294,6 +296,13 @@ export function OwnerHomeView(props: OwnerHomeViewProps) {
           leading={<Icon name="bell" color="primaryInk" />}
           trailing="chevron"
           onPress={props.onNotifications}
+        />
+        <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+        <ListItem
+          title="Sign out"
+          leading={<Icon name="logout" color="danger" />}
+          accessibilityHint="Asks before signing you out"
+          onPress={props.onSignOut}
         />
       </Card>
     </Screen>

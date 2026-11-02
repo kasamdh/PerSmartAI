@@ -58,8 +58,30 @@ export function AdminNav({
           </Link>
         ))}
       </nav>
-      <form action={signOut} className="hidden p-4 lg:block">
-        <button type="submit" className="text-sm text-gray-600 underline hover:text-gray-900">
+      {/* Visible at every width (under the menu on phones, at the bottom of the sidebar on wide screens). */}
+      <form
+        action={signOut}
+        onSubmit={(event) => {
+          if (!window.confirm('Sign out of Petsitters?')) event.preventDefault();
+        }}
+        className="px-2 pb-3 lg:p-4"
+      >
+        <button
+          type="submit"
+          className="inline-flex min-h-10 w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 lg:w-auto"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+          </svg>
           Sign out
         </button>
       </form>

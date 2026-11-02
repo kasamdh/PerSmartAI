@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router/js-tabs';
 
 import { TabBar } from '@/components/ui';
+import { SignOutHeaderButton } from '@/features/auth/sign-out-button';
 import { useBrandedHeader } from '@/features/branding/brand';
 import { useUnreadCount } from '@/features/chat/hooks';
 
@@ -11,7 +12,8 @@ export default function SitterTabsLayout() {
   const header = useBrandedHeader();
   return (
     <Tabs
-      screenOptions={header}
+      // Sign out is in the top bar of every tab, so it's never more than one tap away.
+      screenOptions={{ ...header, headerRight: () => <SignOutHeaderButton /> }}
       tabBar={(props) => (
         <TabBar
           {...props}

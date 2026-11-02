@@ -567,6 +567,7 @@ function HomeSampleSection() {
           onProfile={() => {}}
           onHousehold={() => {}}
           onNotifications={() => {}}
+          onSignOut={() => {}}
         />
       </View>
     </Section>

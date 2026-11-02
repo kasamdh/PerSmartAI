@@ -2,6 +2,8 @@ import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 
 import { PetAvatar } from '@/components/ui';
+import { signOut } from '@/features/auth/api';
+import { confirmSignOut } from '@/features/auth/sign-out-button';
 import { useProfile } from '@/features/auth/use-profile';
 import { useBrand } from '@/features/branding/brand-context';
 import { useUnreadCount } from '@/features/chat/hooks';
@@ -68,6 +70,7 @@ export function OwnerHomeScreen() {
       onProfile={() => router.push('/profile')}
       onHousehold={() => router.push('/household')}
       onNotifications={() => router.push('/notifications')}
+      onSignOut={() => confirmSignOut(() => void signOut())}
     />
   );
 }

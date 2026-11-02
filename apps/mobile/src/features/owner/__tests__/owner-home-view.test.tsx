@@ -23,6 +23,7 @@ async function renderHome(overrides: Partial<OwnerHomeViewProps> = {}) {
     onProfile: jest.fn(),
     onHousehold: jest.fn(),
     onNotifications: jest.fn(),
+    onSignOut: jest.fn(),
     onRefresh: jest.fn(),
   };
   const props: OwnerHomeViewProps = {
@@ -88,5 +89,11 @@ describe('OwnerHomeView', () => {
     expect(screen.getByText('Couldn’t load your pets')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
     expect(retry).toHaveBeenCalled();
+  });
+
+  it('lets the owner sign out from the home screen', async () => {
+    const { handlers } = await renderHome();
+    await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
+    expect(handlers.onSignOut).toHaveBeenCalled();
   });
 });
