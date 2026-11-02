@@ -23,6 +23,7 @@ Roles:
 - ESLint (`eslint-config-expo`) + Prettier
 - Monorepo: npm workspaces + Turborepo (`apps/*`, `packages/*`; one hoisted React 19.3.0)
 - Admin web: Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind CSS 4 + `@supabase/ssr`, TanStack Query
+- Design system: tokens in `apps/mobile/src/theme`, components in `apps/mobile/src/components/ui`, icons from `lucide-react-native` (+ `react-native-svg`), motion with Reanimated (see Design system)
 - Sentry (`@sentry/react-native`, `@sentry/nextjs`) for errors; PostHog (`posthog-react-native`) for key events; `@shopify/flash-list` v2 for long lists; `expo-updates` (EAS Update); Maestro for end-to-end flows
 
 Everything above is installed. `rrule` is used for date expansion only (see Scheduling). Add mobile packages with `npx expo install <pkg>` (run in `apps/mobile`), and ask first.
@@ -35,7 +36,9 @@ apps/
     app/                  Expo Router routes only (every file is a screen)
       (auth)/ (owner)/ (sitter)/ (admin)/ (account)/ ...
     src/
-      components/         Shared UI (e.g. BigButton)
+      theme/              Design tokens (colors light/dark, type, spacing, motion)
+      components/ui/      Design system components (Button, Card, ListItem, ...)
+      components/         Older shared UI (BigButton etc., drawn through ui/)
       features/<feature>/ Feature modules: api (queries/mutations), hooks, schemas, components, tests
       lib/                supabase client, env, utils
       types/              Re-exports of the shared DB types and models
@@ -175,7 +178,7 @@ In `apps/mobile`, keep non-route code out of `app/`. Route groups don't add a UR
 - Timed alerts: pg_cron calls `alert-checks` every minute (`{job:'photos'}`: one "Max: 4 new photos" alert per visit at most every 5 minutes, after a 30 s settle) and every 5 minutes (`{job:'checks'}`: sitter reminders 30 minutes before, late check-ins 15 minutes after the start to owner and admins, medication due during overnight/multi-day stays). Decisions are pure in `_shared/alerts.ts` (Jest-tested); `notification_log` (service_role only) makes each alert go out once.
 - Alert kinds and their settings labels live in `_shared/alerts.ts`. Users mute kinds in `notification_settings.muted` (own row only); `incident` can't be muted. Wording is in `_shared/push-messages.ts`. The payload's `data` carries `visitId` or `bookingId` plus `type`; `src/features/notifications/push-routes.ts` maps it to a screen per role.
 - Run functions locally with `npx supabase functions serve`. Edge Function code is Deno and isn't part of any workspace's `tsc` or ESLint.
-- Use `BigButton` (min 56pt height) or an equivalent for primary actions. Put primary actions in the lower half of the screen.
+- Primary actions use `Button` from `@/components/ui` (56 pt), in the screen's bottom thumb zone (see Design system).
 - Expo changes between SDKs. Check the versioned docs (https://docs.expo.dev/versions/v58.0.0/) rather than memory.
 - Expo Go only bundles its built-in native modules. A library with custom native code needs a development build.
 
@@ -194,6 +197,64 @@ In `apps/mobile`, keep non-route code out of `app/`. Route groups don't add a UR
 - CI (`.github/workflows/ci.yml`) on every PR: `npm run check`, web build, mobile JS export plus the bundle secret scan, Supabase from scratch with db lint, pgTAP and a generated-types diff, a guard against editing applied migrations, Deno type check of the functions, gitleaks.
 - Accessibility: `npm run a11y:check` (in `npm run check`) requires a role on every touchable, a label on every input and switch, and a label or `accessible={false}` on every image. Text colors must reach 4.5:1 on their background (the default brand blue is `#1565C0`; muted text `#666666`).
 - Remote images use `cachedImageSource(url)` (`src/lib/image-cache.ts`) with `cachePolicy="memory-disk"`, so re-signed URLs reuse the cached file. Unbounded lists use FlashList.
+
+## Design system
+
+Feel: warm, calm, trustworthy, playful but not childish. Owners should feel their pet is safe; sitters finish tasks fast with one hand. Clean, lots of white space, rounded, soft.
+
+**Tokens** (`apps/mobile/src/theme`, the single source of truth):
+
+- **Colors:** Calm Teal (`colors.ts`), light and dark. Read colors only through `useTheme().colors` (or `useThemedStyles`). Never hard-code a color in a screen.
+  - Roles: `background`, `surface`, `surfaceMuted`, `text`, `textMuted`, `primary`/`onPrimary`/`primarySoft`/`primaryInk`, `accent` (small highlights, never text), `success`, `warning`, `danger` (each with `…Soft`), and `allergy`/`onAllergy`/`allergySoft`.
+  - `allergy` is only ever used for allergies.
+  - Every text/background pair passes WCAG AA in both modes (`theme.test.ts`). Add new pairs to `CONTRAST_PAIRS`.
+- **Brand:** a business's own primary color replaces the teal through `ThemeProvider`, adapted per mode so contrast holds; the logo comes from `useBrand()`.
+- **Type:** the system font (San Francisco / Roboto). Scale: `display` 34, `title` 28, `heading` 22, `subheading` 18, `body` 17, `callout` 15, `caption` 13, `label` 15, `button` 17.
+  - Use `<Text variant tone>`, never raw font sizes.
+  - Text grows with the phone's text size, capped per step (`maxScale`). Never set `allowFontScaling={false}`, and never give text containers fixed heights.
+- **Shape and space:**
+  - Spacing on the 4/8 pt grid (`space.xxs…xxl`).
+  - Corners via `radius`; cards use 20, sheets 28.
+  - Soft shadows via `theme.elevation(n)`; in dark mode, borders replace shadows.
+  - Sizes via `size`: `tap` 48, `control` 56, `bigAction` 88.
+- **Motion:** 150–250 ms (`motion`), springy press through `PressableScale`. Respect Reduce Motion (`useReducedMotion`); motion becomes fades or nothing.
+- **Haptics:** `haptics.tap()` for care taps, `haptics.success()` for check-in, check-out and sending. It's a stub until expo-haptics is approved (`src/theme/haptics.ts`).
+- **Dark mode:** fully defined, but the app still forces light (`FOLLOW_PHONE_APPEARANCE`, `userInterfaceStyle: light`) until the older screens use tokens.
+  - `npm run design:check` fails on any color in design-system code, and on any increase in the remaining hard-coded colors (`LEGACY_LIMIT`).
+  - Lower the limit as screens migrate. At 0, turn both settings on.
+
+**Components** (`apps/mobile/src/components/ui`; build screens from these):
+
+- **Layout:** `Screen` (safe areas, keyboard, pull to refresh, `bottomAction` for the main action), `Card`, `SectionHeader`.
+- **Text and icons:** `Text`, and `Icon` (lucide, by name; add icons to its map).
+- **Buttons:**
+  - `Button`: primary, secondary, ghost or danger, with loading.
+  - `BigActionButton`: sitter care taps.
+  - `IconButton`.
+- **Lists:** `ListItem`. Its swipe actions are also screen-reader actions.
+- **Status and pets:** `StatusChip` (color + icon + words), `PetAvatar`, `AllergyBanner` (full, or compact for cards).
+- **Inputs:** `TextField`, `Select`, `DatePicker`, `TimePicker`, `TimeWindowPicker`.
+- **Overlays:** `BottomSheet`, and `Toast` (`useToast().show({ message, actionLabel: 'Undo', onAction })`).
+- **States:** `EmptyState`, `Skeleton` / `SkeletonList`.
+- **Navigation:** `TabBar` (`<Tabs tabBar={(p) => <TabBar {...p} icons={…} />}>`).
+- **Older wrappers:** `BigButton` and `features/pets/AllergyBanner` render through these; prefer the `ui` versions in new code.
+- **Design Preview:** `/design-preview` is a dev-only screen, reached from the welcome and profile screens. It shows every token and component in light and dark, plus the sample owner home. Add new components to it.
+
+**Usability rules (every screen):**
+
+- **One main action per screen,** in the bottom thumb zone (`Screen bottomAction`). Everything else is secondary, ghost or a list row.
+- **Tap targets at least 48×48 pt;** sitter care buttons use `BigActionButton` (88 pt).
+- **Max 3 taps to any daily task.** The sitter's Today screen is their home tab.
+- **Bottom tab bar:** at most 5 tabs per role, with a label under each icon.
+- **Every list has three states:** loading (`SkeletonList`), empty (`EmptyState` with one action) and error (with Try again).
+- **Plain, friendly words** ("Max ate all his food"). No jargon, error codes or raw server messages.
+- **Allergies and incidents are always visible,** never behind a tap. `AllergyBanner` comes first in every pet view and as `compact` on pet cards.
+- **Forms:** short, one topic per step, smart defaults, errors shown next to the field (`TextField error`).
+- **Safe areas, notches and the keyboard** are handled on every screen (`Screen`, `BottomSheet`).
+- **Every button and image has a screen reader label** (`npm run a11y:check`).
+- **Status is never color alone:** color + icon + words.
+- **Optimistic updates** for care taps (instant UI, then sync), with Undo instead of confirmation dialogs.
+- **Swipe actions only where natural,** and always also reachable without swiping.
 
 ## Store release
 
@@ -215,7 +276,8 @@ npm run lint            # ESLint in every workspace (turbo)
 npm run format          # Prettier write (format:check to verify)
 npm run typecheck       # tsc --noEmit in every workspace (turbo)
 npm test                # Jest in every workspace (turbo)
-npm run check           # shared:check + a11y:check + lint + format:check + typecheck + test (run before "done")
+npm run check           # shared:check + a11y:check + design:check + lint + format:check + typecheck + test (run before "done")
+npm run design:check    # no hard-coded colors in design-system code; legacy count can only go down
 npm run shared:sync     # copy shared logic into supabase/functions/_shared
 npm run functions:check # Deno type check of every Edge Function (needs Deno)
 npm run secrets:check -- <dirs>  # fail if a built bundle contains a non-anon key

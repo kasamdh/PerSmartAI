@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 
 import { BigButton } from '@/components/big-button';
 import { FormScreen } from '@/components/form-screen';
+import { DesignPreviewLink } from '@/features/design-preview/design-preview-link';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function WelcomeScreen() {
         variant="secondary"
         onPress={() => router.push('/sign-up')}
       />
+      <DesignPreviewLink />
     </FormScreen>
   );
 }

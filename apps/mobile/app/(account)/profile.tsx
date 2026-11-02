@@ -8,6 +8,7 @@ import { BigButton } from '@/components/big-button';
 import { FormField } from '@/components/form-field';
 import { FormScreen } from '@/components/form-screen';
 import { deleteAccount, updateProfile } from '@/features/auth/api';
+import { DesignPreviewLink } from '@/features/design-preview/design-preview-link';
 import { useAuth } from '@/features/auth/auth-provider';
 import { profileSchema, type ProfileValues } from '@/features/auth/schemas';
 import { SignOutButton } from '@/features/auth/sign-out-button';
@@ -101,6 +102,7 @@ export default function ProfileScreen() {
 
         <View style={styles.divider} />
         <SignOutButton />
+        <DesignPreviewLink />
         <LegalLinks />
 
         <View style={styles.danger}>

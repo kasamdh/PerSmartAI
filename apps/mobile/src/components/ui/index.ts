@@ -8,6 +8,7 @@ export { Card, type CardProps } from './card';
 export { DatePicker, TimePicker } from './date-picker';
 export { EmptyState, type EmptyStateProps } from './empty-state';
 export { Icon, type IconName } from './icon';
+export { IconButton, type IconButtonProps } from './icon-button';
 export { ListItem, type ListItemProps, type SwipeAction } from './list-item';
 export { PetAvatar, type PetAvatarProps } from './pet-avatar';
 export { PressableScale } from './pressable-scale';

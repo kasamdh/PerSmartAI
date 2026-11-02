@@ -32,7 +32,7 @@ export async function fetchPets() {
   const { data, error } = await supabase
     .from('pets')
     .select(
-      'id, name, species, breed, birth_date, photo_url, pet_allergies ( severity ), feeding_plans ( times ), pet_medications ( schedule_times )',
+      'id, name, species, breed, birth_date, photo_url, pet_allergies ( allergen, severity, reaction_notes ), feeding_plans ( times ), pet_medications ( schedule_times )',
     )
     .order('name');
   if (error) throw error;

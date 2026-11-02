@@ -76,6 +76,10 @@ function RootNavigator() {
       <Stack.Screen name="index" />
       {/* Email links land here from any state. */}
       <Stack.Screen name="auth/callback" />
+      {/* Dev-only design system preview (see src/features/design-preview). */}
+      <Stack.Protected guard={__DEV__}>
+        <Stack.Screen name="design-preview" />
+      </Stack.Protected>
       <Stack.Protected guard={guards.auth}>
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
